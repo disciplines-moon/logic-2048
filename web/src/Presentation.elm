@@ -420,7 +420,11 @@ viewArt kind =
                     [ div [ class "key-row" ] [ pressKey "W" 0 ]
                     , div [ class "key-row" ] [ pressKey "A" 1, pressKey "S" 2, pressKey "D" 3 ]
                     ]
-                , div [ class "msg-lane" ] [ div [ class "msg-chip" ] [ text "KeyDown" ] ]
+                , div [ class "msg-lane" ]
+                    (List.indexedMap
+                        (\i k -> div [ class "msg-chip", style "animation-delay" (String.fromFloat (toFloat i * 0.7) ++ "s") ] [ text ("KeyDown " ++ k) ])
+                        [ "W", "A", "S", "D" ]
+                    )
                 , div [ class "elm-box" ]
                     [ div [ class "elm-title" ] [ text "Elm" ]
                     , div [ class "elm-loop" ]

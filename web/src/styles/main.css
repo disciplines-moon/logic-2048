@@ -395,16 +395,16 @@ kbd {
 .mini-kb .key-row { display: flex; gap: 6px; }
 .mini-kb .key { width: 3rem; height: 3rem; font-size: 1.2rem; }
 .mini-kb .key.press { animation-duration: 2.8s; }
-.msg-lane { position: relative; width: 7rem; height: 2.4rem; border-bottom: 2px dashed var(--line); }
+.msg-lane { position: relative; width: 9rem; height: 2.4rem; border-bottom: 2px dashed var(--line); }
 .msg-chip {
   position: absolute; top: 0; left: 0; padding: 0.3rem 0.7rem; border-radius: 999px; font: 700 0.85rem ui-monospace, monospace;
   background: var(--accent); color: #fff; animation: fly 2.8s ease-in-out infinite; opacity: 0;
 }
 @keyframes fly {
-  0%, 4% { transform: translateX(-2rem); opacity: 0; }
-  10% { opacity: 1; }
-  30% { transform: translateX(5rem); opacity: 1; }
-  36%, 100% { transform: translateX(6rem); opacity: 0; }
+  0%, 4% { transform: translateX(-3rem); opacity: 0; }
+  7% { opacity: 1; }
+  26% { transform: translateX(5rem); opacity: 1; }
+  30%, 100% { transform: translateX(6rem); opacity: 0; }
 }
 .elm-box { border: 2px solid var(--elm); border-radius: 14px; padding: 0.6rem 0.8rem; background: color-mix(in srgb, var(--elm) 8%, white); }
 .elm-title { font-weight: 800; margin-bottom: 0.4rem; text-align: center; }
