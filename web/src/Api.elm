@@ -1,4 +1,4 @@
-module Api exposing (Direction(..), MoveResponse, encodeMove, moveDecoder, postMove)
+module Api exposing (Direction(..), MoveResponse, encodeMove, keyDecoder, moveDecoder, postMove)
 
 import Http
 import Json.Decode as D
@@ -19,6 +19,31 @@ type alias MoveResponse =
     , won : Bool
     , lost : Bool
     }
+
+
+{-| Setas do teclado viram direções. Outras teclas viram `Nothing`.
+-}
+keyDecoder : D.Decoder (Maybe Direction)
+keyDecoder =
+    D.field "key" D.string
+        |> D.map
+            (\key ->
+                case key of
+                    "ArrowLeft" ->
+                        Just Left
+
+                    "ArrowRight" ->
+                        Just Right
+
+                    "ArrowUp" ->
+                        Just Up
+
+                    "ArrowDown" ->
+                        Just Down
+
+                    _ ->
+                        Nothing
+            )
 
 
 directionToString : Direction -> String

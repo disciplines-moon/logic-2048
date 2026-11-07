@@ -3,14 +3,29 @@ module Main exposing (main)
 import Api exposing (Direction(..), MoveResponse)
 import Browser
 import Browser.Events
-import Html exposing (Html, div, h1, p, text)
+import Browser.Navigation as Nav
+import Dict exposing (Dict)
+import Html exposing (Html, button, div, h1, p, text)
 import Html.Attributes exposing (style)
+import Html.Events exposing (onClick)
 import Http
 import Json.Decode as D
+import Ports
+import Presentation
+import Url exposing (Url)
+
+
+type Page
+    = GamePage
+    | PresentationPage
 
 
 type alias Model =
-    { board : List (List Int)
+    { key : Nav.Key
+    , page : Page
+    , presentation : Presentation.Model
+    , sources : Dict String String
+    , board : List (List Int)
     , score : Int
     , status : String
     }
@@ -19,49 +34,96 @@ type alias Model =
 type Msg
     = Pressed Direction
     | GotMove (Result Http.Error MoveResponse)
+    | PresentationMsg Presentation.Msg
+    | StartPresentation
+    | UrlRequested Browser.UrlRequest
+    | UrlChanged Url
     | Ignored
 
 
-main : Program () Model Msg
+main : Program D.Value Model Msg
 main =
-    Browser.element
-        { init = \_ -> ( initialModel, Cmd.none )
+    Browser.application
+        { init = init
         , update = update
         , view = view
-        , subscriptions = \_ -> Browser.Events.onKeyDown keyDecoder
+        , subscriptions = subscriptions
+        , onUrlRequest = UrlRequested
+        , onUrlChange = UrlChanged
         }
 
 
-initialModel : Model
-initialModel =
-    -- TODO: sortear duas peças iniciais com Random.
-    { board = [ [ 2, 0, 0, 2 ], [ 0, 0, 0, 0 ], [ 0, 4, 0, 0 ], [ 0, 0, 0, 0 ] ]
-    , score = 0
-    , status = "Use as setas do teclado."
-    }
+init : D.Value -> Url -> Nav.Key -> ( Model, Cmd Msg )
+init flags url key =
+    let
+        ( page, presentation ) =
+            route url
+    in
+    ( { key = key
+      , page = page
+      , presentation = presentation
+      , sources = sourcesFrom flags
+      , board = [ [ 2, 0, 0, 2 ], [ 0, 0, 0, 0 ], [ 0, 4, 0, 0 ], [ 0, 0, 0, 0 ] ]
+      , score = 0
+      , status = "Use as setas do teclado."
+      }
+    , Cmd.none
+    )
 
 
-keyDecoder : D.Decoder Msg
-keyDecoder =
-    D.field "key" D.string
-        |> D.map
-            (\key ->
-                case key of
-                    "ArrowLeft" ->
-                        Pressed Left
+{-| Arquivos do repositório (`?raw` do Vite) usados nos slides com `Code`.
+-}
+sourcesFrom : D.Value -> Dict String String
+sourcesFrom flags =
+    D.decodeValue (D.field "sources" (D.dict D.string)) flags
+        |> Result.withDefault Dict.empty
 
-                    "ArrowRight" ->
-                        Pressed Right
 
-                    "ArrowUp" ->
-                        Pressed Up
+{-| `#/apresentacao` ou `#/apresentacao/N` (N de 1 em diante). Qualquer outra coisa é o jogo.
+-}
+route : Url -> ( Page, Presentation.Model )
+route url =
+    let
+        number n =
+            Maybe.withDefault 1 (String.toInt n) - 1
+    in
+    case String.split "/" (Maybe.withDefault "" url.fragment) of
+        [ "", "apresentacao" ] ->
+            ( PresentationPage, Presentation.init 0 0 )
 
-                    "ArrowDown" ->
-                        Pressed Down
+        [ "", "apresentacao", c ] ->
+            ( PresentationPage, Presentation.init (number c) 0 )
 
-                    _ ->
-                        Ignored
-            )
+        [ "", "apresentacao", c, p ] ->
+            ( PresentationPage, Presentation.init (number c) (number p) )
+
+        _ ->
+            ( GamePage, Presentation.init 0 0 )
+
+
+presentationUrl : Presentation.Model -> String
+presentationUrl m =
+    "#/apresentacao/" ++ String.fromInt (m.scene + 1) ++ "/" ++ String.fromInt (m.step + 1)
+
+
+subscriptions : Model -> Sub Msg
+subscriptions model =
+    case model.page of
+        GamePage ->
+            Browser.Events.onKeyDown (D.map toGameMsg Api.keyDecoder)
+
+        PresentationPage ->
+            Browser.Events.onKeyDown (D.map PresentationMsg Presentation.keyDecoder)
+
+
+toGameMsg : Maybe Direction -> Msg
+toGameMsg maybeDir =
+    case maybeDir of
+        Just dir ->
+            Pressed dir
+
+        Nothing ->
+            Ignored
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -71,23 +133,73 @@ update msg model =
             ( model, Api.postMove model.board dir GotMove )
 
         GotMove (Ok res) ->
-            -- TODO: se res.moved, sortear uma peça nova; tratar res.won e res.lost.
+            -- TODO(#6): se res.moved, sortear uma peça nova; tratar res.won e res.lost.
             ( { model | board = res.board, score = model.score + res.score, status = "ok" }, Cmd.none )
 
         GotMove (Err _) ->
             ( { model | status = "Erro ao falar com o servidor." }, Cmd.none )
 
+        StartPresentation ->
+            ( model, Nav.pushUrl model.key (presentationUrl (Presentation.init 0 0)) )
+
+        PresentationMsg Presentation.ToggleFullscreen ->
+            ( model, Ports.toggleFullscreen () )
+
+        PresentationMsg Presentation.Exit ->
+            ( model, Nav.pushUrl model.key "#/" )
+
+        PresentationMsg pmsg ->
+            let
+                next =
+                    Presentation.update pmsg model.presentation
+            in
+            ( { model | presentation = { next | showNotes = next.showNotes } }, Nav.replaceUrl model.key (presentationUrl next) )
+
+        UrlRequested (Browser.Internal url) ->
+            ( model, Nav.pushUrl model.key (Url.toString url) )
+
+        UrlRequested (Browser.External href) ->
+            ( model, Nav.load href )
+
+        UrlChanged url ->
+            let
+                ( page, presentation ) =
+                    route url
+            in
+            ( { model | page = page, presentation = { presentation | showNotes = model.presentation.showNotes } }, Cmd.none )
+
         Ignored ->
             ( model, Cmd.none )
 
 
-view : Model -> Html Msg
+view : Model -> Browser.Document Msg
 view model =
+    { title = "Logic2048"
+    , body =
+        [ case model.page of
+            GamePage ->
+                viewGame model
+
+            PresentationPage ->
+                Presentation.view
+                    { toMsg = PresentationMsg
+                    , demo = viewGame model
+                    , sources = model.sources
+                    }
+                    model.presentation
+        ]
+    }
+
+
+viewGame : Model -> Html Msg
+viewGame model =
     div [ style "font-family" "sans-serif", style "padding" "2rem" ]
         [ h1 [] [ text "Logic2048" ]
         , p [] [ text ("Pontos: " ++ String.fromInt model.score) ]
         , div [] (List.map viewRow model.board)
         , p [] [ text model.status ]
+        , div [] (List.map (\( label, dir ) -> button [ onClick (Pressed dir) ] [ text label ]) [ ( "←", Left ), ( "↑", Up ), ( "↓", Down ), ( "→", Right ) ])
+        , button [ onClick StartPresentation ] [ text "Apresentar" ]
         ]
 
 
