@@ -336,8 +336,8 @@ kbd {
   background: var(--card); border: 2px solid var(--line); animation: cycle 2.4s ease-in-out infinite;
 }
 @keyframes cycle {
-  0%, 16%, 100% { background: var(--card); border-color: var(--line); transform: none; }
-  2%, 13% { background: color-mix(in srgb, var(--elm) 25%, white); border-color: var(--elm); transform: translateY(-4px); }
+  0%, 16%, 100% { background: #3d352d; color: #f9f6f2; border-color: var(--line); transform: none; }
+  2%, 13% { background: #60b5cc; color: #0f2a33; border-color: #60b5cc; transform: translateY(-4px); }
 }
 
 /* Python: o JSON aparece linha por linha */
@@ -530,3 +530,5 @@ button:hover { background: #3d352d; }
 .flow .node.k1, .flow .node.k1.active { color: #0f2a33; }
 .flow .node.k1 .sub { color: rgba(15, 42, 51, 0.8); }
 .flow .node.k1 .node-num { color: #0f2a33; }
+
+.cycle.cycle-on .cycle-hint { color: inherit; }
