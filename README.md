@@ -22,12 +22,26 @@ web/      interface em Elm (Vite)
 Navegador moderno para a interface (desktop). Linux e macOS são os alvos; no
 Windows, use WSL.
 
+### Instalando as ferramentas
+
+```bash
+# Ubuntu/Debian
+sudo apt install swi-prolog swi-prolog-nox libswipl-dev build-essential nodejs npm
+curl -LsSf https://astral.sh/uv/install.sh | sh        # uv
+
+# macOS (Homebrew)
+brew install swi-prolog node uv
+```
+
+Confira com `swipl --version`, `uv --version` e `node --version`. Se o
+`apt` trouxer um SWI-Prolog antigo (< 9.1.12), use o PPA oficial `swi-prolog/stable`.
+
 ## Arquivos de dependências
 
 | Arquivo | Contém |
 |---|---|
 | `server/pyproject.toml` e `server/uv.lock` | FastAPI, janus-swi, pytest e httpx, com versões travadas |
-| `web/package.json` e `web/package-lock.json` | Vite, vite-plugin-elm, elm, elm-test e elm-format |
+| `web/package.json` e `web/package-lock.json` | Vite, vite-plugin-elm, elm, elm-test e elm-format (`overrides` força `cross-spawn` 7, por segurança) |
 | `web/elm.json` | pacotes Elm (browser, html, http, json, random, svg, time, url) |
 
 Não edite os `lock` à mão: use `uv add` / `npm install` e faça commit do arquivo
@@ -50,7 +64,7 @@ npm run dev
 ```
 
 Abra `http://localhost:5173`. A apresentação fica em
-`http://localhost:5173/#/apresentacao`.
+`http://localhost:5173/#/apresentacao` (as fotos da equipe vêm do GitHub e precisam de internet).
 
 Se a porta 8000 estiver ocupada, suba a API em outra e avise o Vite:
 
