@@ -16,7 +16,7 @@ primeiro, em PR, e avise o grupo.
 
 - Vitória: existe peça **>=** a peça de vitória do N. O jogo continua depois de vencer, e `won` continua `true` com peças maiores.
 - Derrota: sem casas vazias e sem fusões possíveis.
-- **Quem valida:** o Python rejeita (422) tabuleiro não quadrado, N fora de 3..6, valores negativos, zero fora de casa vazia ou que não sejam potência de 2. O Prolog assume entrada válida.
+- **Quem valida:** o Python rejeita (422) tabuleiro não quadrado, N fora de 3..6, valores negativos e qualquer número que não seja 0 nem potência de 2 a partir de 2. O Prolog assume entrada válida.
 
 ## Quem faz o quê
 
@@ -31,7 +31,10 @@ primeiro, em PR, e avise o grupo.
 Erros: toda entrada inválida devolve **HTTP 422** com `{ "error": "<mensagem>" }`
 (o servidor troca o formato padrão `{"detail": ...}` do FastAPI). Falha inesperada
 devolve **500** no mesmo formato. Não se usa 400. O Elm trata 422 mostrando a
-mensagem e 500 ou rede com texto genérico.
+mensagem e 500 ou rede com texto genérico. **Atenção:** `Http.expectJson` descarta
+o corpo das respostas não 2xx (só entrega `BadStatus 422`). Para ler o
+`{"error": ...}`, use `Http.expectStringResponse` e decodifique o corpo quando o
+status for 422.
 
 ### `POST /api/move`
 
@@ -52,13 +55,15 @@ mensagem e 500 ou rede com texto genérico.
 { "board": [[2,2,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]], "depth": 2 }
 ```
 ```json
-{ "direction": "left",
+{ "direction": "left", "depth": 2,
   "scores": { "left": 12.5, "right": 12.5, "down": 9.0 } }
 ```
 
 `up` não aparece: com as peças na linha de cima, nada se move. `depth` é
-opcional (padrão 2). O máximo é **3 para N <= 4 e 2 para N >= 5**, para a dica
-não travar o servidor, e valores maiores devolvem 422. `direction` é `null` se
+opcional (padrão 2). O máximo é **3 para N <= 4 e 2 para N >= 5**, e valores
+maiores devolvem 422. Para a dica não travar o servidor, o Python **reduz a
+profundidade para 2** quando há mais de 6 casas vazias e devolve a profundidade
+realmente usada no campo `depth` da resposta. `direction` é `null` se
 não há jogada. Direções sem movimento válido ficam fora de `scores`. Empate: vale
 a primeira na ordem `left`, `right`, `up`, `down`.
 
@@ -88,6 +93,7 @@ Regras do desafio:
 - Vence quando **alguma peça >= `target`** (não precisa ser igual).
 - `moves` é a **menor** sequência encontrada, com **no máximo** `max_moves` jogadas (`max_moves` entre 1 e 6, senão 422).
 - Jogada que não muda o tabuleiro não conta e nunca entra em `moves`.
+- Se o tabuleiro **já** tem peça >= `target`, a resposta é `{ "solvable": true, "moves": [] }`. Os desafios de `challenges.json` começam sempre com todas as peças menores que `target`.
 - Como a soma das peças não muda sem peças novas, `target` maior que a soma não tem solução.
 
 ## Predicados Prolog (`prolog/game.pl`)
@@ -125,3 +131,12 @@ Cada peça funde no máximo uma vez por jogada.
 - PR com `Closes #N`, aprovado pelo revisor designado.
 - Quem implementou **consegue explicar** a issue na apresentação, em especial o
   papel do paradigma (veja "Para explicar" em cada issue).
+
+## Trabalhar em paralelo com stubs
+
+O esqueleto já responde em todos os endpoints com resultados fixos, então ninguém
+precisa esperar a issue anterior para começar:
+
+- **Elm:** use os JSONs de exemplo deste arquivo como respostas da API (por exemplo, uma função `mock` em `Api.elm`) e troque pela API real ao integrar.
+- **Python:** `/api/move` já funciona com o `move/4` de mentira (devolve o tabuleiro igual). Escreva a validação e os handlers de erro contra ele.
+- **Prolog:** cada predicado novo precisa estar no `:- module(game, [...])` de `prolog/game.pl`, senão os testes não o enxergam.

@@ -42,7 +42,7 @@ cenas =
               , blocks = [ Code { file = "prolog/game.pl", from = 1, to = 14, mark = [] } ]
               }
             , { notes = "Destacar o predicado que decide a vitória."
-              , blocks = [ Code { file = "prolog/game.pl", from = 11, to = 14, mark = [ 12, 13 ] } ]
+              , blocks = [ Clear, Code { file = "prolog/game.pl", from = 11, to = 14, mark = [ 12, 13 ] } ]
               }
             ]
       }

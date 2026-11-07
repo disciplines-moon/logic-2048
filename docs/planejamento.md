@@ -42,14 +42,14 @@ endpoints e dos predicados estão no [contrato](contrato.md).
 
 **Experiência (foco no desktop)**
 - Animações de deslizar e fundir.
-- Apresentação embutida no próprio app (`#/apresentacao`), com demo ao vivo no lugar de slides externos.
+- **Apresentação interativa dentro do próprio app** (`#/apresentacao`), no lugar de slides: cada issue entrega a sua cena, com passos que aparecem no ritmo da fala, demo ao vivo e anotações do apresentador. Veja [`apresentacao.md`](apresentacao.md).
 - Sons, confete e comemoração de vitória (ports, como no jogo da memória da aula).
 - Recorde salvo por tamanho de tabuleiro e tema claro/escuro.
 - Swipe no celular como extra.
 
 ## Issues, prazos e dependências
 
-Cada pessoa fica com 2 issues, feitas em sequência, nunca em dupla. São 15 no total, e a #21 (apresentação embutida) é a que sobra: quem terminar antes pega. Os prazos
+Cada pessoa fica com 2 issues, feitas em sequência, nunca em dupla. São 14 no total. Os prazos
 (Target date) e as dependências (Relationships) estão no
 [GitHub Project](https://github.com/orgs/disciplines-moon/projects/1).
 
@@ -68,10 +68,9 @@ Cada pessoa fica com 2 issues, feitas em sequência, nunca em dupla. São 15 no 
 | 10 | `/api/move`, validação e erros | Python | 13/11 | #3 |
 | 11 | `/api/hint`, `/api/challenge` e testes de ponta a ponta | Python | 19/11 | #5, #10, #19 |
 | 13 | CI, template de PR, MkDocs, pnpm e um comando para rodar | Gestão | 13/11 | |
-| 21 | Apresentação embutida no app, com demo ao vivo | Elm | 21/11 | #6, #8 |
-| 14 | Integração final, QA e ensaio | Gestão | 22/11 | #7, #9, #11, #13, #20, #21 |
+| 14 | Integração final, QA e ensaio | Gestão | 22/11 | #7, #9, #11, #13, #20 |
 
-A #17 (esqueleto e contrato) é a base e não conta entre as 15.
+A #17 (esqueleto, contrato e estrutura da apresentação) é a base e não conta entre as 14.
 
 ## Equipe
 
@@ -114,9 +113,9 @@ conseguir explicar o que aprovou.
 
 ## Quem implementa explica
 
-Ao concluir uma issue, a pessoa deve saber explicar como funciona, com foco no
-paradigma (seção "Para explicar na apresentação" de cada issue). Na
-apresentação, cada integrante fala das próprias issues.
+Ao concluir uma issue, a pessoa monta a **cena** dela (`web/src/Cenas/IssueNN.elm`) e deve saber explicar como funciona, com foco no paradigma. Na apresentação, cada integrante fala das próprias issues, de preferência a pessoa que as implementou.
+
+**Desvios:** quem mudar algo em relação ao planejado registra na seção "Desvios do planejado" da própria issue e avisa as issues que ela bloqueia. Cada issue tem um adendo mandando ler o que a anterior entregou, inclusive as anotações da cena, antes de começar.
 
 ## Estrutura do repositório
 

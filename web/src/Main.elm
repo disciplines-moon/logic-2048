@@ -183,7 +183,7 @@ view model =
             PresentationPage ->
                 Presentation.view
                     { toMsg = PresentationMsg
-                    , demo = viewGame model
+                    , demo = viewBoard model
                     , sources = model.sources
                     }
                     model.presentation
@@ -195,11 +195,23 @@ viewGame : Model -> Html Msg
 viewGame model =
     div [ style "font-family" "sans-serif", style "padding" "2rem" ]
         [ h1 [] [ text "Logic2048" ]
-        , p [] [ text ("Pontos: " ++ String.fromInt model.score) ]
-        , div [] (List.map viewRow model.board)
-        , p [] [ text model.status ]
-        , div [] (List.map (\( label, dir ) -> button [ onClick (Pressed dir) ] [ text label ]) [ ( "←", Left ), ( "↑", Up ), ( "↓", Down ), ( "→", Right ) ])
+        , viewBoard model
         , button [ onClick StartPresentation ] [ text "Apresentar" ]
+        ]
+
+
+{-| Tabuleiro, placar e botões de direção. É o que a demo da apresentação mostra.
+-}
+viewBoard : Model -> Html Msg
+viewBoard model =
+    div []
+        [ p [ style "font-size" "1.2rem" ] [ text ("Pontos: " ++ String.fromInt model.score) ]
+        , div [] (List.map viewRow model.board)
+        , div [ style "margin" "0.5rem 0" ]
+            (List.map (\( label, dir ) -> button [ onClick (Pressed dir) ] [ text label ])
+                [ ( "←", Left ), ( "↑", Up ), ( "↓", Down ), ( "→", Right ) ]
+            )
+        , p [ style "font-size" "1rem" ] [ text model.status ]
         ]
 
 

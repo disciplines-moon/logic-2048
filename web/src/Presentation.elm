@@ -9,7 +9,7 @@ no painel do apresentador (tecla `n`).
 -}
 
 import Cenas
-import Cenas.Types exposing (Block(..), Scene, Step)
+import Cenas.Types exposing (Block(..), Scene, Step, visibleBlocks)
 import Dict exposing (Dict)
 import Html exposing (Html, button, div, h1, h2, li, p, pre, small, text, ul)
 import Html.Attributes exposing (style)
@@ -178,9 +178,6 @@ view config model =
 
         Just ( section, scene ) ->
             let
-                shown =
-                    List.take (model.step + 1) scene.steps
-
                 current =
                     List.head (List.drop model.step scene.steps)
             in
@@ -196,7 +193,7 @@ view config model =
                 [ small [ style "color" "#8f7a66" ] [ text (String.toUpper section) ]
                 , h1 [ style "font-size" "2.6rem", style "margin" "0.3rem 0 1rem" ] [ text scene.title ]
                 , div [ style "flex" "1", style "font-size" "1.5rem" ]
-                    (List.indexedMap (viewStep config model.step) shown |> List.concat)
+                    (List.map (viewBlockAt config model.step) (visibleBlocks model.step scene))
                 , if model.showNotes then
                     viewNotes current
 
@@ -206,22 +203,18 @@ view config model =
                 ]
 
 
-viewStep : Config msg -> Int -> Int -> Step -> List (Html msg)
-viewStep config currentIndex i step =
-    List.map
-        (\block ->
-            div
-                [ style "opacity"
-                    (if i == currentIndex then
-                        "1"
+viewBlockAt : Config msg -> Int -> ( Int, Block ) -> Html msg
+viewBlockAt config currentStep ( born, block ) =
+    div
+        [ style "opacity"
+            (if born == currentStep then
+                "1"
 
-                     else
-                        "0.85"
-                    )
-                ]
-                [ viewBlock config block ]
-        )
-        step.blocks
+             else
+                "0.85"
+            )
+        ]
+        [ viewBlock config block ]
 
 
 viewNotes : Maybe Step -> Html msg
@@ -280,6 +273,9 @@ viewBlock config block =
 
         Demo ->
             config.demo
+
+        Clear ->
+            text ""
 
         Pending hint ->
             div

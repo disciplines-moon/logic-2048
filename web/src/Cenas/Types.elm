@@ -1,4 +1,4 @@
-module Cenas.Types exposing (Block(..), Scene, Step, isPending, pending)
+module Cenas.Types exposing (Block(..), Scene, Step, isPending, pending, visibleBlocks)
 
 {-| A apresentação é um conjunto de **cenas** (uma ou mais por issue). Cada cena
 tem **passos**: ao avançar, o próximo passo ACRESCENTA blocos na tela, no ritmo
@@ -19,6 +19,8 @@ type Block
     | Demo
       -- Cena ainda não escrita. Falha a revisão final (#14).
     | Pending String
+      -- Apaga tudo que apareceu antes na cena (para trocar um bloco por outro).
+    | Clear
 
 
 type alias Step =
@@ -58,3 +60,25 @@ isPending scene =
                 step.blocks
         )
         scene.steps
+
+
+{-| Blocos visíveis até o passo `upTo` (0 a N-1). Os passos se acumulam, e um
+`Clear` descarta o que veio antes. Cada bloco vem com o índice do passo em que
+nasceu.
+-}
+visibleBlocks : Int -> Scene -> List ( Int, Block )
+visibleBlocks upTo scene =
+    scene.steps
+        |> List.take (upTo + 1)
+        |> List.indexedMap (\i step -> List.map (Tuple.pair i) step.blocks)
+        |> List.concat
+        |> List.foldl
+            (\( i, block ) acc ->
+                case block of
+                    Clear ->
+                        []
+
+                    _ ->
+                        acc ++ [ ( i, block ) ]
+            )
+            []

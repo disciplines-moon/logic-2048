@@ -1,6 +1,6 @@
 module PresentationTest exposing (suite)
 
-import Cenas
+import Cenas.Types exposing (Block(..), visibleBlocks)
 import Expect
 import Presentation exposing (Msg(..))
 import Test exposing (Test, describe, test)
@@ -31,6 +31,24 @@ suite =
                     , Presentation.update Last (Presentation.init 0 0) |> Presentation.update Next |> (\m -> m.scene)
                     )
                     ( ( 0, 0 ), Presentation.sceneCount - 1 )
+        , test "os passos acumulam blocos e Clear descarta os anteriores" <|
+            \_ ->
+                let
+                    scene =
+                        { issue = 0
+                        , title = ""
+                        , steps =
+                            [ { notes = "", blocks = [ Paragraph "a" ] }
+                            , { notes = "", blocks = [ Paragraph "b" ] }
+                            , { notes = "", blocks = [ Clear, Paragraph "c" ] }
+                            ]
+                        }
+                in
+                Expect.equal
+                    [ List.map Tuple.second (visibleBlocks 1 scene)
+                    , List.map Tuple.second (visibleBlocks 2 scene)
+                    ]
+                    [ [ Paragraph "a", Paragraph "b" ], [ Paragraph "c" ] ]
         , test "índice fora do limite é ajustado" <|
             \_ ->
                 Presentation.init 999 999

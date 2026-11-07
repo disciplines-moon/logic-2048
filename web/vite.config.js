@@ -6,7 +6,7 @@ export default defineConfig({
   base: "./",
   plugins: [elmPlugin()],
   server: {
-    proxy: { "/api": "http://localhost:8000" },
+    proxy: { "/api": process.env.API_URL ?? "http://localhost:8000" },
     // Os slides importam arquivos de fora de web/ (prolog/ e server/) com ?raw.
     fs: { allow: [".."] },
   },
