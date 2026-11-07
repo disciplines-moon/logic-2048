@@ -349,7 +349,9 @@ viewFlow nodes active =
                 , class ("k" ++ String.fromInt i)
                 , classList [ ( "active", i == active ), ( "done", i < active ) ]
                 ]
-                [ div [ class "label" ] [ text n.label ]
+                [ div [ class "node-logo" ] [ nodeLogo n.art ]
+                , div [ class "node-num" ] [ text (nodeNumber i) ]
+                , div [ class "label" ] [ text n.label ]
                 , div [ class "sub" ] [ text n.sub ]
                 ]
 
@@ -544,4 +546,61 @@ elmLogo =
         , Svg.polygon [ SA.points "0,2 14,16 0,30", SA.fill "#5a6378" ] []
         , Svg.polygon [ SA.points "16,18 32,18 32,32 16,32", SA.fill "#60b5cc" ] []
         , Svg.polygon [ SA.points "32,2 32,16 18,2", SA.fill "#60b5cc" ] []
+        ]
+
+
+nodeNumber : Int -> String
+nodeNumber i =
+    case i of
+        0 ->
+            "2"
+
+        1 ->
+            "8"
+
+        2 ->
+            "64"
+
+        _ ->
+            "2048"
+
+
+nodeLogo : String -> Html msg
+nodeLogo kind =
+    case kind of
+        "keyboard" ->
+            keyboardLogo
+
+        "elm" ->
+            elmLogo
+
+        "python" ->
+            pythonLogo
+
+        "prolog" ->
+            prologLogo
+
+        _ ->
+            text ""
+
+
+keyboardLogo : Html msg
+keyboardLogo =
+    Svg.svg [ SA.viewBox "0 0 40 40", SA.class "logo" ]
+        [ Svg.rect [ SA.x "2", SA.y "9", SA.width "36", SA.height "22", SA.rx "4", SA.fill "#776e65" ] []
+        , Svg.g [ SA.fill "#eee4da" ]
+            [ Svg.rect [ SA.x "6", SA.y "13", SA.width "5", SA.height "5", SA.rx "1" ] []
+            , Svg.rect [ SA.x "13", SA.y "13", SA.width "5", SA.height "5", SA.rx "1" ] []
+            , Svg.rect [ SA.x "20", SA.y "13", SA.width "5", SA.height "5", SA.rx "1" ] []
+            , Svg.rect [ SA.x "27", SA.y "13", SA.width "7", SA.height "5", SA.rx "1" ] []
+            , Svg.rect [ SA.x "8", SA.y "21", SA.width "24", SA.height "6", SA.rx "1" ] []
+            ]
+        ]
+
+
+prologLogo : Html msg
+prologLogo =
+    Svg.svg [ SA.viewBox "0 0 40 40", SA.class "logo" ]
+        [ Svg.circle [ SA.cx "20", SA.cy "20", SA.r "18", SA.fill "#c0392b" ] []
+        , Svg.text_ [ SA.x "20", SA.y "26", SA.textAnchor "middle", SA.fontSize "17", SA.fontWeight "800", SA.fill "#fff", SA.fontFamily "monospace" ] [ Svg.text ":-" ]
         ]

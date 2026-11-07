@@ -1,10 +1,10 @@
 :root {
   --bg: #faf8ef;
-  --ink: #3c3a32;
+  --ink: #776e65;
   --muted: #8f7a66;
   --card: #ffffff;
   --line: #e4dccb;
-  --accent: #f67c5f;
+  --accent: #f65e3b;
   --gold: #edc22e;
   --code-bg: #272822;
   --code-ink: #f8f8f2;
@@ -456,3 +456,37 @@ kbd {
 .board-row { display: flex; align-items: center; gap: 0.3rem; }
 .mini-grid { grid-template-columns: repeat(4, 1.3rem) !important; margin: 0.2rem 0 !important; }
 .mg { height: 1.3rem !important; font-size: 0.75rem; }
+
+/* paleta do 2048: os nós do fluxo viram peças numeradas */
+.flow .node { position: relative; border: none; color: #776e65; box-shadow: 0 4px 0 rgba(119, 110, 101, 0.25); }
+.flow .node.k0 { background: #eee4da; }
+.flow .node.k1 { background: #f2b179; color: #fff; }
+.flow .node.k2 { background: #f65e3b; color: #fff; }
+.flow .node.k3 { background: #edc22e; color: #fff; }
+.flow .node.k1 .sub, .flow .node.k2 .sub, .flow .node.k3 .sub { color: rgba(255, 255, 255, 0.85); }
+.flow .node.k1.active, .flow .node.k2.active, .flow .node.k3.active, .flow .node.k0.active { background: revert-layer; }
+.flow .node.k0.active { background: #eee4da; }
+.flow .node.k1.active { background: #f2b179; }
+.flow .node.k2.active { background: #f65e3b; }
+.flow .node.k3.active { background: #edc22e; box-shadow: 0 0 28px 6px rgba(237, 194, 46, 0.55); }
+.node-logo { position: absolute; top: 0.5rem; right: 0.6rem; }
+.node-logo .logo { width: 2rem; height: 2rem; margin: 0; animation: none; }
+.node-num { position: absolute; top: 0.4rem; left: 0.7rem; font-weight: 800; font-size: 1rem; opacity: 0.55; }
+.elm-box { background: color-mix(in srgb, #f2b179 14%, white); border-color: #f2b179; }
+.py-box { background: color-mix(in srgb, #f65e3b 10%, white); border-color: #f65e3b; }
+.pcard, .in-card, .out-card { background: #776e65; }
+.key { background: #eee4da; color: #776e65; border-color: #bbada0; }
+
+/* cada nó com a cor da tecnologia */
+.flow .node.k0, .flow .node.k0.active { background: #776e65; color: #fff; }
+.flow .node.k1, .flow .node.k1.active { background: #60b5cc; color: #fff; }
+.flow .node.k2, .flow .node.k2.active { background: #3776ab; color: #fff; box-shadow: 0 4px 0 #ffd43b; }
+.flow .node.k3, .flow .node.k3.active { background: #c0392b; color: #fff; }
+.flow .node.k0 .sub { color: rgba(255, 255, 255, 0.8); }
+.flow .node.k0.active { box-shadow: 0 0 26px 4px rgba(119, 110, 101, 0.5); }
+.flow .node.k1.active { box-shadow: 0 0 26px 4px rgba(96, 181, 204, 0.6); }
+.flow .node.k2.active { box-shadow: 0 4px 0 #ffd43b, 0 0 26px 4px rgba(55, 118, 171, 0.55); }
+.flow .node.k3.active { box-shadow: 0 0 26px 4px rgba(192, 57, 43, 0.55); }
+.node-logo { background: rgba(255, 255, 255, 0.92); padding: 3px; border-radius: 8px; line-height: 0; }
+.elm-box { background: color-mix(in srgb, #60b5cc 12%, white); border-color: #60b5cc; }
+.py-box { background: color-mix(in srgb, #3776ab 10%, white); border-color: #3776ab; }
