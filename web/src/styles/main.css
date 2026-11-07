@@ -325,8 +325,8 @@ kbd {
 }
 .key.press { animation: keypress 14.4s ease-in-out infinite; }
 @keyframes keypress {
-  0%, 5%, 100% { transform: none; border-bottom-width: 6px; background: var(--card); }
-  1%, 4% { transform: translateY(4px); border-bottom-width: 2px; background: var(--gold); }
+  0%, 5%, 100% { transform: none; border-bottom-width: 6px; background: #eee4da; }
+  1%, 4% { transform: translateY(4px); border-bottom-width: 2px; background: #edc22e; }
 }
 
 /* Elm: o ciclo Msg, update, Model, view acende em sequência */
