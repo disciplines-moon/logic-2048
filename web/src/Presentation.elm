@@ -563,6 +563,39 @@ moveArrow key =
             "→"
 
 
+outTile : MiniTile -> Html msg
+outTile t =
+    div
+        [ class
+            ("pt po-"
+                ++ t.kind
+                ++ " pv"
+                ++ String.fromInt t.v
+                ++ " pr"
+                ++ String.fromInt t.r
+                ++ " pc"
+                ++ String.fromInt t.c
+                ++ " "
+                ++ axisClass "dx" t.dc
+                ++ " "
+                ++ axisClass "dy" t.dr
+            )
+        ]
+        [ text (String.fromInt t.v) ]
+
+
+axisClass : String -> Int -> String
+axisClass axis n =
+    axis
+        ++ (if n < 0 then
+                "m"
+
+            else
+                "p"
+           )
+        ++ String.fromInt (abs n)
+
+
 dirName : String -> String
 dirName key =
     case key of
@@ -706,15 +739,9 @@ viewArt kind =
                             div [ class "pl-in-wrap" ]
                                 [ div [ class "pboard" ]
                                     (List.map (\_ -> div [ class "pcell" ] []) (List.range 1 16)
-                                        ++ (vt.after
-                                                |> List.indexedMap
-                                                    (\k v ->
-                                                        if v == 0 || List.any (\t -> t.kind == "spawn" && t.r * 4 + t.c == k) vt.tiles then
-                                                            text ""
-
-                                                        else
-                                                            plTile "pt-out" (k // 4) (modBy 4 k) (String.fromInt v) 0
-                                                    )
+                                        ++ (vt.tiles
+                                                |> List.filter (\t -> t.kind /= "spawn")
+                                                |> List.map outTile
                                            )
                                     )
                                 , div [ class "pl-label pl-scoreline" ] [ span [ class "v" ] [ text "Score" ], text " = ", span [ class "pl-score" ] [ text ("+" ++ String.fromInt (vt.score - vt.before)) ] ]

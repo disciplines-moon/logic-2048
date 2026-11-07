@@ -730,3 +730,22 @@ html { font-size: clamp(12px, min(1.02vw, 2.2vh), 34px); }
 
 /* a altura manda: o conteúdo inteiro (cena + notas + rodapé) tem que caber sem rolar */
 html { font-size: clamp(10px, min(1.02vw, 1.8vh), 34px); }
+.dxm0 { --dx: -0; } .dxp0 { --dx: 0; }
+.dxm1 { --dx: -1; } .dxp1 { --dx: 1; }
+.dxm2 { --dx: -2; } .dxp2 { --dx: 2; }
+.dxm3 { --dx: -3; } .dxp3 { --dx: 3; }
+.dym0 { --dy: -0; } .dyp0 { --dy: 0; }
+.dym1 { --dy: -1; } .dyp1 { --dy: 1; }
+.dym2 { --dy: -2; } .dyp2 { --dy: 2; }
+.dym3 { --dy: -3; } .dyp3 { --dy: 3; }
+
+/* resposta do Prolog animada: as peças aparecem na posição de entrada, deslizam e se fundem */
+.po-move, .po-gone, .po-merged { opacity: 0; animation-duration: 7.2s; animation-iteration-count: infinite; animation-timing-function: ease-in-out; animation-delay: 0s; }
+.po-move { animation-name: pm-move; }
+.po-gone { animation-name: pm-gone; }
+.po-merged { animation-name: pm-merged; }
+@keyframes pm-move { 0%, 52% { opacity: 0; transform: none; } 56%, 60% { opacity: 1; transform: none; } 74%, 100% { opacity: 1; transform: translate(calc(var(--dx) * var(--step)), calc(var(--dy) * var(--step))); } }
+@keyframes pm-gone { 0%, 52% { opacity: 0; transform: none; } 56%, 60% { opacity: 1; transform: none; } 74% { opacity: 1; transform: translate(calc(var(--dx) * var(--step)), calc(var(--dy) * var(--step))); } 75%, 100% { opacity: 0; transform: translate(calc(var(--dx) * var(--step)), calc(var(--dy) * var(--step))); } }
+@keyframes pm-merged { 0%, 74% { opacity: 0; transform: scale(0.5); } 80% { opacity: 1; transform: scale(1.25); } 86%, 100% { opacity: 1; transform: none; } }
+.pl-scoreline { animation-name: pm-score; }
+@keyframes pm-score { 0%, 84% { opacity: 0; transform: scale(0.6); } 90%, 100% { opacity: 1; transform: none; } }
