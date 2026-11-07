@@ -798,3 +798,8 @@ html { font-size: clamp(10px, min(1.02vw, 1.8vh), 34px); }
 .pres-body:has(.demo) .block:nth-child(4) li { border-left-color: #5cbf62; }
 .pres-body:has(.demo) .block:nth-child(5) li { border-left-color: #8a4fd6; }
 .demo { background: linear-gradient(160deg, #3a332c, #2b2622); }
+
+/* equipe centralizada: a última linha fica no meio */
+.team { display: flex; flex-wrap: wrap; justify-content: center; gap: 1.6rem 1.4rem; max-width: 62rem; }
+.member { width: 13.5rem; }
+.member:nth-child(5) { grid-column: auto; }
