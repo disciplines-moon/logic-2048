@@ -1,0 +1,22 @@
+{
+  "name": "logic-2048-web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "api": "uv run --directory ../server fastapi dev main.py --port 8000",
+    "build": "vite build",
+    "test": "elm-test",
+    "format": "elm-format src tests --yes",
+    "format:check": "elm-format src tests --validate",
+    "check": "npm run format:check && npm run test && npm run build"
+  },
+  "devDependencies": {
+    "elm": "^0.19.3-0",
+    "elm-format": "^0.8.8",
+    "elm-test": "^0.19.3-0",
+    "vite": "^8.3.5",
+    "vite-plugin-elm": "^3.0.1"
+  }
+}

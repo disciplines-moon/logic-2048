@@ -76,6 +76,7 @@ transposição e reversão do tabuleiro.
 
 - Uma issue por tarefa, com responsável e marco.
 - Branch por issue: `feat/<descricao-curta>`. Nada de commit direto na `main`.
+- **Todo PR deve ter uma issue relacionada.** Se não existir, crie a issue antes de abrir o PR e coloque `Closes #<número>` na descrição.
 - Todo PR precisa de pelo menos uma revisão de outra pessoa.
 - Commits em português, no imperativo: `Adiciona fusão de peças no Prolog`.
 - Código copiado de fora ou de IA deve ser entendido por quem o enviou. O professor

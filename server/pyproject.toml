@@ -1,0 +1,9 @@
+[project]
+name = "logic-2048-api"
+version = "0.1.0"
+description = "API do Logic2048: ponte entre o Elm e o motor Prolog."
+requires-python = ">=3.11"
+dependencies = ["fastapi[standard]", "janus-swi"]
+
+[dependency-groups]
+dev = ["pytest", "httpx"]
