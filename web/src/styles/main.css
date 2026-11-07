@@ -757,3 +757,44 @@ html { font-size: clamp(10px, min(1.02vw, 1.8vh), 34px); }
   0%, 25%, 100% { transform: none; border-bottom-width: 6px; background: #eee4da; }
   4%, 20% { transform: translateY(4px); border-bottom-width: 2px; background: #edc22e; }
 }
+
+/* ---- peças: cores que crescem (azul, verde, amarelo, laranja, vermelho, roxo, dourado) ---- */
+.tile.v2, .mt.mv2, .pt.pv2, .sv-tile.sv-v2 { background: linear-gradient(145deg, color-mix(in srgb, #4aa3df 78%, white), #4aa3df); color: #fff; }
+.tile.v4, .mt.mv4, .pt.pv4, .sv-tile.sv-v4 { background: linear-gradient(145deg, color-mix(in srgb, #2fb5a3 78%, white), #2fb5a3); color: #fff; }
+.tile.v8, .mt.mv8, .pt.pv8, .sv-tile.sv-v8 { background: linear-gradient(145deg, color-mix(in srgb, #5cbf62 78%, white), #5cbf62); color: #fff; }
+.tile.v16, .mt.mv16, .pt.pv16, .sv-tile.sv-v16 { background: linear-gradient(145deg, color-mix(in srgb, #a6cc3a 78%, white), #a6cc3a); color: #2b2118; }
+.tile.v32, .mt.mv32, .pt.pv32, .sv-tile.sv-v32 { background: linear-gradient(145deg, color-mix(in srgb, #f2c230 78%, white), #f2c230); color: #2b2118; }
+.tile.v64, .mt.mv64, .pt.pv64, .sv-tile.sv-v64 { background: linear-gradient(145deg, color-mix(in srgb, #f39a2d 78%, white), #f39a2d); color: #fff; }
+.tile.v128, .mt.mv128, .pt.pv128, .sv-tile.sv-v128 { background: linear-gradient(145deg, color-mix(in srgb, #ee6a39 78%, white), #ee6a39); color: #fff; }
+.tile.v256, .mt.mv256, .pt.pv256, .sv-tile.sv-v256 { background: linear-gradient(145deg, color-mix(in srgb, #e6455d 78%, white), #e6455d); color: #fff; }
+.tile.v512, .mt.mv512, .pt.pv512, .sv-tile.sv-v512 { background: linear-gradient(145deg, color-mix(in srgb, #c13fa0 78%, white), #c13fa0); color: #fff; }
+.tile.v1024, .mt.mv1024, .pt.pv1024, .sv-tile.sv-v1024 { background: linear-gradient(145deg, color-mix(in srgb, #8a4fd6 78%, white), #8a4fd6); color: #fff; }
+.tile.v2048, .mt.mv2048, .pt.pv2048, .sv-tile.sv-v2048 { background: linear-gradient(145deg, color-mix(in srgb, #ffd447 78%, white), #ffd447); color: #2b2118; box-shadow: 0 0 22px rgba(255, 212, 71, 0.85); }
+
+.board, .mb, .pboard { background: #3a332c; }
+.pcell, .mb-cell, .tile.empty { background: #4a4037; }
+
+/* ---- equipe ---- */
+.team { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.6rem 1.2rem; max-width: 60rem; margin: 1rem auto 0; }
+.member { text-align: center; opacity: 0; animation: member-in 0.7s cubic-bezier(0.3, 1.5, 0.5, 1) both, bob 4.5s ease-in-out infinite; }
+.member:nth-child(5) { grid-column: 1 / span 1; }
+.avatar { position: relative; width: 7.5rem; height: 7.5rem; margin: 0 auto 0.6rem; border-radius: 50%; border: 0.3rem solid var(--ring); box-shadow: 0 0 22px color-mix(in srgb, var(--ring) 60%, transparent); overflow: hidden; background: var(--ring); }
+.avatar img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.avatar .initial { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 3rem; font-weight: 800; color: #fff; }
+.mname { font-weight: 800; font-size: 1.15rem; }
+.mlogin { font: 0.9rem ui-monospace, monospace; opacity: 0.7; }
+.tc0 { --ring: #4aa3df; } .tc1 { --ring: #2fb5a3; } .tc2 { --ring: #5cbf62; } .tc3 { --ring: #f2c230; } .tc4 { --ring: #f39a2d; } .tc5 { --ring: #e6455d; } .tc6 { --ring: #8a4fd6; }
+@keyframes member-in { from { opacity: 0; transform: translateY(2rem) scale(0.4); } to { opacity: 1; transform: none; } }
+@keyframes bob { 0%, 100% { translate: 0 0; } 50% { translate: 0 -6px; } }
+
+/* ---- "Primeiro, jogue": jogo à esquerda, explicação à direita ---- */
+.pres-body:has(.demo) { display: grid; grid-template-columns: minmax(18rem, 24rem) 1fr; gap: 0 2.5rem; align-items: start; }
+.pres-body:has(.demo) .block:has(.lead) { grid-column: 1 / -1; }
+.pres-body:has(.demo) .block:has(.demo) { grid-column: 1; grid-row: 2 / span 6; }
+.pres-body:has(.demo) .block:not(:has(.demo)):not(:has(.lead)) { grid-column: 2; }
+.pres-body:has(.demo) .block li { font-size: 1.5rem; line-height: 1.4; background: var(--card); border-left: 0.35rem solid #f39a2d; border-radius: 10px; padding: 0.8rem 1.1rem; list-style: none; }
+.pres-body:has(.demo) ul { padding: 0; margin: 0; }
+.pres-body:has(.demo) .block:nth-child(3) li { border-left-color: #4aa3df; }
+.pres-body:has(.demo) .block:nth-child(4) li { border-left-color: #5cbf62; }
+.pres-body:has(.demo) .block:nth-child(5) li { border-left-color: #8a4fd6; }
+.demo { background: linear-gradient(160deg, #3a332c, #2b2622); }

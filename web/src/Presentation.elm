@@ -9,7 +9,7 @@ no painel do apresentador (tecla `n`).
 -}
 
 import Cenas
-import Cenas.Types exposing (Block(..), FlowNode, Scene, Step, visibleBlocks)
+import Cenas.Types exposing (Block(..), FlowNode, Member, Scene, Step, visibleBlocks)
 import Dict exposing (Dict)
 import Html exposing (Html, button, div, h1, h2, kbd, li, p, pre, span, text, ul)
 import Html.Attributes exposing (class, classList, style)
@@ -316,6 +316,9 @@ viewBlock config block =
 
         Demo ->
             div [ class "demo" ] [ config.demo ]
+
+        Team members ->
+            div [ class "team" ] (List.indexedMap viewMember members)
 
         Lead s ->
             p [ class "lead" ] [ text s ]
@@ -871,4 +874,19 @@ prologLogo =
     Svg.svg [ SA.viewBox "0 0 40 40", SA.class "logo" ]
         [ Svg.circle [ SA.cx "20", SA.cy "20", SA.r "18", SA.fill "#c0392b" ] []
         , Svg.text_ [ SA.x "20", SA.y "26", SA.textAnchor "middle", SA.fontSize "17", SA.fontWeight "800", SA.fill "#fff", SA.fontFamily "monospace" ] [ Svg.text ":-" ]
+        ]
+
+
+viewMember : Int -> Member -> Html msg
+viewMember i m =
+    div
+        [ class ("member tc" ++ String.fromInt (modBy 7 i))
+        , style "animation-delay" (String.fromInt (i * 140) ++ "ms")
+        ]
+        [ div [ class "avatar" ]
+            [ span [ class "initial" ] [ text (String.left 1 m.name) ]
+            , Html.img [ Html.Attributes.src ("https://github.com/" ++ m.login ++ ".png?size=240"), Html.Attributes.alt m.name ] []
+            ]
+        , div [ class "mname" ] [ text m.name ]
+        , div [ class "mlogin" ] [ text ("@" ++ m.login) ]
         ]

@@ -20,13 +20,37 @@ cenas =
             ]
       }
     , { issue = 17
+      , title = "Quem fez o Logic2048"
+      , steps =
+            [ { notes = "Apresentar o grupo. Cada pessoa diz o próprio nome e qual parte vai apresentar."
+              , blocks =
+                    [ Team
+                        [ { name = "Victor Schmidt", login = "moonshinerd" }
+                        , { name = "Bianca Patrocínio", login = "BiancaPatrocinio7" }
+                        , { name = "Davi Aguiar", login = "davi-aguiar-vieira" }
+                        , { name = "Kaio Macedo", login = "Bigkaio" }
+                        , { name = "Mateus Castro", login = "mat054" }
+                        , { name = "Mateus Henrique", login = "Mateushqms" }
+                        , { name = "William Bernardo", login = "willxbernardo" }
+                        ]
+                    ]
+              }
+            ]
+      }
+    , { issue = 17
       , title = "Primeiro, jogue"
       , steps =
-            [ { notes = "Deixar a plateia ver o jogo funcionando antes de explicar. Jogue com as teclas W, A, S e D."
-              , blocks =
-                    [ Lead "Tudo o que vamos explicar está rodando aqui."
-                    , Demo
-                    ]
+            [ { notes = "Deixar a plateia jogar um pouco antes de explicar. Use W, A, S e D."
+              , blocks = [ Lead "Este é o Logic2048. Jogue com W A S D.", Demo ]
+              }
+            , { notes = "Explicar o jogo para quem nunca viu: deslize as peças, junte as iguais, chegue ao 2048."
+              , blocks = [ Bullets [ "O jogo: cada jogada desliza todas as peças. Duas peças iguais se fundem na soma delas, e o objetivo é chegar ao 2048." ] ]
+              }
+            , { notes = "Dizer o que o projeto é: o mesmo jogo, mas cada pedaço feito no paradigma mais adequado."
+              , blocks = [ Bullets [ "O projeto: um 2048 completo em que as regras são lógica pura em Prolog, a tela é Elm e o Python liga os dois." ] ]
+              }
+            , { notes = "Dizer por que: é o trabalho de Paradigmas de Programação, e o objetivo é mostrar como paradigmas diferentes cooperam num produto só."
+              , blocks = [ Bullets [ "Por quê: a disciplina é Paradigmas de Programação. Aqui o paradigma lógico (Prolog) e o funcional (Elm) resolvem partes diferentes do mesmo problema." ] ]
               }
             ]
       }
@@ -40,19 +64,22 @@ cenas =
             ]
       }
     , { issue = 17
-      , title = "O que vem a seguir"
+      , title = "O roteiro da apresentação"
       , steps =
-            [ { notes = "Anunciar o roteiro: cada pessoa apresenta a sua parte."
-              , blocks = [ Bullets [ "Prolog: as regras do jogo, a dica e os desafios." ] ]
+            [ { notes = "Dizer que agora cada pessoa apresenta uma parte, na mesma ordem em que a jogada acontece."
+              , blocks = [ Lead "Vamos seguir o caminho da jogada, da regra até a tela." ]
               }
-            , { notes = "Passar para a parte do Python."
-              , blocks = [ Bullets [ "Python: a ponte entre a tela e as regras." ] ]
+            , { notes = "Prolog: o que decide a jogada."
+              , blocks = [ Bullets [ "1. Prolog: as regras do jogo, a dica e os desafios." ] ]
               }
-            , { notes = "Passar para a parte do Elm."
-              , blocks = [ Bullets [ "Elm: o que você vê, as animações e os sons." ] ]
+            , { notes = "Python: a ponte."
+              , blocks = [ Bullets [ "2. Python: a ponte que leva o tabuleiro até as regras e traz a resposta." ] ]
               }
-            , { notes = "Fechar anunciando como o grupo trabalhou."
-              , blocks = [ Bullets [ "Como trabalhamos: issues, revisão e CI." ] ]
+            , { notes = "Elm: o que o jogador vê."
+              , blocks = [ Bullets [ "3. Elm: a tela, as animações e os sons." ] ]
+              }
+            , { notes = "Fechamento: como o grupo trabalhou."
+              , blocks = [ Bullets [ "4. Como trabalhamos: issues, revisão em círculo e testes automáticos." ] ]
               }
             ]
       }

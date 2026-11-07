@@ -1,4 +1,4 @@
-module Cenas.Types exposing (Block(..), FlowNode, Scene, Step, isPending, pending, visibleBlocks)
+module Cenas.Types exposing (Block(..), FlowNode, Member, Scene, Step, isPending, pending, visibleBlocks)
 
 {-| A apresentação é um conjunto de **cenas** (uma ou mais por issue). Cada cena
 tem **passos**: ao avançar, o próximo passo ACRESCENTA blocos na tela, no ritmo
@@ -26,10 +26,18 @@ type Block
       -- outro `active` para "caminhar" pelo fluxo a cada passo. `art` escolhe a
       -- ilustração animada da etapa: "keyboard", "elm", "python", "prolog" (ou "" para nenhuma).
     | Flow { nodes : List FlowNode, active : Int }
+      -- Equipe: foto do GitHub (`login`), nome e etiqueta opcional, com animação de entrada.
+    | Team (List Member)
       -- Cena ainda não escrita. Falha a revisão final (#14).
     | Pending String
       -- Apaga tudo que apareceu antes na cena (para trocar um bloco por outro).
     | Clear
+
+
+type alias Member =
+    { name : String
+    , login : String
+    }
 
 
 type alias FlowNode =
