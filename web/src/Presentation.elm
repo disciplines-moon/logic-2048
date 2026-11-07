@@ -455,7 +455,7 @@ slotStack f =
                                 0
 
                              else
-                                toFloat j * 3.6 - 14.4
+                                toFloat j * 7.2 - 28.8
                             )
                             ++ "s"
                         )
@@ -483,14 +483,23 @@ miniBoard tiles =
 stageVis : Int -> Html msg
 stageVis i =
     case i of
+        0 ->
+            slotStack
+                (\vt ->
+                    div [ class "msg-vis" ]
+                        [ div [ class "msg-label" ] [ text (moveLabel vt.key) ]
+                        , div [ class "msg-big" ] [ text (moveArrow vt.key) ]
+                        ]
+                )
+
         1 ->
             slotStack
                 (\vt ->
                     div [ class "upd" ]
                         [ miniBoard (List.map miniTile vt.tiles)
                         , div [ class "upd-cap" ]
-                            [ span [ class "cap-pl" ] [ text "Prolog move e funde" ]
-                            , span [ class "cap-elm" ] [ text "Elm sorteia peça nova" ]
+                            [ span [ class "cap-pl" ] [ text "Prolog move" ]
+                            , span [ class "cap-elm" ] [ text "Elm sorteia" ]
                             ]
                         ]
                 )
@@ -502,7 +511,8 @@ stageVis i =
                         [ span [ class "sv-k" ] [ text "score" ]
                         , span [ class "sv-val sv-old" ] [ text (String.fromInt vt.before) ]
                         , span [ class "sv-val sv-new" ] [ text (String.fromInt vt.score) ]
-                        , span [ class "sv-gain" ] [ text ("+" ++ String.fromInt (vt.score - vt.before) ++ " do Prolog") ]
+                        , span [ class "sv-gain" ] [ text ("+" ++ String.fromInt (vt.score - vt.before) ++ " Prolog") ]
+                        , span [ class "sv-meta" ] [ text ("jogada " ++ moveNumber vt.key ++ " de 4") ]
                         ]
                 )
 
@@ -530,6 +540,43 @@ stageVis i =
             text ""
 
 
+moveLabel : String -> String
+moveLabel key =
+    moves |> List.filter (\( k, _ ) -> k == key) |> List.head |> Maybe.map Tuple.second |> Maybe.withDefault ""
+
+
+moveArrow : String -> String
+moveArrow key =
+    case key of
+        "W" ->
+            "↑"
+
+        "A" ->
+            "←"
+
+        "S" ->
+            "↓"
+
+        _ ->
+            "→"
+
+
+moveNumber : String -> String
+moveNumber key =
+    case key of
+        "W" ->
+            "1"
+
+        "A" ->
+            "2"
+
+        "S" ->
+            "3"
+
+        _ ->
+            "4"
+
+
 moves : List ( String, String )
 moves =
     [ ( "W", "↑ Move Up" ), ( "A", "← Move Left" ), ( "S", "↓ Move Down" ), ( "D", "→ Move Right" ) ]
@@ -537,7 +584,7 @@ moves =
 
 pressKey : String -> Int -> Html msg
 pressKey label i =
-    div [ class "key press", style "animation-delay" (String.fromFloat (toFloat i * 3.6) ++ "s") ] [ text label ]
+    div [ class "key press", style "animation-delay" (String.fromFloat (toFloat i * 7.2) ++ "s") ] [ text label ]
 
 
 viewArt : String -> Html msg
@@ -557,7 +604,7 @@ viewArt kind =
                     ]
                 , div [ class "msg-lane" ]
                     (List.indexedMap
-                        (\i ( k, msg ) -> div [ class "msg-chip", style "animation-delay" (String.fromFloat (toFloat i * 3.6) ++ "s") ] [ span [ class "chip-key" ] [ text k ], text msg ])
+                        (\i ( k, msg ) -> div [ class "msg-chip", style "animation-delay" (String.fromFloat (toFloat i * 7.2) ++ "s") ] [ span [ class "chip-key" ] [ text k ], text msg ])
                         moves
                     )
                 , div [ class "elm-box" ]
@@ -565,17 +612,9 @@ viewArt kind =
                     , div [ class "elm-loop" ]
                         (List.indexedMap
                             (\i ( label, hint ) ->
-                                div [ class "cycle", style "animation-delay" (String.fromFloat (1.4 + toFloat i * 0.5) ++ "s") ]
+                                div [ class "cycle", style "animation-delay" (String.fromFloat (2.8 + toFloat i * 1.0) ++ "s") ]
                                     [ span [ class "cycle-name" ] [ text label ]
-                                    , if i == 0 then
-                                        div [ class "msg-hints" ]
-                                            (List.indexedMap
-                                                (\j ( _, m ) -> span [ class "msg-hint", style "animation-delay" (String.fromFloat (toFloat j * 3.6) ++ "s") ] [ text m ])
-                                                moves
-                                            )
-
-                                      else
-                                        stageVis i
+                                    , stageVis i
                                     ]
                             )
                             [ ( "Msg", "" ), ( "update", "calcula o novo Model" ), ( "Model", "board + score" ), ( "view", "HTML na tela" ) ]
