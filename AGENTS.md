@@ -29,6 +29,7 @@ Logic2048: 2048 com Prolog (regras), Python (ponte) e Elm (interface). Código e
 - Explique e comente o código para estudantes: prefira clareza a esperteza.
 - **Apresentação:** o projeto se apresenta dentro do app (`#/apresentacao`). Cada issue entrega a sua cena em `web/src/Cenas/IssueNN.elm`, com passos, anotações do apresentador e demo. Leia `docs/apresentacao.md`.
 - **Cena em dia:** `Demo` e o texto de `Code` atualizam sozinhos, mas os recortes (`from`, `to`, `mark`) e as animações escritas à mão não. Ao mudar um comportamento, confira as cenas que falam dele (veja `docs/apresentacao.md`).
+- **Sugestão, não ordem:** roteiros, arquivos e a arquitetura são ponto de partida. Quem implementa decide, mas registra o desvio e avisa quem depende (veja `docs/arquitetura.md`).
 - **Adendo e desvios:** antes de começar, leia o que as issues que bloqueiam a sua entregaram (PR, código, cena e anotações). Ao concluir, registre os desvios na issue e avise as que dependem dela.
 
 ## Erros que já aconteceram (não repita)

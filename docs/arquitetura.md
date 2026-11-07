@@ -28,6 +28,8 @@ manda o tabuleiro e recebe o resultado; nunca recalcula o movimento.
 4. Elm recebe a resposta. Se `moved`, **o Elm** sorteia a peça nova (`Random`: 2 com 90%, 4 com 10%) e atualiza o `Model`.
 5. `view` desenha o novo `Model`. Efeitos (som, confete, recorde) saem por **ports**.
 
+> **É um ponto de partida, não uma lei.** Quem implementa a issue tem a palavra final sobre como fazer, desde que não quebre o `contrato.md` nem o que outras issues consomem. Mudou algo? Registre em *Desvios do planejado*, avise as issues que dependem e atualize este arquivo no mesmo PR.
+
 ## Estrutura de arquivos e donos
 
 Um arquivo por responsabilidade, para duas issues não editarem o mesmo arquivo ao mesmo tempo.
