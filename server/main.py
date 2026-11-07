@@ -25,7 +25,8 @@ DIST = ROOT.parent / "web" / "dist"
 
 def montar_interface(app: FastAPI, pasta: Path) -> None:
     """Serve a interface já compilada (`npm run build`) em `/`, se ela existir."""
-    if (pasta / "index.html").is_file():
+    ja_montada = any(getattr(r, "name", "") == "interface" for r in app.routes)
+    if not ja_montada and (pasta / "index.html").is_file():
         app.mount("/", StaticFiles(directory=pasta, html=True), name="interface")
 
 
