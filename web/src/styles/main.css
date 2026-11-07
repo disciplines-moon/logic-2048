@@ -383,3 +383,56 @@ kbd {
 .cycle-name { font-weight: 800; }
 .cycle-hint { font: 0.85rem ui-monospace, monospace; opacity: 0.75; }
 .elm-back { opacity: 0.7; font-size: 0.95rem; }
+
+/* teclado maior no passo Teclado */
+.art-keyboard { gap: 10px; }
+.art-keyboard .key-row { gap: 10px; }
+.art-keyboard .key { width: 6rem; height: 6rem; font-size: 2.6rem; border-radius: 16px; border-bottom-width: 9px; }
+
+/* Elm: teclado -> mensagem -> caixa do Elm */
+.art-elm { flex-direction: row; gap: 1rem; align-items: center; }
+.mini-kb { display: flex; flex-direction: column; gap: 6px; align-items: center; }
+.mini-kb .key-row { display: flex; gap: 6px; }
+.mini-kb .key { width: 3rem; height: 3rem; font-size: 1.2rem; }
+.mini-kb .key.press { animation-duration: 2.8s; }
+.msg-lane { position: relative; width: 7rem; height: 2.4rem; border-bottom: 2px dashed var(--line); }
+.msg-chip {
+  position: absolute; top: 0; left: 0; padding: 0.3rem 0.7rem; border-radius: 999px; font: 700 0.85rem ui-monospace, monospace;
+  background: var(--accent); color: #fff; animation: fly 2.8s ease-in-out infinite; opacity: 0;
+}
+@keyframes fly {
+  0%, 4% { transform: translateX(-2rem); opacity: 0; }
+  10% { opacity: 1; }
+  30% { transform: translateX(5rem); opacity: 1; }
+  36%, 100% { transform: translateX(6rem); opacity: 0; }
+}
+.elm-box { border: 2px solid var(--elm); border-radius: 14px; padding: 0.6rem 0.8rem; background: color-mix(in srgb, var(--elm) 8%, white); }
+.elm-title { font-weight: 800; margin-bottom: 0.4rem; text-align: center; }
+.elm-box .cycle { min-width: 6.4rem; padding: 0.4rem 0.5rem; }
+
+/* Python: pacote JSON entra na caixa, é traduzido e sai como termo Prolog */
+.art-py { gap: 1rem; align-items: center; position: relative; }
+.conv { font: 0.85rem ui-monospace, monospace; padding: 0.5rem 0.8rem; border-radius: 10px; max-width: 17rem; }
+.in-chip { background: var(--code-bg); color: var(--code-ink); animation: py-in 4s ease-in-out infinite; }
+.out-chip { background: color-mix(in srgb, var(--accent) 18%, white); border: 2px solid var(--accent); animation: py-out 4s ease-in-out infinite; }
+.py-box {
+  border: 2px solid #3776ab; border-radius: 14px; padding: 0.9rem 1.2rem; text-align: center;
+  background: color-mix(in srgb, #3776ab 10%, white); animation: py-work 4s ease-in-out infinite;
+}
+.py-title { font-weight: 800; }
+.py-sub { font-size: 0.85rem; opacity: 0.75; }
+@keyframes py-in {
+  0% { opacity: 0; transform: translateX(-1.5rem); }
+  10%, 35% { opacity: 1; transform: none; }
+  50% { opacity: 0; transform: translateX(6rem) scale(0.4); }
+  100% { opacity: 0; }
+}
+@keyframes py-work {
+  0%, 40%, 80%, 100% { transform: none; box-shadow: none; }
+  55%, 65% { transform: scale(1.08) rotate(-2deg); box-shadow: 0 0 18px 4px rgba(55, 118, 171, 0.45); }
+}
+@keyframes py-out {
+  0%, 60% { opacity: 0; transform: translateX(-6rem) scale(0.4); }
+  75%, 95% { opacity: 1; transform: none; }
+  100% { opacity: 0; }
+}

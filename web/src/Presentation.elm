@@ -416,25 +416,34 @@ viewArt kind =
 
         "elm" ->
             div [ class "art art-elm" ]
-                [ div [ class "elm-loop" ]
-                    (List.indexedMap
-                        (\i ( label, hint ) ->
-                            div [ class "cycle", style "animation-delay" (String.fromFloat (toFloat i * 0.9) ++ "s") ]
-                                [ span [ class "cycle-name" ] [ text label ]
-                                , span [ class "cycle-hint" ] [ text hint ]
-                                ]
+                [ div [ class "mini-kb" ]
+                    [ div [ class "key-row" ] [ pressKey "W" 0 ]
+                    , div [ class "key-row" ] [ pressKey "A" 1, pressKey "S" 2, pressKey "D" 3 ]
+                    ]
+                , div [ class "msg-lane" ] [ div [ class "msg-chip" ] [ text "KeyDown" ] ]
+                , div [ class "elm-box" ]
+                    [ div [ class "elm-title" ] [ text "Elm" ]
+                    , div [ class "elm-loop" ]
+                        (List.indexedMap
+                            (\i ( label, hint ) ->
+                                div [ class "cycle", style "animation-delay" (String.fromFloat (toFloat i * 0.9) ++ "s") ]
+                                    [ span [ class "cycle-name" ] [ text label ]
+                                    , span [ class "cycle-hint" ] [ text hint ]
+                                    ]
+                            )
+                            [ ( "Msg", "KeyDown" ), ( "update", "novo Model" ), ( "Model", "board + score" ), ( "view", "HTML na tela" ) ]
                         )
-                        [ ( "Msg", "KeyDown D" ), ( "update", "novo Model" ), ( "Model", "board + score" ), ( "view", "HTML na tela" ) ]
-                    )
-                , div [ class "elm-back" ] [ text "↺ a tela muda, o Elm espera a próxima Msg" ]
+                    ]
                 ]
 
         "python" ->
-            div [ class "art art-python" ]
-                [ div [ class "jl", style "animation-delay" "0s" ] [ text "{" ]
-                , div [ class "jl", style "animation-delay" "0.25s" ] [ text "  \"board\": [[2,0,0,2], ...]," ]
-                , div [ class "jl", style "animation-delay" "0.5s" ] [ text "  \"direction\": \"right\"" ]
-                , div [ class "jl", style "animation-delay" "0.75s" ] [ text "}" ]
+            div [ class "art art-py" ]
+                [ div [ class "conv in-chip" ] [ text "{\"board\": [[2,0,0,2],...], \"direction\": \"right\"}" ]
+                , div [ class "py-box" ]
+                    [ div [ class "py-title" ] [ text "Python" ]
+                    , div [ class "py-sub" ] [ text "JSON → termo Prolog" ]
+                    ]
+                , div [ class "conv out-chip" ] [ text "move([[2,0,0,2],...], right, Novo, Pontos)" ]
                 ]
 
         "prolog" ->
