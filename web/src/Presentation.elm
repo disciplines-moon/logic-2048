@@ -14,6 +14,7 @@ import Dict exposing (Dict)
 import Html exposing (Html, button, div, h1, h2, kbd, li, p, pre, span, text, ul)
 import Html.Attributes exposing (class, classList, style)
 import Html.Events exposing (onClick)
+import Html.Keyed as Keyed
 import Json.Decode as D
 
 
@@ -21,6 +22,7 @@ type alias Model =
     { scene : Int
     , step : Int
     , showNotes : Bool
+    , forward : Bool
     }
 
 
@@ -71,7 +73,7 @@ init scene step =
         s =
             clamp 0 (sceneCount - 1) scene
     in
-    { scene = s, step = clamp 0 (stepCount s - 1) step, showNotes = True }
+    { scene = s, step = clamp 0 (stepCount s - 1) step, showNotes = True, forward = True }
 
 
 update : Msg -> Model -> Model
@@ -79,34 +81,34 @@ update msg model =
     case msg of
         Next ->
             if model.step < stepCount model.scene - 1 then
-                { model | step = model.step + 1 }
+                { model | step = model.step + 1, forward = True }
 
             else if model.scene < sceneCount - 1 then
-                { model | scene = model.scene + 1, step = 0 }
+                { model | scene = model.scene + 1, step = 0, forward = True }
 
             else
                 model
 
         Prev ->
             if model.step > 0 then
-                { model | step = model.step - 1 }
+                { model | step = model.step - 1, forward = False }
 
             else if model.scene > 0 then
-                { model | scene = model.scene - 1, step = stepCount (model.scene - 1) - 1 }
+                { model | scene = model.scene - 1, step = stepCount (model.scene - 1) - 1, forward = False }
 
             else
                 model
 
         NextScene ->
             if model.scene < sceneCount - 1 then
-                { model | scene = model.scene + 1, step = 0 }
+                { model | scene = model.scene + 1, step = 0, forward = True }
 
             else
                 model
 
         PrevScene ->
             if model.scene > 0 then
-                { model | scene = model.scene - 1, step = 0 }
+                { model | scene = model.scene - 1, step = 0, forward = False }
 
             else
                 model
@@ -183,10 +185,21 @@ view config model =
         Just ( section, scene ) ->
             div [ class "pres" ]
                 [ viewProgress model
-                , span [ class "pres-section" ] [ text (String.toUpper section) ]
-                , h1 [] [ text scene.title ]
-                , div [ class "pres-body" ]
-                    (List.map (viewBlockAt config model.step) (visibleBlocks model.step scene))
+                , Keyed.node "div"
+                    [ class "scene" ]
+                    [ ( String.fromInt model.scene
+                      , div [ class "scene-in", classList [ ( "back", not model.forward ) ] ]
+                            [ span [ class "pres-section" ] [ text (String.toUpper section) ]
+                            , if scene.title == "" then
+                                text ""
+
+                              else
+                                h1 [] [ text scene.title ]
+                            , div [ class "pres-body" ]
+                                (List.map (viewBlockAt config model.step) (visibleBlocks model.step scene))
+                            ]
+                      )
+                    ]
                 , if model.showNotes then
                     viewNotes (List.head (List.drop model.step scene.steps))
 
@@ -291,7 +304,7 @@ viewBlock config block =
             p [] [ text s ]
 
         Bullets items ->
-            ul [] (List.map (\i -> li [] [ text i ]) items)
+            ul [] (List.indexedMap (\k i -> li [ style "animation-delay" (String.fromInt (k * 120) ++ "ms") ] [ text i ]) items)
 
         Pre s ->
             pre [ class "pre" ] [ text s ]
@@ -301,6 +314,16 @@ viewBlock config block =
 
         Demo ->
             div [ class "demo" ] [ config.demo ]
+
+        Lead s ->
+            p [ class "lead" ] [ text s ]
+
+        Hero { title, subtitle, chips } ->
+            div [ class "hero" ]
+                [ div [ class "hero-title" ] [ text title ]
+                , p [ class "hero-sub" ] [ text subtitle ]
+                , div [ class "chips" ] (List.map (\c -> span [ class "chip" ] [ text c ]) chips)
+                ]
 
         Flow { nodes, active } ->
             viewFlow nodes active
@@ -389,7 +412,10 @@ excerpt sources file from to mark =
                 |> List.filter (\( n, _ ) -> n >= start && n <= last)
                 |> List.map
                     (\( n, l ) ->
-                        div [ classList [ ( "line", True ), ( "mark", List.member n mark ) ] ]
+                        div
+                            [ classList [ ( "line", True ), ( "mark", List.member n mark ) ]
+                            , style "animation-delay" (String.fromInt (min 600 ((n - start) * 30)) ++ "ms")
+                            ]
                             [ span [ class "no" ] [ text (String.fromInt n) ]
                             , text (l ++ " ")
                             ]

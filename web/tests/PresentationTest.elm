@@ -1,5 +1,6 @@
 module PresentationTest exposing (suite)
 
+import Cenas
 import Cenas.Types exposing (Block(..), visibleBlocks)
 import Expect
 import Presentation exposing (Msg(..))
@@ -11,19 +12,24 @@ suite =
     describe "Apresentação"
         [ test "há cenas" <|
             \_ -> Expect.greaterThan 0 Presentation.sceneCount
-        , test "avançar passa pelos passos e depois pela próxima cena" <|
+        , test "avançar por todos os passos chega ao fim, e voltar desfaz" <|
             \_ ->
-                Presentation.init 0 0
-                    |> Presentation.update Next
-                    |> Presentation.update Next
-                    |> (\m -> ( m.scene, m.step ))
-                    |> Expect.equal ( 1, 0 )
-        , test "voltar do primeiro passo da cena vai ao último da anterior" <|
-            \_ ->
-                Presentation.init 1 0
-                    |> Presentation.update Prev
-                    |> (\m -> ( m.scene, m.step ))
-                    |> Expect.equal ( 0, 1 )
+                let
+                    total =
+                        Cenas.all |> List.map (\sc -> List.length sc.steps) |> List.sum
+
+                    start =
+                        Presentation.init 0 0
+
+                    forward =
+                        List.foldl (\_ m -> Presentation.update Next m) start (List.repeat (total - 1) ())
+
+                    back =
+                        List.foldl (\_ m -> Presentation.update Prev m) forward (List.repeat (total - 1) ())
+                in
+                Expect.equal
+                    ( ( forward.scene, forward.step ), ( back.scene, back.step ) )
+                    ( ( (Presentation.update Last start).scene, (Presentation.update Last start).step ), ( 0, 0 ) )
         , test "não passa do início nem do fim" <|
             \_ ->
                 Expect.equal

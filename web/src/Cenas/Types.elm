@@ -17,6 +17,10 @@ type Block
     | Code { file : String, from : Int, to : Int, mark : List Int }
       -- Demo ao vivo: o jogo real dentro da cena.
     | Demo
+      -- Frase grande de destaque.
+    | Lead String
+      -- Capa: título grande, subtítulo e etiquetas. Em cenas com `title = ""` o título comum some.
+    | Hero { title : String, subtitle : String, chips : List String }
       -- Diagrama de etapas ligadas por setas. `active` (a partir de 0) acende a
       -- etapa atual e mostra o `detail` dela. Use `Clear` + um novo `Flow` com
       -- outro `active` para "caminhar" pelo fluxo a cada passo.

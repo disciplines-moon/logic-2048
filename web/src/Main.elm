@@ -66,7 +66,7 @@ init flags url key =
       , sources = sourcesFrom flags
       , board = [ [ 2, 0, 0, 2 ], [ 0, 0, 0, 0 ], [ 0, 4, 0, 0 ], [ 0, 0, 0, 0 ] ]
       , score = 0
-      , status = "Use as setas do teclado."
+      , status = ""
       }
     , Cmd.none
     )
@@ -219,7 +219,10 @@ viewBoard model =
             List.length model.board
     in
     div [ class "demo-board" ]
-        [ p [ class "score" ] [ text ("Pontos: " ++ String.fromInt model.score) ]
+        [ p [ class "score" ]
+            [ text "Pontos: "
+            , Html.span [ class "score-num", style "--n" (String.fromInt model.score) ] []
+            ]
         , Keyed.node "div"
             [ class "board"
             , style "grid-template-columns" ("repeat(" ++ String.fromInt n ++ ", auto)")
@@ -230,9 +233,23 @@ viewBoard model =
             )
         , div [ class "dirs" ]
             (List.map (\( label, dir ) -> button [ onClick (Pressed dir) ] [ text label ])
-                [ ( "←", Left ), ( "↑", Up ), ( "↓", Down ), ( "→", Right ) ]
+                [ ( "A ←", Left ), ( "W ↑", Up ), ( "S ↓", Down ), ( "D →", Right ) ]
             )
-        , p [ class "status" ] [ text model.status ]
+        , p [ class "status" ]
+            [ text
+                (case model.page of
+                    PresentationPage ->
+                        "Jogue com W A S D. As setas passam os passos da apresentação."
+
+                    GamePage ->
+                        "Jogue com as setas ou com W A S D."
+                )
+            , if model.status == "" then
+                text ""
+
+              else
+                text ("  [" ++ model.status ++ "]")
+            ]
         ]
 
 
