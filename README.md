@@ -50,6 +50,21 @@ brew install swi-prolog node uv
 Confira com `swipl --version`, `uv --version` e `node --version`. Se o
 `apt` trouxer um SWI-Prolog antigo (< 9.1.12), use o PPA oficial `swi-prolog/stable`.
 
+## Versões das stacks (as do `lock`, testadas)
+
+| Camada | Biblioteca | Versão |
+|---|---|---|
+| Prolog | SWI-Prolog (com `clpfd` e `plunit`) | 9.2.9 |
+| Python | FastAPI / pydantic / uvicorn | 0.162.0 / 2.14.3 / 0.54.0 |
+| Python | janus-swi (ponte com o Prolog) | 1.5.3 |
+| Python (testes) | pytest / httpx | 9.2.0 / 0.28.1 |
+| Elm | compilador `elm` / `elm-test` / `elm-format` | 0.19.3 / 0.19.3 / 0.8.8 |
+| Elm | pacotes (`elm.json`) | browser 1.0.2, core 1.0.5, html 1.0.0, http 2.0.0, json 1.1.3, random 1.0.0, svg 1.0.1, time 1.0.0, url 1.0.0 |
+| Web | Vite / vite-plugin-elm | 8.3.6 / 3.0.1 |
+
+As versões exatas ficam nos arquivos abaixo; `uv sync` e `npm install` instalam
+exatamente elas.
+
 ## Arquivos de dependências
 
 | Arquivo | Contém |
