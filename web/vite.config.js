@@ -8,6 +8,6 @@ export default defineConfig({
   server: {
     proxy: { "/api": process.env.API_URL ?? "http://localhost:8000" },
     // Os slides importam arquivos de fora de web/ (prolog/ e server/) com ?raw.
-    fs: { allow: [".", "../prolog", "../server"] },
+    fs: { allow: [".", "../prolog", "../server", "../.github", "../scripts"] },
   },
 });

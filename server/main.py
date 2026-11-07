@@ -4,6 +4,7 @@
 """
 
 import logging
+from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Literal
 
@@ -11,6 +12,7 @@ import janus_swi as janus
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, StrictInt, field_validator
 
 ROOT = Path(__file__).parent
@@ -18,7 +20,24 @@ janus.consult(str(ROOT.parent / "prolog" / "game.pl"))
 
 MIN_N, MAX_N = 3, 6
 
-app = FastAPI(title="Logic2048")
+DIST = ROOT.parent / "web" / "dist"
+
+
+def montar_interface(app: FastAPI, pasta: Path) -> None:
+    """Serve a interface já compilada (`npm run build`) em `/`, se ela existir."""
+    if (pasta / "index.html").is_file():
+        app.mount("/", StaticFiles(directory=pasta, html=True), name="interface")
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Montar só na subida garante que "/" fique DEPOIS de todas as rotas /api,
+    # mesmo as que outras issues acrescentarem mais abaixo neste arquivo.
+    montar_interface(app, DIST)
+    yield
+
+
+app = FastAPI(title="Logic2048", lifespan=lifespan)
 
 
 @app.exception_handler(RequestValidationError)

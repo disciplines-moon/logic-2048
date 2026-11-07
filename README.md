@@ -102,6 +102,13 @@ cd server && uv run fastapi dev main.py --port 8010
 cd web && API_URL=http://localhost:8010 npm run dev
 ```
 
+Um comando só (compila a interface e o FastAPI serve API e interface juntas em
+`http://localhost:8000`, com a apresentação em `/#/apresentacao`):
+
+```bash
+sh scripts/rodar.sh          # ou: sh scripts/rodar.sh 8010 para outra porta
+```
+
 Build de produção da interface: `cd web && npm run build` (saída em `web/dist`).
 
 > **gcc 14+:** o `janus-swi` pode falhar ao compilar com
@@ -115,6 +122,9 @@ swipl -g "load_files('prolog/test_game.pl'),run_tests" -t halt   # Prolog
 cd server && uv run pytest                                      # API
 cd web && npm run check                                          # Elm: formato, testes e build
 ```
+
+A CI (`.github/workflows/ci.yml`) roda os testes do Prolog, o `pytest` e o
+`npm run check` em todo PR. Ela só roda no GitHub; localmente use os comandos acima.
 
 ## Estado atual
 

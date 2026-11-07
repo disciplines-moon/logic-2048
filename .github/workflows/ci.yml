@@ -1,0 +1,57 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  prolog:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Instalar SWI-Prolog
+        run: |
+          sudo apt-add-repository -y ppa:swi-prolog/stable
+          sudo apt-get update
+          sudo apt-get install -y swi-prolog
+      - name: Testes plunit
+        run: |
+          for f in prolog/test_*.pl; do
+            swipl -g "load_files('$f'),run_tests" -t halt
+          done
+
+  python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Instalar SWI-Prolog (o janus-swi compila contra ele)
+        run: |
+          sudo apt-add-repository -y ppa:swi-prolog/stable
+          sudo apt-get update
+          sudo apt-get install -y swi-prolog swi-prolog-nox libswipl-dev
+      - uses: astral-sh/setup-uv@v5
+      - name: pytest
+        working-directory: server
+        env:
+          CFLAGS: -Wno-error=incompatible-pointer-types -Wno-incompatible-pointer-types
+        run: |
+          uv sync
+          uv run pytest
+
+  elm:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # o script armadilhas compara com a main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - name: Formato, armadilhas, testes e build
+        working-directory: web
+        run: |
+          npm ci
+          npm run check

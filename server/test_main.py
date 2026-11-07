@@ -1,6 +1,7 @@
+from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from main import app
+from main import app, montar_interface
 
 client = TestClient(app)
 EMPTY = [[0] * 4 for _ in range(4)]
@@ -46,3 +47,17 @@ def test_rejeita_tipos_que_nao_sao_inteiros():
         r = client.post("/api/move", json={"board": board, "direction": "left"})
         assert r.status_code == 422, bad
         assert "error" in r.json()
+
+
+def test_serve_a_interface_compilada_sem_esconder_a_api(tmp_path):
+    (tmp_path / "index.html").write_text("<h1>Logic2048</h1>")
+    app_teste = FastAPI()
+
+    @app_teste.get("/api/ping")
+    def ping():
+        return {"ok": True}
+
+    montar_interface(app_teste, tmp_path)
+    c = TestClient(app_teste)
+    assert "Logic2048" in c.get("/").text
+    assert c.get("/api/ping").json() == {"ok": True}
