@@ -605,3 +605,20 @@ button:hover { background: #3d352d; }
 .sv-grid .sv-m.sv-v4, .sv-grid .sv-m.sv-v8, .sv-grid .sv-m.sv-v16, .sv-grid .sv-m.sv-v32 { opacity: 0; }
 .sv-model { justify-content: center; min-width: 5rem; }
 .sv-pop.sv-v4, .sv-pop.sv-v8, .sv-pop.sv-v16, .sv-pop.sv-v32 { font-size: 0.95rem; }
+
+/* ---- Prolog: entrada -> regra (linha a linha) -> saída ---- */
+.art-pl { gap: 0.8rem; }
+.pl-col { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; }
+.pl-label { font: 700 0.85rem ui-monospace, monospace; opacity: 0.9; }
+.pl-arrow { font-size: 1.8rem; color: #edc22e; }
+.pl-clause { min-width: 21rem; animation: none; }
+.pt-in, .pt-keep { animation: none; opacity: 1; transform: none; }
+.pt-out { opacity: 0; animation: pt-out 6s ease-in-out infinite; }
+@keyframes pt-out { 0%, 58% { opacity: 0; transform: scale(0.5); } 64% { opacity: 1; transform: scale(1.25); } 72%, 94% { opacity: 1; transform: none; } 98%, 100% { opacity: 0; } }
+.ln { border-radius: 6px; padding-top: 0.1rem; padding-bottom: 0.1rem; }
+.ln1 { animation: ln-on 6s infinite; animation-delay: 0s; }
+.ln2 { animation: ln-on2 6s infinite; }
+.ln-note { opacity: 0.5; }
+@keyframes ln-on { 0%, 12% { background: transparent; } 16%, 36% { background: rgba(237, 194, 46, 0.3); } 40%, 100% { background: transparent; } }
+@keyframes ln-on2 { 0%, 38% { background: transparent; } 42%, 58% { background: rgba(237, 194, 46, 0.3); } 62%, 100% { background: transparent; } }
+.pl-scoreline { opacity: 0; animation: pt-out 6s ease-in-out infinite; }
