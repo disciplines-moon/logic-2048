@@ -580,3 +580,8 @@ button:hover { background: #3d352d; }
 .pc0 { left: 6px; } .pc1 { left: calc(6px + var(--step)); } .pc2 { left: calc(6px + 2 * var(--step)); } .pc3 { left: calc(6px + 3 * var(--step)); }
 .pr0 { top: 6px; } .pr1 { top: calc(6px + var(--step)); } .pr2 { top: calc(6px + 2 * var(--step)); } .pr3 { top: calc(6px + 3 * var(--step)); }
 .pd0 { --dx: 0; } .pd1 { --dx: -1; } .pd2 { --dx: -2; } .pd3 { --dx: -3; }
+
+/* sem scale nos nós: o gap fica fixo e as setas ficam centralizadas entre as caixas */
+.flow .node, .flow .node.done { transform: none; }
+.flow .node.active { transform: translateY(-4px); }
+.flow .arrow { display: flex; align-items: center; justify-content: center; padding: 0; }
