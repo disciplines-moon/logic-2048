@@ -1,12 +1,12 @@
 :root {
-  --bg: #faf8ef;
-  --ink: #776e65;
-  --muted: #8f7a66;
-  --card: #ffffff;
-  --line: #e4dccb;
+  --bg: #1f1b17;
+  --ink: #f9f6f2;
+  --muted: #bbada0;
+  --card: #2e2822;
+  --line: #4a4037;
   --accent: #f65e3b;
   --gold: #edc22e;
-  --code-bg: #272822;
+  --code-bg: #14110e;
   --code-ink: #f8f8f2;
   --mark: rgba(237, 194, 46, 0.28);
   --elm: #60b5cc;
@@ -490,3 +490,38 @@ kbd {
 .node-logo { background: rgba(255, 255, 255, 0.92); padding: 3px; border-radius: 8px; line-height: 0; }
 .elm-box { background: color-mix(in srgb, #60b5cc 12%, white); border-color: #60b5cc; }
 .py-box { background: color-mix(in srgb, #3776ab 10%, white); border-color: #3776ab; }
+
+/* ---- tema escuro com as cores do 2048 ---- */
+body { background: radial-gradient(circle at 20% 0%, #2c251f, #1f1b17 60%); }
+button:hover { background: #3d352d; }
+.flow-detail, .notes, .lead { background: var(--card); color: var(--ink); }
+.key { background: #eee4da; color: #776e65; border-color: #bbada0; }
+.key.press { color: #776e65; }
+.elm-box { background: rgba(96, 181, 204, 0.12); }
+.py-box { background: rgba(55, 118, 171, 0.18); }
+.cycle { background: #3d352d; color: #f9f6f2; }
+.msg-lane { border-bottom-color: #bbada0; }
+.msg-chip { display: flex; align-items: center; gap: 0.4rem; background: #f65e3b; }
+.chip-key { background: #edc22e; color: #776e65; border-radius: 6px; padding: 0 0.4rem; font-weight: 800; }
+.msg-hints { position: relative; height: 1.1rem; width: 7.5rem; }
+.msg-hint { position: absolute; inset: 0; text-align: center; font: 700 0.85rem ui-monospace, monospace; color: #edc22e; opacity: 0; animation: hintshow 14.4s infinite; }
+@keyframes hintshow { 0%, 7% { opacity: 0; transform: translateY(4px); } 8%, 23% { opacity: 1; transform: none; } 24%, 100% { opacity: 0; } }
+.pcard { background: #14110e; }
+
+/* indicador de posição sempre centralizado na caixa ativa */
+.flow .node { flex: 1 1 0; min-width: 0; }
+.flow .arrow { flex: none; width: 2rem; text-align: center; }
+.node-dot {
+  position: absolute; left: 50%; bottom: -11px; width: 20px; height: 20px; margin-left: -10px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #fff, #edc22e); box-shadow: 0 0 14px 4px rgba(237, 194, 46, 0.7);
+  animation: dot-pop 0.5s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+}
+@keyframes dot-pop { from { transform: scale(0); } to { transform: scale(1); } }
+.msg-lane { width: 12rem; }
+.elm-box { position: relative; z-index: 2; }
+@keyframes fly {
+  0%, 2% { transform: translateX(-2rem); opacity: 0; }
+  3% { opacity: 1; }
+  9% { transform: translateX(9rem); opacity: 1; }
+  10%, 100% { transform: translateX(10rem); opacity: 0; }
+}

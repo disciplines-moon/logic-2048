@@ -349,7 +349,12 @@ viewFlow nodes active =
                 , class ("k" ++ String.fromInt i)
                 , classList [ ( "active", i == active ), ( "done", i < active ) ]
                 ]
-                [ div [ class "node-logo" ] [ nodeLogo n.art ]
+                [ if i == active then
+                    div [ class "node-dot" ] []
+
+                  else
+                    text ""
+                , div [ class "node-logo" ] [ nodeLogo n.art ]
                 , div [ class "node-num" ] [ text (nodeNumber i) ]
                 , div [ class "label" ] [ text n.label ]
                 , div [ class "sub" ] [ text n.sub ]
@@ -383,13 +388,6 @@ viewFlow nodes active =
     in
     div []
         [ div [ class "flow" ] withArrows
-        , div [ class "track" ]
-            [ div
-                [ class "packet"
-                , style "left" (String.fromFloat ((toFloat active + 0.5) / toFloat (max 1 (List.length nodes)) * 100) ++ "%")
-                ]
-                []
-            ]
         , div [ class "flow-return" ]
             [ text
                 (if active == List.length nodes - 1 then
@@ -402,6 +400,11 @@ viewFlow nodes active =
         , div [ class "flow-detail" ] [ text detail ]
         , viewArt art
         ]
+
+
+moves : List ( String, String )
+moves =
+    [ ( "W", "↑ Move Up" ), ( "A", "← Move Left" ), ( "S", "↓ Move Down" ), ( "D", "→ Move Right" ) ]
 
 
 pressKey : String -> Int -> Html msg
@@ -426,8 +429,8 @@ viewArt kind =
                     ]
                 , div [ class "msg-lane" ]
                     (List.indexedMap
-                        (\i k -> div [ class "msg-chip", style "animation-delay" (String.fromFloat (toFloat i * 3.6) ++ "s") ] [ text ("KeyDown " ++ k) ])
-                        [ "W", "A", "S", "D" ]
+                        (\i ( k, msg ) -> div [ class "msg-chip", style "animation-delay" (String.fromFloat (toFloat i * 3.6) ++ "s") ] [ span [ class "chip-key" ] [ text k ], text msg ])
+                        moves
                     )
                 , div [ class "elm-box" ]
                     [ div [ class "elm-title" ] [ elmLogo, text "Elm" ]
@@ -436,10 +439,18 @@ viewArt kind =
                             (\i ( label, hint ) ->
                                 div [ class "cycle", style "animation-delay" (String.fromFloat (1.4 + toFloat i * 0.5) ++ "s") ]
                                     [ span [ class "cycle-name" ] [ text label ]
-                                    , span [ class "cycle-hint" ] [ text hint ]
+                                    , if i == 0 then
+                                        div [ class "msg-hints" ]
+                                            (List.indexedMap
+                                                (\j ( _, m ) -> span [ class "msg-hint", style "animation-delay" (String.fromFloat (toFloat j * 3.6) ++ "s") ] [ text m ])
+                                                moves
+                                            )
+
+                                      else
+                                        span [ class "cycle-hint" ] [ text hint ]
                                     ]
                             )
-                            [ ( "Msg", "KeyDown" ), ( "update", "novo Model" ), ( "Model", "board + score" ), ( "view", "HTML na tela" ) ]
+                            [ ( "Msg", "" ), ( "update", "calcula o novo Model" ), ( "Model", "board + score" ), ( "view", "HTML na tela" ) ]
                         )
                     ]
                 ]
