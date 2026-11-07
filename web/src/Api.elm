@@ -21,15 +21,22 @@ type alias MoveResponse =
     }
 
 
-{-| Falha quando a tecla está sendo repetida (segurada), para não mandar várias jogadas do mesmo tabuleiro.
+{-| Falha quando a tecla está sendo repetida (segurada) ou com Ctrl, Alt ou Meta, para não mandar várias jogadas do mesmo tabuleiro.
 -}
 notRepeat : D.Decoder ()
 notRepeat =
-    D.field "repeat" D.bool
+    D.map4
+        (\r ctrl alt meta ->
+            r || ctrl || alt || meta
+        )
+        (D.field "repeat" D.bool)
+        (D.field "ctrlKey" D.bool)
+        (D.field "altKey" D.bool)
+        (D.field "metaKey" D.bool)
         |> D.andThen
-            (\r ->
-                if r then
-                    D.fail "tecla repetida"
+            (\bloqueada ->
+                if bloqueada then
+                    D.fail "tecla repetida ou com modificador"
 
                 else
                     D.succeed ()

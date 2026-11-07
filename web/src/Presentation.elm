@@ -691,7 +691,7 @@ viewArt kind =
                                     , stageVis i
                                     ]
                             )
-                            [ ( "Msg", "" ), ( "update", "calcula o novo Model" ), ( "Model", "board + score" ), ( "view", "HTML na tela" ) ]
+                            [ ( "Msg", "" ), ( "update", "" ), ( "Model", "board + score" ), ( "view", "HTML na tela" ) ]
                         )
                     ]
                 ]
@@ -900,7 +900,7 @@ viewMember i m =
         ]
         [ div [ class "avatar" ]
             [ span [ class "initial" ] [ text (String.left 1 m.name) ]
-            , Html.img [ Html.Attributes.src ("https://github.com/" ++ m.login ++ ".png?size=240"), Html.Attributes.alt m.name ] []
+            , Html.img [ Html.Attributes.src ("https://github.com/" ++ m.login ++ ".png?size=240"), Html.Attributes.alt m.name, Html.Attributes.attribute "referrerpolicy" "no-referrer", Html.Attributes.attribute "loading" "lazy" ] []
             ]
         , div [ class "mname" ] [ text m.name ]
         , div [ class "mlogin" ] [ text ("@" ++ m.login) ]

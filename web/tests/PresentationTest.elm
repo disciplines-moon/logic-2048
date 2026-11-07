@@ -96,6 +96,8 @@ teclado =
         \_ -> Expect.equal (Ok (Just Api.Up)) (D.decodeString Api.wasdDecoder (tecla "W" False False))
     , test "W repetido não joga" <|
         \_ -> Expect.equal True (D.decodeString Api.wasdDecoder (tecla "w" False True) |> Result.toMaybe |> (==) Nothing)
+    , test "Ctrl+W não joga" <|
+        \_ -> Expect.equal True (D.decodeString Api.wasdDecoder (tecla "w" True False) |> Result.toMaybe |> (==) Nothing)
     , test "seta repetida não joga" <|
         \_ -> Expect.equal True (D.decodeString Api.keyDecoder (tecla "ArrowUp" False True) |> Result.toMaybe |> (==) Nothing)
     ]

@@ -63,7 +63,7 @@ O Python continua chamando `game:hint(...)` e `game:challenge(...)`: o `game.pl`
 | `Game.elm` | `Model`, `Msg`, `update`, `init`, teclado, sorteio, tamanho, Novo jogo | #6 |
 | `Game/History.elm` | histórico, desfazer e replay (funções puras sobre `Game.Model`) | #7 |
 | `Game/View.elm` | `view` do tabuleiro, placar, controles, temas, `Html.Keyed` | #8 |
-| `Game/Ports.elm` + `web/src/*.js` | ports e efeitos (sons, confete, recorde) | #9 |
+| `Ports.elm` + `web/src/*.js` | ports e efeitos (sons, confete, recorde) | #9 |
 | `Api.elm` | cliente HTTP, decoders, `Http.Error` tratado | #6 (move), #20 (hint, challenge, erros) |
 | `Game/Assist.elm` | dica, modo IA, desafios na interface | #20 |
 | `Presentation.elm`, `Cenas/*` | motor da apresentação e as cenas | todas (uma cena cada) |

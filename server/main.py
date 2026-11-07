@@ -3,6 +3,7 @@
     POST /api/move   { "board": [[...]], "direction": "left" }
 """
 
+import logging
 from pathlib import Path
 from typing import Literal
 
@@ -10,7 +11,7 @@ import janus_swi as janus
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, StrictInt, field_validator
 
 ROOT = Path(__file__).parent
 janus.consult(str(ROOT.parent / "prolog" / "game.pl"))
@@ -30,11 +31,12 @@ async def entrada_invalida(_: Request, exc: RequestValidationError):
 @app.exception_handler(Exception)
 async def erro_interno(_: Request, exc: Exception):
     """Contrato: erro interno é 500 no mesmo formato."""
-    return JSONResponse(status_code=500, content={"error": f"erro interno: {exc}"})
+    logging.getLogger("uvicorn.error").exception("erro interno", exc_info=exc)
+    return JSONResponse(status_code=500, content={"error": "erro interno no servidor"})
 
 
 class MoveRequest(BaseModel):
-    board: list[list[int]]
+    board: list[list[StrictInt]]
     direction: Literal["left", "right", "up", "down"]
 
     @field_validator("board")

@@ -15,8 +15,9 @@ if grep -rnE 'animation-delay: *[0-9.]+s' src/styles 2>/dev/null | grep -vE 'ani
   echo "       prefira delay 0 e o tempo da ação nos keyframes (AGENTS.md). Revise se for ciclo compartilhado."
 fi
 
-if git rev-parse --verify -q main >/dev/null 2>&1; then
-  if git log main..HEAD --format=%B 2>/dev/null | grep -iq 'co-authored-by'; then
+base=$(git rev-parse --verify -q main 2>/dev/null || git rev-parse --verify -q origin/main 2>/dev/null)
+if [ -n "$base" ]; then
+  if git log "$base"..HEAD --format=%B 2>/dev/null | grep -iq 'co-authored-by'; then
     echo "ERRO: commit com Co-Authored-By neste branch (proibido pelo AGENTS.md)."
     erro=1
   fi

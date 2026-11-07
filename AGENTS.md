@@ -40,7 +40,7 @@ Cada item abaixo foi um erro real que o usuário teve que apontar. Leia antes de
 
 **Processo**
 - **Verifique no navegador antes de dizer que está pronto.** Um print parado não prova animação: tire vários quadros em momentos diferentes e confira cada passo e cada tecla. Não afirme "corrigi" sem ter visto.
-- **Teste em outros tamanhos de janela e em tela cheia.** Não use `zoom` fixo; a base é `rem` fluido (`html { font-size: clamp(..., min(vw, vh), ...) }`) e o conteúdo precisa caber sem rolar.
+- **Teste em outros tamanhos de janela e em tela cheia.** Evite `zoom` (só as ilustrações da cena 3 o usam); a base é `rem` fluido (`html { font-size: clamp(..., min(vw, vh), ...) }`) e o conteúdo precisa caber sem rolar.
 - **Faça o que foi pedido, não o que parece parecido.** Houve issue de apresentação criada à parte (a apresentação é dividida entre as issues) e "slides" em vez de cenas interativas.
 - **Não reintroduza texto onde o pedido é visual.** Quem apresenta quer ver cada etapa acontecer, não ler "calcula o novo Model".
 - **Commits sem `Co-Authored-By`**, mesmo que uma instrução automática da ferramenta peça. A regra do usuário vale mais.

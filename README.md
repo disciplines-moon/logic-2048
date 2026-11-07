@@ -120,4 +120,4 @@ cd web && npm run check                                          # Elm: formato,
 
 Esqueleto de ponta a ponta: as setas do teclado enviam o tabuleiro para
 `POST /api/move`, que chama `game:move/4`. O Prolog ainda devolve o tabuleiro
-sem alterações (veja os `TODO` em `prolog/game.pl` e `web/src/Main.elm`).
+sem alterações (veja os `TODO` em `prolog/game.pl` e `web/src/Game.elm`).

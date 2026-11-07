@@ -37,3 +37,12 @@ def test_rejeita_valores_invalidos():
         r = client.post("/api/move", json={"board": board, "direction": "left"})
         assert r.status_code == 422, bad
         assert "error" in r.json()
+
+
+def test_rejeita_tipos_que_nao_sao_inteiros():
+    for bad in (False, True, 2.0, "2", None):
+        board = [[0] * 4 for _ in range(4)]
+        board[0][0] = bad
+        r = client.post("/api/move", json={"board": board, "direction": "left"})
+        assert r.status_code == 422, bad
+        assert "error" in r.json()
