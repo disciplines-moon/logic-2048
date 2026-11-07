@@ -435,3 +435,20 @@ kbd {
   75%, 95% { opacity: 1; transform: none; }
   100% { opacity: 0; }
 }
+
+/* Python: cartões de JSON e de termo Prolog com sintaxe colorida */
+.logo { width: 3.2rem; height: 3.2rem; display: block; margin: 0 auto 0.3rem; animation: logo-bob 4s ease-in-out infinite; }
+.logo-sm { width: 1.4rem; height: 1.4rem; display: inline-block; margin: 0 0.4rem -0.25rem 0; animation: none; }
+@keyframes logo-bob { 0%, 40%, 80%, 100% { transform: none; } 55%, 65% { transform: scale(1.15) rotate(-6deg); } }
+.art-py { align-items: center; gap: 1.2rem; }
+.pcard { background: var(--code-bg); color: var(--code-ink); border-radius: 12px; padding: 0.6rem 0.9rem; font: 0.85rem/1.5 ui-monospace, monospace; min-width: 14rem; }
+.pcard-head { font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.55; margin-bottom: 0.3rem; }
+.tok.ind { padding-left: 1rem; }
+.k { color: #7dcfff; } .s { color: #9ece6a; } .n { color: #ff9e64; } .f { color: #e0af68; font-weight: 700; } .v { color: #bb9af7; } .p { opacity: 0.7; }
+.mini-grid { display: grid; grid-template-columns: repeat(4, 1.6rem); gap: 3px; margin: 0.2rem 0 0.2rem 1rem; }
+.mg { height: 1.6rem; border-radius: 4px; background: rgba(255, 255, 255, 0.08); display: flex; align-items: center; justify-content: center; font-weight: 800; }
+.mg-on { background: #eee4da; color: #776e65; }
+.in-card { animation: py-in 4s ease-in-out infinite; max-width: none; }
+.out-card { animation: py-out 4s ease-in-out infinite; max-width: none; }
+.py-check { font-size: 0.8rem; font-weight: 700; color: #2e7d32; opacity: 0; animation: py-ok 4s ease-in-out infinite; }
+@keyframes py-ok { 0%, 45% { opacity: 0; transform: translateY(4px); } 55%, 70% { opacity: 1; transform: none; } 80%, 100% { opacity: 0; } }

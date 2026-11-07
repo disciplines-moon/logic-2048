@@ -16,6 +16,8 @@ import Html.Attributes exposing (class, classList, style)
 import Html.Events exposing (onClick)
 import Html.Keyed as Keyed
 import Json.Decode as D
+import Svg
+import Svg.Attributes as SA
 
 
 type alias Model =
@@ -426,7 +428,7 @@ viewArt kind =
                         [ "W", "A", "S", "D" ]
                     )
                 , div [ class "elm-box" ]
-                    [ div [ class "elm-title" ] [ text "Elm" ]
+                    [ div [ class "elm-title" ] [ elmLogo, text "Elm" ]
                     , div [ class "elm-loop" ]
                         (List.indexedMap
                             (\i ( label, hint ) ->
@@ -442,12 +444,31 @@ viewArt kind =
 
         "python" ->
             div [ class "art art-py" ]
-                [ div [ class "conv in-chip" ] [ text "{\"board\": [[2,0,0,2],...], \"direction\": \"right\"}" ]
+                [ div [ class "pcard in-card" ]
+                    [ div [ class "pcard-head" ] [ text "POST /api/move  ·  JSON" ]
+                    , div [ class "tok" ] [ span [ class "p" ] [ text "{" ] ]
+                    , div [ class "tok ind" ] [ span [ class "k" ] [ text "\"board\"" ], span [ class "p" ] [ text ": " ], span [ class "p" ] [ text "[" ] ]
+                    , div [ class "mini-grid" ]
+                        (List.map (\v -> div [ class "mg", classList [ ( "mg-on", v /= "" ) ] ] [ text v ]) [ "2", "", "", "2", "", "", "", "", "", "", "4", "", "", "", "", "" ])
+                    , div [ class "tok ind" ] [ span [ class "p" ] [ text "]," ] ]
+                    , div [ class "tok ind" ] [ span [ class "k" ] [ text "\"direction\"" ], span [ class "p" ] [ text ": " ], span [ class "s" ] [ text "\"right\"" ] ]
+                    , div [ class "tok" ] [ span [ class "p" ] [ text "}" ] ]
+                    ]
                 , div [ class "py-box" ]
-                    [ div [ class "py-title" ] [ text "Python" ]
+                    [ pythonLogo
+                    , div [ class "py-title" ] [ text "Python" ]
+                    , div [ class "py-check" ] [ text "✓ entrada válida" ]
                     , div [ class "py-sub" ] [ text "JSON → termo Prolog" ]
                     ]
-                , div [ class "conv out-chip" ] [ text "move([[2,0,0,2],...], right, Novo, Pontos)" ]
+                , div [ class "pcard out-card" ]
+                    [ div [ class "pcard-head" ] [ text "consulta Prolog" ]
+                    , div [ class "tok" ] [ span [ class "f" ] [ text "move" ], span [ class "p" ] [ text "(" ] ]
+                    , div [ class "tok ind" ] [ span [ class "n" ] [ text "[[2,0,0,2], ..., [0,0,0,0]]" ], span [ class "p" ] [ text "," ] ]
+                    , div [ class "tok ind" ] [ span [ class "s" ] [ text "right" ], span [ class "p" ] [ text "," ] ]
+                    , div [ class "tok ind" ] [ span [ class "v" ] [ text "Novo" ], span [ class "p" ] [ text "," ] ]
+                    , div [ class "tok ind" ] [ span [ class "v" ] [ text "Pontos" ] ]
+                    , div [ class "tok" ] [ span [ class "p" ] [ text ")." ] ]
+                    ]
                 ]
 
         "prolog" ->
@@ -502,3 +523,24 @@ excerpt sources file from to mark =
                             , text (l ++ " ")
                             ]
                     )
+
+
+pythonLogo : Html msg
+pythonLogo =
+    Svg.svg [ SA.viewBox "0 0 40 40", SA.class "logo" ]
+        [ Svg.path [ SA.d "M20 3 C11 3 11 7 11 7 V12 H21 V14 H8 C8 14 3 14 3 22 C3 30 8 30 8 30 H11 V26 C11 26 11 21 16 21 H25 C25 21 29 21 29 17 V8 C29 8 30 3 20 3 Z", SA.fill "#3776ab" ] []
+        , Svg.path [ SA.d "M20 37 C29 37 29 33 29 33 V28 H19 V26 H32 C32 26 37 26 37 18 C37 10 32 10 32 10 H29 V14 C29 14 29 19 24 19 H15 C15 19 11 19 11 23 V32 C11 32 10 37 20 37 Z", SA.fill "#ffd43b" ] []
+        , Svg.circle [ SA.cx "16", SA.cy "8", SA.r "1.5", SA.fill "#fff" ] []
+        , Svg.circle [ SA.cx "24", SA.cy "32", SA.r "1.5", SA.fill "#fff" ] []
+        ]
+
+
+elmLogo : Html msg
+elmLogo =
+    Svg.svg [ SA.viewBox "0 0 32 32", SA.class "logo logo-sm" ]
+        [ Svg.polygon [ SA.points "0,0 16,0 8,8", SA.fill "#f0ad00" ] []
+        , Svg.polygon [ SA.points "18,0 32,0 32,14 25,7", SA.fill "#7fd13b" ] []
+        , Svg.polygon [ SA.points "0,2 14,16 0,30", SA.fill "#5a6378" ] []
+        , Svg.polygon [ SA.points "16,18 32,18 32,32 16,32", SA.fill "#60b5cc" ] []
+        , Svg.polygon [ SA.points "32,2 32,16 18,2", SA.fill "#60b5cc" ] []
+        ]
