@@ -633,6 +633,11 @@ moves =
     [ ( "W", "↑ Move Up" ), ( "A", "← Move Left" ), ( "S", "↓ Move Down" ), ( "D", "→ Move Right" ) ]
 
 
+pressKeyFast : String -> Int -> Html msg
+pressKeyFast label i =
+    div [ class "key press fast", style "animation-delay" (String.fromFloat (toFloat i * 1.2) ++ "s") ] [ text label ]
+
+
 pressKey : String -> Int -> Html msg
 pressKey label i =
     div [ class "key press", style "animation-delay" (String.fromFloat (toFloat i * 7.2) ++ "s") ] [ text label ]
@@ -643,8 +648,8 @@ viewArt kind =
     case kind of
         "keyboard" ->
             div [ class "art art-keyboard" ]
-                [ div [ class "key-row" ] [ pressKey "W" 0 ]
-                , div [ class "key-row" ] [ pressKey "A" 1, pressKey "S" 2, pressKey "D" 3 ]
+                [ div [ class "key-row" ] [ pressKeyFast "W" 0 ]
+                , div [ class "key-row" ] [ pressKeyFast "A" 1, pressKeyFast "S" 2, pressKeyFast "D" 3 ]
                 ]
 
         "elm" ->

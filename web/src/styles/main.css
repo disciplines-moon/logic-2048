@@ -750,3 +750,10 @@ html { font-size: clamp(10px, min(1.02vw, 1.8vh), 34px); }
 .pl-scoreline { animation-name: pm-score; }
 @keyframes pm-score { 0%, 84% { opacity: 0; transform: scale(0.6); } 90%, 100% { opacity: 1; transform: none; } }
 .art-keyboard { zoom: 1.6; margin-top: 1.5rem; }
+
+/* passo Teclado: ritmo rápido (1,2 s por tecla); o teclado dentro do Elm segue lento */
+.key.press.fast { animation: keypress-fast 4.8s ease-in-out infinite; }
+@keyframes keypress-fast {
+  0%, 25%, 100% { transform: none; border-bottom-width: 6px; background: #eee4da; }
+  4%, 20% { transform: translateY(4px); border-bottom-width: 2px; background: #edc22e; }
+}
