@@ -1,8 +1,10 @@
 module PresentationTest exposing (suite)
 
+import Api
 import Cenas
 import Cenas.Types exposing (Block(..), visibleBlocks)
 import Expect
+import Json.Decode as D
 import Presentation exposing (Msg(..))
 import Test exposing (Test, describe, test)
 
@@ -10,7 +12,8 @@ import Test exposing (Test, describe, test)
 suite : Test
 suite =
     describe "Apresentação"
-        [ test "há cenas" <|
+        [ describe "teclado" teclado
+        , test "há cenas" <|
             \_ -> Expect.greaterThan 0 Presentation.sceneCount
         , test "avançar por todos os passos chega ao fim, e voltar desfaz" <|
             \_ ->
@@ -61,3 +64,38 @@ suite =
                     |> (\m -> m.scene)
                     |> Expect.equal (Presentation.sceneCount - 1)
         ]
+
+
+tecla : String -> Bool -> Bool -> String
+tecla key ctrl repeat =
+    "{\"key\":\"" ++ key ++ "\",\"ctrlKey\":" ++ b ctrl ++ ",\"altKey\":false,\"metaKey\":false,\"repeat\":" ++ b repeat ++ "}"
+
+
+b : Bool -> String
+b x =
+    if x then
+        "true"
+
+    else
+        "false"
+
+
+teclado : List Test
+teclado =
+    [ test "seta direita avança" <|
+        \_ -> Expect.equal (Ok Next) (D.decodeString Presentation.keyDecoder (tecla "ArrowRight" False False))
+    , test "N maiúsculo abre notas" <|
+        \_ -> Expect.equal (Ok ToggleNotes) (D.decodeString Presentation.keyDecoder (tecla "N" False False))
+    , test "Ctrl+F é ignorado" <|
+        \_ -> Expect.equal (Ok Ignored) (D.decodeString Presentation.keyDecoder (tecla "f" True False))
+    , test "tecla repetida é ignorada" <|
+        \_ -> Expect.equal (Ok Ignored) (D.decodeString Presentation.keyDecoder (tecla "ArrowRight" False True))
+    , test "espaço não navega" <|
+        \_ -> Expect.equal (Ok Ignored) (D.decodeString Presentation.keyDecoder (tecla " " False False))
+    , test "W joga para cima, mesmo maiúsculo" <|
+        \_ -> Expect.equal (Ok (Just Api.Up)) (D.decodeString Api.wasdDecoder (tecla "W" False False))
+    , test "W repetido não joga" <|
+        \_ -> Expect.equal True (D.decodeString Api.wasdDecoder (tecla "w" False True) |> Result.toMaybe |> (==) Nothing)
+    , test "seta repetida não joga" <|
+        \_ -> Expect.equal True (D.decodeString Api.keyDecoder (tecla "ArrowUp" False True) |> Result.toMaybe |> (==) Nothing)
+    ]
