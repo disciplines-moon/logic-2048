@@ -452,3 +452,7 @@ kbd {
 .out-card { animation: py-out 4s ease-in-out infinite; max-width: none; }
 .py-check { font-size: 0.8rem; font-weight: 700; color: #2e7d32; opacity: 0; animation: py-ok 4s ease-in-out infinite; }
 @keyframes py-ok { 0%, 45% { opacity: 0; transform: translateY(4px); } 55%, 70% { opacity: 1; transform: none; } 80%, 100% { opacity: 0; } }
+
+.board-row { display: flex; align-items: center; gap: 0.3rem; }
+.mini-grid { grid-template-columns: repeat(4, 1.3rem) !important; margin: 0.2rem 0 !important; }
+.mg { height: 1.3rem !important; font-size: 0.75rem; }
