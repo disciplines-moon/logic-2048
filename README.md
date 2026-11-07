@@ -16,6 +16,13 @@ A apresentação do trabalho é uma página do próprio app, em
 inicial). Setas navegam, `W A S D` jogam, `n` mostra as notas e `f` abre a tela
 cheia. Detalhes em [`docs/apresentacao.md`](docs/apresentacao.md).
 
+## O que cada pessoa faz
+
+Cada issue entrega **código e a própria cena da apresentação**. Rode o projeto,
+abra `#/apresentacao`, ache a cena marcada como pendente da sua issue e preencha
+`web/src/Cenas/IssueNN.elm` (passos, anotações e código real ou demo). O passo a
+passo está na seção "Por onde começar" de cada issue e em `docs/apresentacao.md`.
+
 ## Requisitos do sistema
 
 | Ferramenta | Versão | Para quê |
