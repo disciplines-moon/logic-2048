@@ -81,6 +81,19 @@ cenas =
 - Nenhum bloco `Pending`. A revisão final (#14) confere isso com
   `Cenas.pendingCount`.
 
+## Manter as cenas em dia
+
+O que atualiza sozinho e o que não atualiza:
+
+| Bloco | Atualiza sozinho? |
+|---|---|
+| `Demo` | Sim. É o jogo real: quando o `move/4` e o sorteio de peças ficarem prontos, a demo passa a funcionar. |
+| `Code` (texto) | Sim. Lê o arquivo como ele está no repositório. |
+| `Code` (`from`, `to`, `mark`) | **Não.** Os números de linha são fixos e mudam de lugar quando o arquivo muda. Confira ao concluir. |
+| Animações e exemplos escritos à mão (por exemplo "Como uma jogada acontece", em `Cenas/Intro.elm`) | **Não.** Mostram um exemplo, não o jogo rodando. |
+
+Ao mudar um comportamento, percorra as cenas que falam dele, confira os intervalos de `Code` e corrija a cena. Se a cena for de outra pessoa, comente na issue dela o que mudou. Cada issue tem o critério "Cena em dia" e a #14 confere tudo no final.
+
 ## Fora do escopo desta base
 
 A demo (`Demo`) hoje mostra o jogo do esqueleto, com botões de direção. Deixar a
