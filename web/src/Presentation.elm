@@ -368,11 +368,24 @@ viewFlow nodes active =
                     )
                 |> List.concat
 
+        current =
+            nodes |> List.drop active |> List.head
+
         detail =
-            nodes |> List.drop active |> List.head |> Maybe.map .detail |> Maybe.withDefault ""
+            current |> Maybe.map .detail |> Maybe.withDefault ""
+
+        art =
+            current |> Maybe.map .art |> Maybe.withDefault ""
     in
     div []
         [ div [ class "flow" ] withArrows
+        , div [ class "track" ]
+            [ div
+                [ class "packet"
+                , style "left" (String.fromFloat ((toFloat active + 0.5) / toFloat (max 1 (List.length nodes)) * 100) ++ "%")
+                ]
+                []
+            ]
         , div [ class "flow-return" ]
             [ text
                 (if active == List.length nodes - 1 then
@@ -383,7 +396,63 @@ viewFlow nodes active =
                 )
             ]
         , div [ class "flow-detail" ] [ text detail ]
+        , viewArt art
         ]
+
+
+pressKey : String -> Int -> Html msg
+pressKey label i =
+    div [ class "key press", style "animation-delay" (String.fromFloat (toFloat i * 0.7) ++ "s") ] [ text label ]
+
+
+viewArt : String -> Html msg
+viewArt kind =
+    case kind of
+        "keyboard" ->
+            div [ class "art art-keyboard" ]
+                [ div [ class "key-row" ] [ pressKey "W" 0 ]
+                , div [ class "key-row" ] [ pressKey "A" 1, pressKey "S" 2, pressKey "D" 3 ]
+                ]
+
+        "elm" ->
+            div [ class "art art-elm" ]
+                [ div [ class "elm-loop" ]
+                    (List.indexedMap
+                        (\i ( label, hint ) ->
+                            div [ class "cycle", style "animation-delay" (String.fromFloat (toFloat i * 0.9) ++ "s") ]
+                                [ span [ class "cycle-name" ] [ text label ]
+                                , span [ class "cycle-hint" ] [ text hint ]
+                                ]
+                        )
+                        [ ( "Msg", "KeyDown D" ), ( "update", "novo Model" ), ( "Model", "board + score" ), ( "view", "HTML na tela" ) ]
+                    )
+                , div [ class "elm-back" ] [ text "↺ a tela muda, o Elm espera a próxima Msg" ]
+                ]
+
+        "python" ->
+            div [ class "art art-python" ]
+                [ div [ class "jl", style "animation-delay" "0s" ] [ text "{" ]
+                , div [ class "jl", style "animation-delay" "0.25s" ] [ text "  \"board\": [[2,0,0,2], ...]," ]
+                , div [ class "jl", style "animation-delay" "0.5s" ] [ text "  \"direction\": \"right\"" ]
+                , div [ class "jl", style "animation-delay" "0.75s" ] [ text "}" ]
+                ]
+
+        "prolog" ->
+            div [ class "art art-prolog" ]
+                [ div [ class "mini-row" ]
+                    [ div [ class "mini-cell" ] []
+                    , div [ class "mini-cell" ] []
+                    , div [ class "mini-cell" ] []
+                    , div [ class "mini-cell" ] []
+                    , div [ class "mini-tile ta" ] [ text "2" ]
+                    , div [ class "mini-tile tb" ] [ text "2" ]
+                    , div [ class "mini-tile tm" ] [ text "4" ]
+                    , div [ class "plus" ] [ text "+4" ]
+                    ]
+                ]
+
+        _ ->
+            text ""
 
 
 excerpt : Dict String String -> String -> Int -> Int -> List Int -> List (Html msg)

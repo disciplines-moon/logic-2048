@@ -23,7 +23,8 @@ type Block
     | Hero { title : String, subtitle : String, chips : List String }
       -- Diagrama de etapas ligadas por setas. `active` (a partir de 0) acende a
       -- etapa atual e mostra o `detail` dela. Use `Clear` + um novo `Flow` com
-      -- outro `active` para "caminhar" pelo fluxo a cada passo.
+      -- outro `active` para "caminhar" pelo fluxo a cada passo. `art` escolhe a
+      -- ilustração animada da etapa: "keyboard", "elm", "python", "prolog" (ou "" para nenhuma).
     | Flow { nodes : List FlowNode, active : Int }
       -- Cena ainda não escrita. Falha a revisão final (#14).
     | Pending String
@@ -35,6 +36,7 @@ type alias FlowNode =
     { label : String
     , sub : String
     , detail : String
+    , art : String
     }
 
 

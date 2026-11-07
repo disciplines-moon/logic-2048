@@ -61,10 +61,10 @@ cenas =
 
 architecture : List FlowNode
 architecture =
-    [ { label = "Teclado", sub = "você", detail = "Você aperta uma tecla e o app recebe uma mensagem." }
-    , { label = "Elm", sub = "interface", detail = "Guarda o estado do jogo, sorteia as peças novas e desenha a tela. É puro, exceto o que passa pelos ports." }
-    , { label = "Python", sub = "ponte", detail = "Confere a entrada e traduz JSON para Prolog e de volta. Não tem regra de jogo." }
-    , { label = "Prolog", sub = "regras", detail = "Move, funde, pontua e dá dicas. É puro: o mesmo tabuleiro sempre dá o mesmo resultado." }
+    [ { label = "Teclado", sub = "você", detail = "Você aperta uma tecla e o app recebe uma mensagem.", art = "keyboard" }
+    , { label = "Elm", sub = "interface", detail = "Guarda o estado do jogo, sorteia as peças novas e desenha a tela. É puro, exceto o que passa pelos ports.", art = "elm" }
+    , { label = "Python", sub = "ponte", detail = "Confere a entrada e traduz JSON para Prolog e de volta. Não tem regra de jogo.", art = "python" }
+    , { label = "Prolog", sub = "regras", detail = "Move, funde, pontua e dá dicas. É puro: o mesmo tabuleiro sempre dá o mesmo resultado.", art = "prolog" }
     ]
 
 

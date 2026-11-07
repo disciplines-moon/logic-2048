@@ -302,3 +302,84 @@ kbd {
 .scene { flex: 1; display: flex; flex-direction: column; }
 .scene-in { flex: 1; display: flex; flex-direction: column; }
 .scene-in .pres-body { flex: 1; }
+
+/* ---------- ilustrações do fluxo ---------- */
+.art { margin-top: 1.4rem; }
+.art { flex: none; min-width: 15rem; display: flex; align-items: center; justify-content: center; animation: rise 0.4s ease both; }
+
+/* pacote que viaja pelo caminho */
+.track { position: relative; height: 10px; margin: 0.2rem 0 0.4rem; background: var(--line); border-radius: 6px; }
+.packet {
+  position: absolute; top: 50%; width: 22px; height: 22px; margin: -11px 0 0 -11px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #fff, var(--accent)); box-shadow: 0 0 14px 4px rgba(246, 124, 95, 0.6);
+  transition: left 0.9s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* teclado: o D é apertado em loop */
+.art-keyboard { flex-direction: column; gap: 6px; }
+.art-keyboard .key-row { display: flex; gap: 6px; }
+.key {
+  width: 3.4rem; height: 3.4rem; display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 1.4rem; background: var(--card); border: 2px solid var(--line);
+  border-bottom-width: 6px; border-radius: 10px;
+}
+.key.press { animation: keypress 2.8s ease-in-out infinite; }
+@keyframes keypress {
+  0%, 20%, 100% { transform: none; border-bottom-width: 6px; background: var(--card); }
+  5%, 15% { transform: translateY(4px); border-bottom-width: 2px; background: var(--gold); }
+}
+
+/* Elm: o ciclo Msg, update, Model, view acende em sequência */
+.art-elm { gap: 0.5rem; flex-wrap: wrap; }
+.cycle {
+  padding: 0.5rem 0.9rem; border-radius: 10px; font-weight: 700; font-family: ui-monospace, monospace;
+  background: var(--card); border: 2px solid var(--line); animation: cycle 2.4s ease-in-out infinite;
+}
+@keyframes cycle {
+  0%, 30%, 100% { background: var(--card); border-color: var(--line); transform: none; }
+  10%, 20% { background: color-mix(in srgb, var(--elm) 25%, white); border-color: var(--elm); transform: translateY(-4px); }
+}
+
+/* Python: o JSON aparece linha por linha */
+.art-python { flex-direction: column; align-items: flex-start; background: var(--code-bg); color: var(--code-ink);
+  border-radius: 12px; padding: 0.9rem 1.2rem; font: 1.05rem/1.5 ui-monospace, monospace; white-space: pre; }
+.jl { opacity: 0; animation: jline 3.2s ease-in-out infinite; }
+@keyframes jline {
+  0% { opacity: 0; transform: translateX(-10px); }
+  10%, 85% { opacity: 1; transform: none; }
+  100% { opacity: 0; }
+}
+
+/* Prolog: duas peças 2 se fundem em uma 4 (linha [2,0,0,2] para a direita) */
+.art-prolog { --u: 3.4rem; }
+.mini-row { position: relative; display: flex; gap: 0.4rem; padding: 0.4rem; background: #bbada0; border-radius: 10px; }
+.mini-cell { width: 3rem; height: 3rem; border-radius: 6px; background: rgba(238, 228, 218, 0.35); }
+.mini-tile {
+  position: absolute; top: 0.4rem; width: 3rem; height: 3rem; border-radius: 6px; display: flex;
+  align-items: center; justify-content: center; font-weight: 800; font-size: 1.4rem; color: #776e65;
+  background: linear-gradient(145deg, #fff3e0, #eee4da);
+}
+.mini-tile.ta { left: 0.4rem; animation: slide-a 3.2s ease-in-out infinite; }
+.mini-tile.tb { left: calc(0.4rem + 3 * var(--u)); animation: stay-b 3.2s ease-in-out infinite; }
+.mini-tile.tm { left: calc(0.4rem + 3 * var(--u)); color: #fff; background: linear-gradient(145deg, #ffe8c2, #ede0c8); color: #776e65; animation: merge-m 3.2s ease-in-out infinite; }
+.plus { position: absolute; right: 0.6rem; top: -1.2rem; font-weight: 800; color: var(--accent); opacity: 0; animation: plus-up 3.2s ease-in-out infinite; }
+@keyframes slide-a {
+  0%, 15% { transform: translateX(0); opacity: 1; }
+  50% { transform: translateX(calc(3 * var(--u))); opacity: 1; }
+  52%, 100% { transform: translateX(calc(3 * var(--u))); opacity: 0; }
+}
+@keyframes stay-b { 0%, 50% { opacity: 1; } 52%, 100% { opacity: 0; } }
+@keyframes merge-m {
+  0%, 50% { opacity: 0; transform: scale(0.6); }
+  60% { opacity: 1; transform: scale(1.2); }
+  70%, 92% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; }
+}
+@keyframes plus-up { 0%, 55% { opacity: 0; transform: translateY(6px); } 70%, 88% { opacity: 1; transform: translateY(-6px); } 100% { opacity: 0; } }
+
+.elm-loop { display: flex; gap: 0.8rem; }
+.art-elm { flex-direction: column; gap: 0.6rem; }
+.cycle { display: flex; flex-direction: column; align-items: center; gap: 0.2rem; min-width: 8.5rem; animation-duration: 3.6s; }
+.cycle-name { font-weight: 800; }
+.cycle-hint { font: 0.85rem ui-monospace, monospace; opacity: 0.75; }
+.elm-back { opacity: 0.7; font-size: 0.95rem; }
