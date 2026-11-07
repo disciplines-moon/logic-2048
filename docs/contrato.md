@@ -1,7 +1,7 @@
 # Contrato do Logic2048
 
 Fonte única de verdade entre Elm, Python e Prolog. Se algo mudar, mude aqui
-primeiro, em PR, e avise o grupo.
+primeiro, em PR, e avise o grupo. A estrutura de arquivos está em `arquitetura.md`.
 
 ## Tabuleiro
 
@@ -134,9 +134,10 @@ Cada peça funde no máximo uma vez por jogada.
 
 ## Trabalhar em paralelo com stubs
 
-O esqueleto já responde em todos os endpoints com resultados fixos, então ninguém
-precisa esperar a issue anterior para começar:
+O esqueleto só tem o `POST /api/move` (com `move/4` de mentira), então ninguém
+precisa esperar a issue anterior para começar. Os outros endpoints são criados
+pelas issues #11 e #10, e o Elm pode usar os JSONs deste arquivo como mock:
 
 - **Elm:** use os JSONs de exemplo deste arquivo como respostas da API (por exemplo, uma função `mock` em `Api.elm`) e troque pela API real ao integrar.
-- **Python:** `/api/move` já funciona com o `move/4` de mentira (devolve o tabuleiro igual). Escreva a validação e os handlers de erro contra ele.
+- **Python:** `/api/move` já funciona com o `move/4` de mentira (devolve o tabuleiro igual). A validação e os handlers de erro já existem no esqueleto; a #10 revisa e completa.
 - **Prolog:** cada predicado novo precisa estar no `:- module(game, [...])` de `prolog/game.pl`, senão os testes não o enxergam.

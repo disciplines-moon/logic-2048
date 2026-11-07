@@ -70,7 +70,7 @@ cenas =
 
 3. Para mostrar outro arquivo do repositório, importe-o em `web/src/main.js`
    com `?raw` e dê um nome a ele (a chave usada em `Code`).
-4. Ensaie rodando `pnpm dev` e abrindo `http://localhost:5173/#/apresentacao`.
+4. Ensaie rodando `npm run dev` e abrindo `http://localhost:5173/#/apresentacao`.
 
 ## O que cada cena deve ter
 

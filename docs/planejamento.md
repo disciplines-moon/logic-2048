@@ -67,7 +67,7 @@ Cada pessoa fica com 2 issues, feitas em sequência, nunca em dupla. São 14 no 
 | 20 | Dica, IA, desafios e erros na interface | Elm | 21/11 | #5, #7, #8, #11, #19 |
 | 10 | `/api/move`, validação e erros | Python | 13/11 | #3 |
 | 11 | `/api/hint`, `/api/challenge` e testes de ponta a ponta | Python | 19/11 | #5, #10, #19 |
-| 13 | CI, template de PR, MkDocs, pnpm e um comando para rodar | Gestão | 13/11 | |
+| 13 | CI, template de PR, MkDocs e um comando para rodar | Gestão | 13/11 | |
 | 14 | Integração final, QA e ensaio | Gestão | 22/11 | #7, #9, #11, #13, #20 |
 
 A #17 (esqueleto, contrato e estrutura da apresentação) é a base e não conta entre as 14.

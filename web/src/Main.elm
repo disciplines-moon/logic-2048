@@ -1,15 +1,14 @@
 module Main exposing (main)
 
-import Api exposing (Direction(..), MoveResponse)
 import Browser
 import Browser.Events
 import Browser.Navigation as Nav
 import Dict exposing (Dict)
-import Html exposing (Html, button, div, h1, p, text)
-import Html.Attributes exposing (class, style)
+import Game
+import Game.View
+import Html exposing (Html, button, div, h1, text)
+import Html.Attributes exposing (class)
 import Html.Events exposing (onClick)
-import Html.Keyed as Keyed
-import Http
 import Json.Decode as D
 import Ports
 import Presentation
@@ -26,15 +25,12 @@ type alias Model =
     , page : Page
     , presentation : Presentation.Model
     , sources : Dict String String
-    , board : List (List Int)
-    , score : Int
-    , status : String
+    , game : Game.Model
     }
 
 
 type Msg
-    = Pressed Direction
-    | GotMove (Result Http.Error MoveResponse)
+    = GameMsg Game.Msg
     | PresentationMsg Presentation.Msg
     | StartPresentation
     | UrlRequested Browser.UrlRequest
@@ -64,9 +60,7 @@ init flags url key =
       , page = page
       , presentation = presentation
       , sources = sourcesFrom flags
-      , board = [ [ 2, 0, 0, 2 ], [ 0, 0, 0, 0 ], [ 0, 4, 0, 0 ], [ 0, 0, 0, 0 ] ]
-      , score = 0
-      , status = ""
+      , game = Game.init
       }
     , Cmd.none
     )
@@ -111,41 +105,25 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
     case model.page of
         GamePage ->
-            Sub.batch
-                [ Browser.Events.onKeyDown (D.map toGameMsg Api.keyDecoder)
-                , Browser.Events.onKeyDown (D.map toGameMsg Api.wasdDecoder)
-                ]
+            Sub.map GameMsg (Game.keyMsgs True)
 
         PresentationPage ->
             -- Na apresentação as setas navegam e W, A, S, D jogam na demo.
             Sub.batch
                 [ Browser.Events.onKeyDown (D.map PresentationMsg Presentation.keyDecoder)
-                , Browser.Events.onKeyDown (D.map toGameMsg Api.wasdDecoder)
+                , Sub.map GameMsg (Game.keyMsgs False)
                 ]
-
-
-toGameMsg : Maybe Direction -> Msg
-toGameMsg maybeDir =
-    case maybeDir of
-        Just dir ->
-            Pressed dir
-
-        Nothing ->
-            Ignored
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        Pressed dir ->
-            ( model, Api.postMove model.board dir GotMove )
-
-        GotMove (Ok res) ->
-            -- TODO(#6): se res.moved, sortear uma peça nova; tratar res.won e res.lost.
-            ( { model | board = res.board, score = model.score + res.score, status = "ok" }, Cmd.none )
-
-        GotMove (Err _) ->
-            ( { model | status = "Erro ao falar com o servidor." }, Cmd.none )
+        GameMsg gmsg ->
+            let
+                ( game, cmd ) =
+                    Game.update gmsg model.game
+            in
+            ( { model | game = game }, Cmd.map GameMsg cmd )
 
         StartPresentation ->
             ( model, Nav.pushUrl model.key (presentationUrl (Presentation.init 0 0)) )
@@ -207,7 +185,7 @@ view model =
             PresentationPage ->
                 Presentation.view
                     { toMsg = PresentationMsg
-                    , demo = viewBoard model
+                    , demo = Html.map GameMsg (Game.View.view True model.game)
                     , sources = model.sources
                     }
                     model.presentation
@@ -219,75 +197,6 @@ viewGame : Model -> Html Msg
 viewGame model =
     div [ class "game" ]
         [ h1 [] [ text "Logic2048" ]
-        , viewBoard model
+        , Html.map GameMsg (Game.View.view False model.game)
         , button [ onClick StartPresentation ] [ text "Apresentar" ]
         ]
-
-
-{-| Tabuleiro, placar e botões de direção. É o que a demo da apresentação mostra.
-As peças são nós com chave (posição + valor): quando o valor muda o nó é novo e o
-CSS dispara a animação "pop".
--}
-viewBoard : Model -> Html Msg
-viewBoard model =
-    let
-        n =
-            List.length model.board
-    in
-    div [ class "demo-board" ]
-        [ p [ class "score" ]
-            [ text "Pontos: "
-            , Html.span [ class "score-num", Html.Attributes.attribute "style" ("--n:" ++ String.fromInt model.score) ] []
-            ]
-        , Keyed.node "div"
-            [ class "board"
-            , style "grid-template-columns" ("repeat(" ++ String.fromInt n ++ ", auto)")
-            ]
-            (model.board
-                |> List.indexedMap (\r row -> List.indexedMap (\c v -> viewTile r c v) row)
-                |> List.concat
-            )
-        , div [ class "dirs" ]
-            (List.map (\( label, dir ) -> button [ onClick (Pressed dir) ] [ text label ])
-                [ ( "A ←", Left ), ( "W ↑", Up ), ( "S ↓", Down ), ( "D →", Right ) ]
-            )
-        , p [ class "status" ]
-            [ text
-                (case model.page of
-                    PresentationPage ->
-                        "Jogue com W A S D."
-
-                    GamePage ->
-                        "Jogue com as setas ou com W A S D."
-                )
-            , if model.status == "" || model.status == "ok" then
-                text ""
-
-              else
-                text ("  " ++ model.status)
-            ]
-        ]
-
-
-viewTile : Int -> Int -> Int -> ( String, Html Msg )
-viewTile r c v =
-    ( String.fromInt r ++ "-" ++ String.fromInt c ++ "-" ++ String.fromInt v
-    , div
-        [ class "tile"
-        , class
-            (if v == 0 then
-                "empty"
-
-             else
-                "v" ++ String.fromInt v
-            )
-        ]
-        [ text
-            (if v == 0 then
-                ""
-
-             else
-                String.fromInt v
-            )
-        ]
-    )

@@ -4,7 +4,7 @@
 
 1. **Nunca** faça commits com `Co-Authored-By` ou qualquer outra linha de atribuição a IA, nem em PRs.
 2. Seja sucinto e objetivo.
-3. Leia `docs/contrato.md` (fonte única de verdade) e `docs/planejamento.md` antes de mexer no projeto.
+3. Leia `docs/contrato.md` (fonte única de verdade), `docs/arquitetura.md` (estrutura de arquivos e donos) e `docs/planejamento.md` antes de mexer no projeto.
 4. Todo PR deve ter uma issue relacionada (`Closes #<número>` na descrição). Se não houver, crie a issue antes.
 5. Nada de commit direto na `main`: branch por issue (`feat/<descricao-curta>`) e PR com revisão do revisor designado no GitHub Project.
 
@@ -24,7 +24,7 @@ Logic2048: 2048 com Prolog (regras), Python (ponte) e Elm (interface). Código e
 - Teste e formate antes do PR:
   - Prolog: `swipl -g "load_files('prolog/test_game.pl'),run_tests" -t halt`
   - Python: `cd server && uv run pytest` (se o `janus-swi` falhar no gcc 14+, use `CFLAGS="-Wno-error=incompatible-pointer-types"`)
-  - Elm: `cd web && pnpm check` (ou `npm run check` enquanto o pnpm não estiver instalado)
+  - Elm: `cd web && npm run check`
 - **Quem implementa precisa saber explicar**: ao concluir, deixe no PR um resumo curto de como funciona, com foco no paradigma (veja "Para explicar na apresentação" na issue).
 - Explique e comente o código para estudantes: prefira clareza a esperteza.
 - **Apresentação:** o projeto se apresenta dentro do app (`#/apresentacao`). Cada issue entrega a sua cena em `web/src/Cenas/IssueNN.elm`, com passos, anotações do apresentador e demo. Leia `docs/apresentacao.md`.
