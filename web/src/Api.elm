@@ -1,4 +1,4 @@
-module Api exposing (Direction(..), MoveResponse, encodeMove, keyDecoder, moveDecoder, postMove)
+module Api exposing (Direction(..), MoveResponse, encodeMove, keyDecoder, moveDecoder, postMove, wasdDecoder)
 
 import Http
 import Json.Decode as D
@@ -39,6 +39,31 @@ keyDecoder =
                         Just Up
 
                     "ArrowDown" ->
+                        Just Down
+
+                    _ ->
+                        Nothing
+            )
+
+
+{-| W, A, S, D também jogam (na apresentação, as setas navegam).
+-}
+wasdDecoder : D.Decoder (Maybe Direction)
+wasdDecoder =
+    D.field "key" D.string
+        |> D.map
+            (\key ->
+                case String.toLower key of
+                    "a" ->
+                        Just Left
+
+                    "d" ->
+                        Just Right
+
+                    "w" ->
+                        Just Up
+
+                    "s" ->
                         Just Down
 
                     _ ->

@@ -6,8 +6,9 @@ import Browser.Events
 import Browser.Navigation as Nav
 import Dict exposing (Dict)
 import Html exposing (Html, button, div, h1, p, text)
-import Html.Attributes exposing (style)
+import Html.Attributes exposing (class, style)
 import Html.Events exposing (onClick)
+import Html.Keyed as Keyed
 import Http
 import Json.Decode as D
 import Ports
@@ -110,10 +111,17 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
     case model.page of
         GamePage ->
-            Browser.Events.onKeyDown (D.map toGameMsg Api.keyDecoder)
+            Sub.batch
+                [ Browser.Events.onKeyDown (D.map toGameMsg Api.keyDecoder)
+                , Browser.Events.onKeyDown (D.map toGameMsg Api.wasdDecoder)
+                ]
 
         PresentationPage ->
-            Browser.Events.onKeyDown (D.map PresentationMsg Presentation.keyDecoder)
+            -- Na apresentação as setas navegam e W, A, S, D jogam na demo.
+            Sub.batch
+                [ Browser.Events.onKeyDown (D.map PresentationMsg Presentation.keyDecoder)
+                , Browser.Events.onKeyDown (D.map toGameMsg Api.wasdDecoder)
+                ]
 
 
 toGameMsg : Maybe Direction -> Msg
@@ -193,7 +201,7 @@ view model =
 
 viewGame : Model -> Html Msg
 viewGame model =
-    div [ style "font-family" "sans-serif", style "padding" "2rem" ]
+    div [ class "game" ]
         [ h1 [] [ text "Logic2048" ]
         , viewBoard model
         , button [ onClick StartPresentation ] [ text "Apresentar" ]
@@ -201,41 +209,52 @@ viewGame model =
 
 
 {-| Tabuleiro, placar e botões de direção. É o que a demo da apresentação mostra.
+As peças são nós com chave (posição + valor): quando o valor muda o nó é novo e o
+CSS dispara a animação "pop".
 -}
 viewBoard : Model -> Html Msg
 viewBoard model =
-    div []
-        [ p [ style "font-size" "1.2rem" ] [ text ("Pontos: " ++ String.fromInt model.score) ]
-        , div [] (List.map viewRow model.board)
-        , div [ style "margin" "0.5rem 0" ]
+    let
+        n =
+            List.length model.board
+    in
+    div [ class "demo-board" ]
+        [ p [ class "score" ] [ text ("Pontos: " ++ String.fromInt model.score) ]
+        , Keyed.node "div"
+            [ class "board"
+            , style "grid-template-columns" ("repeat(" ++ String.fromInt n ++ ", auto)")
+            ]
+            (model.board
+                |> List.indexedMap (\r row -> List.indexedMap (\c v -> viewTile r c v) row)
+                |> List.concat
+            )
+        , div [ class "dirs" ]
             (List.map (\( label, dir ) -> button [ onClick (Pressed dir) ] [ text label ])
                 [ ( "←", Left ), ( "↑", Up ), ( "↓", Down ), ( "→", Right ) ]
             )
-        , p [ style "font-size" "1rem" ] [ text model.status ]
+        , p [ class "status" ] [ text model.status ]
         ]
 
 
-viewRow : List Int -> Html Msg
-viewRow row =
-    div [ style "display" "flex" ] (List.map viewCell row)
+viewTile : Int -> Int -> Int -> ( String, Html Msg )
+viewTile r c v =
+    ( String.fromInt r ++ "-" ++ String.fromInt c ++ "-" ++ String.fromInt v
+    , div
+        [ class "tile"
+        , class
+            (if v == 0 then
+                "empty"
 
-
-viewCell : Int -> Html Msg
-viewCell n =
-    div
-        [ style "width" "4rem"
-        , style "height" "4rem"
-        , style "margin" "2px"
-        , style "display" "flex"
-        , style "align-items" "center"
-        , style "justify-content" "center"
-        , style "background" "#eee4da"
+             else
+                "v" ++ String.fromInt v
+            )
         ]
         [ text
-            (if n == 0 then
+            (if v == 0 then
                 ""
 
              else
-                String.fromInt n
+                String.fromInt v
             )
         ]
+    )

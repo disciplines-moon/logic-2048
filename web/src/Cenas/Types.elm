@@ -1,4 +1,4 @@
-module Cenas.Types exposing (Block(..), Scene, Step, isPending, pending, visibleBlocks)
+module Cenas.Types exposing (Block(..), FlowNode, Scene, Step, isPending, pending, visibleBlocks)
 
 {-| A apresentação é um conjunto de **cenas** (uma ou mais por issue). Cada cena
 tem **passos**: ao avançar, o próximo passo ACRESCENTA blocos na tela, no ritmo
@@ -17,10 +17,21 @@ type Block
     | Code { file : String, from : Int, to : Int, mark : List Int }
       -- Demo ao vivo: o jogo real dentro da cena.
     | Demo
+      -- Diagrama de etapas ligadas por setas. `active` (a partir de 0) acende a
+      -- etapa atual e mostra o `detail` dela. Use `Clear` + um novo `Flow` com
+      -- outro `active` para "caminhar" pelo fluxo a cada passo.
+    | Flow { nodes : List FlowNode, active : Int }
       -- Cena ainda não escrita. Falha a revisão final (#14).
     | Pending String
       -- Apaga tudo que apareceu antes na cena (para trocar um bloco por outro).
     | Clear
+
+
+type alias FlowNode =
+    { label : String
+    , sub : String
+    , detail : String
+    }
 
 
 type alias Step =

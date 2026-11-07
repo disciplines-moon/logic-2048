@@ -12,8 +12,13 @@ issue, com a demo rodando ao lado da explicação.
   tela, no ritmo da fala.
 - Cada passo tem uma **anotação do apresentador** (`notes`): o que dizer naquele
   momento. Ela aparece no painel de baixo (tecla `n`).
-- Os blocos podem ser texto, lista, diagrama, **código real do repositório**
-  (`Code`) ou a **demo ao vivo** com o jogo funcionando (`Demo`).
+- Os blocos podem ser texto (`Paragraph`, `Bullets`, `Pre`), **código real do
+  repositório** com números de linha e destaque (`Code`), a **demo ao vivo** com o
+  jogo funcionando (`Demo`) ou um **fluxo animado** (`Flow`).
+- `Clear` apaga o que apareceu antes, para trocar um bloco por outro no passo seguinte.
+- `Flow` desenha etapas ligadas por setas e acende uma por passo. Use `Clear` + um
+  novo `Flow` com outro `active` a cada passo (veja a cena "Arquitetura" em
+  `web/src/Cenas/Intro.elm`).
 
 ## Teclas
 
@@ -24,10 +29,12 @@ issue, com a demo rodando ao lado da explicação.
 | `↓` / `↑` | Próxima / anterior cena |
 | `Home` / `End` | Primeira / última cena |
 | `n` | Mostra ou esconde as anotações |
+| `W` `A` `S` `D` | Jogam na demo (as setas navegam) |
 | `f` | Tela cheia |
 | `Esc` | Volta ao jogo |
 
-O endereço guarda a posição (`#/apresentacao/<cena>/<passo>`), então dá para
+Também dá para clicar nas bolinhas do rodapé para ir a um passo. A barra no topo mostra
+o progresso da apresentação inteira. O endereço guarda a posição (`#/apresentacao/<cena>/<passo>`), então dá para
 abrir direto na sua parte e recarregar sem perder o lugar.
 
 ## Como escrever a sua cena

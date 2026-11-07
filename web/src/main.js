@@ -1,3 +1,4 @@
+import "./styles/main.css";
 import { Elm } from "./Main.elm";
 
 // Arquivos do repositório que os slides mostram (bloco `Code`). A chave é o
