@@ -507,12 +507,14 @@ stageVis i =
         2 ->
             slotStack
                 (\vt ->
-                    div [ class "sv-model" ]
-                        [ span [ class "sv-k" ] [ text "score" ]
-                        , span [ class "sv-val sv-old" ] [ text (String.fromInt vt.before) ]
-                        , span [ class "sv-val sv-new" ] [ text (String.fromInt vt.score) ]
-                        , span [ class "sv-gain" ] [ text ("+" ++ String.fromInt (vt.score - vt.before) ++ " Prolog") ]
-                        , span [ class "sv-meta" ] [ text ("jogada " ++ moveNumber vt.key ++ " de 4") ]
+                    div [ class "mdl" ]
+                        [ span [ class "mdl-k" ] [ text "score" ]
+                        , div [ class "mdl-nums" ]
+                            [ span [ class "mdl-val sv-old" ] [ text (String.fromInt vt.before) ]
+                            , span [ class "mdl-val sv-new" ] [ text (String.fromInt vt.score) ]
+                            ]
+                        , span [ class "mdl-gain sv-gain" ] [ text ("+" ++ String.fromInt (vt.score - vt.before) ++ " Prolog") ]
+                        , span [ class "mdl-meta" ] [ text ("jogada " ++ moveNumber vt.key ++ " de 4") ]
                         ]
                 )
 

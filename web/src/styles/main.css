@@ -696,3 +696,18 @@ button:hover { background: #3d352d; }
 .sv-model { margin-bottom: 1.4rem; min-height: 4.2rem; }
 .sv-model .sv-old, .sv-model .sv-new { top: 1.1rem; position: absolute; left: 0; right: 0; margin: 0; text-align: center; }
 .sv-model .sv-old, .sv-model .sv-new { top: 1.5rem; } .sv-gain { top: 4rem; } .sv-meta { top: 5.2rem; } .sv-model { min-height: 5.2rem; }
+
+/* Model: layout em fluxo normal, sem posições absolutas */
+.mdl { display: flex; flex-direction: column; align-items: center; gap: 0.15rem; }
+.mdl-k { font-size: 0.8rem; opacity: 0.7; }
+.mdl-nums { display: grid; justify-items: center; }
+.mdl-val { grid-area: 1 / 1; font: 800 2.2rem/1.1 ui-monospace, monospace; }
+.mdl .sv-new { position: static; color: #edc22e; opacity: 0; }
+.mdl .sv-old { position: static; }
+.mdl .sv-gain { position: static; color: #ff8a7a; font: 700 0.68rem ui-monospace, monospace; white-space: nowrap; opacity: 0; }
+.mdl-meta { font: 700 0.68rem ui-monospace, monospace; opacity: 0.7; white-space: nowrap; }
+
+/* animações maiores: há bastante espaço na tela */
+.art-elm, .art-py, .art-pl { zoom: 1.4; margin-top: 2rem; }
+@media (max-width: 1300px) { .art-elm, .art-py, .art-pl { zoom: 1.1; } }
+.art-pl { zoom: 1.05; margin-top: 1rem; }
