@@ -622,3 +622,38 @@ button:hover { background: #3d352d; }
 @keyframes ln-on { 0%, 12% { background: transparent; } 16%, 36% { background: rgba(237, 194, 46, 0.3); } 40%, 100% { background: transparent; } }
 @keyframes ln-on2 { 0%, 38% { background: transparent; } 42%, 58% { background: rgba(237, 194, 46, 0.3); } 62%, 100% { background: transparent; } }
 .pl-scoreline { opacity: 0; animation: pt-out 6s ease-in-out infinite; }
+
+/* ---- mini tabuleiro 4x4 do Elm: peças deslizam de verdade ---- */
+.mb { --ms: calc(1.3rem + 3px); position: relative; display: grid; grid-template-columns: repeat(4, 1.3rem); gap: 3px; padding: 4px; background: #bbada0; border-radius: 6px; }
+.mb-cell { height: 1.3rem; border-radius: 3px; background: rgba(238, 228, 218, 0.35); }
+.mt { position: absolute; width: 1.3rem; height: 1.3rem; border-radius: 3px; display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 0.7rem; background: #eee4da; color: #776e65; }
+.mv4 { background: #ede0c8; } .mv8 { background: #f2b179; color: #fff; } .mv16 { background: #f59563; color: #fff; } .mv32 { background: #f67c5f; color: #fff; }
+.mr0 { top: 4px; } .mr1 { top: calc(4px + var(--ms)); } .mr2 { top: calc(4px + 2 * var(--ms)); } .mr3 { top: calc(4px + 3 * var(--ms)); }
+.mc0 { left: 4px; } .mc1 { left: calc(4px + var(--ms)); } .mc2 { left: calc(4px + 2 * var(--ms)); } .mc3 { left: calc(4px + 3 * var(--ms)); }
+.mt-move { animation: mt-move 3.6s ease-in-out infinite; animation-delay: 1.9s; }
+.mt-gone { animation: mt-gone 3.6s ease-in-out infinite; animation-delay: 1.9s; }
+.mt-merged { opacity: 0; animation: mt-merged 3.6s ease-in-out infinite; animation-delay: 1.9s; }
+.mt-spawn { opacity: 0; animation: mt-spawn 3.6s ease-in-out infinite; animation-delay: 1.9s; }
+@keyframes mt-move { 0%, 4% { transform: none; } 16%, 94% { transform: translate(calc(var(--dx) * var(--ms)), calc(var(--dy) * var(--ms))); } 100% { transform: none; } }
+@keyframes mt-gone { 0%, 4% { transform: none; opacity: 1; } 16% { transform: translate(calc(var(--dx) * var(--ms)), calc(var(--dy) * var(--ms))); opacity: 1; } 17%, 94% { opacity: 0; transform: translate(calc(var(--dx) * var(--ms)), calc(var(--dy) * var(--ms))); } 100% { opacity: 1; transform: none; } }
+@keyframes mt-merged { 0%, 16% { opacity: 0; transform: scale(0.5); } 22% { opacity: 1; transform: scale(1.3); } 30%, 94% { opacity: 1; transform: none; } 99%, 100% { opacity: 0; } }
+@keyframes mt-spawn { 0%, 30% { opacity: 0; transform: scale(0.3); } 38% { opacity: 1; transform: scale(1.15); } 44%, 94% { opacity: 1; transform: none; } 99%, 100% { opacity: 0; } }
+.sv-screen { width: auto; height: auto; padding: 0.3rem; }
+.sv-pop { width: auto; height: auto; background: transparent; animation: sv-pop 3.6s infinite; animation-delay: 2.9s; }
+.mt-static { animation: none; }
+
+/* ---- quem faz o quê: Prolog (vermelho) x Elm (ciano) ---- */
+.upd { display: flex; flex-direction: column; align-items: center; gap: 0.3rem; }
+.upd-cap { position: relative; height: 1rem; width: 100%; font: 700 0.7rem ui-monospace, monospace; text-align: center; }
+.upd-cap span { position: absolute; inset: 0; opacity: 0; }
+.cap-pl { color: #ff8a7a; animation: cap-pl 3.6s infinite; animation-delay: 1.9s; }
+.cap-elm { color: #60b5cc; animation: cap-elm 3.6s infinite; animation-delay: 1.9s; }
+@keyframes cap-pl { 0%, 28% { opacity: 1; } 30%, 100% { opacity: 0; } }
+@keyframes cap-elm { 0%, 28% { opacity: 0; } 32%, 94% { opacity: 1; } 99%, 100% { opacity: 0; } }
+.mt-spawn { box-shadow: 0 0 0 2px #60b5cc; }
+.sv-model { flex-wrap: wrap; }
+.sv-gain { position: absolute; top: 1.7rem; left: 0; right: 0; text-align: center; font: 700 0.7rem ui-monospace, monospace; color: #ff8a7a; opacity: 0; animation: sv-new 3.6s infinite; animation-delay: 2.5s; }
+.sv-model { margin-bottom: 0.8rem; }
+.pl-note { color: #60b5cc; font-size: 0.75rem; max-width: 13rem; text-align: center; }
+.upd-cap { font-size: 0.65rem; white-space: nowrap; overflow: visible; }

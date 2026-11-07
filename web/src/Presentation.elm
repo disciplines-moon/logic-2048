@@ -411,20 +411,34 @@ plTile kind r c v dx =
 
 
 type alias Variant =
-    { dir : String
-    , v : Int
-    , merged : Int
+    { key : String
+    , tiles : List MiniTile
+    , after : List Int
     , before : Int
-    , after : Int
+    , score : Int
     }
+
+
+type alias MiniTile =
+    { r : Int
+    , c : Int
+    , v : Int
+    , dr : Int
+    , dc : Int
+    , kind : String
+    }
+
+
+
+-- Sequência real de 2048 (W, A, S, D): cada jogada parte do tabuleiro em que a anterior terminou.
 
 
 variants : List Variant
 variants =
-    [ { dir = "up", v = 2, merged = 4, before = 0, after = 4 }
-    , { dir = "left", v = 4, merged = 8, before = 4, after = 12 }
-    , { dir = "down", v = 8, merged = 16, before = 12, after = 28 }
-    , { dir = "right", v = 16, merged = 32, before = 28, after = 60 }
+    [ { key = "W", tiles = [ { r = 0, c = 0, v = 2, dr = 0, dc = 0, kind = "move" }, { r = 2, c = 1, v = 4, dr = -2, dc = 0, kind = "move" }, { r = 0, c = 2, v = 2, dr = 0, dc = 0, kind = "move" }, { r = 3, c = 3, v = 2, dr = -3, dc = 0, kind = "move" }, { r = 3, c = 0, v = 2, dr = 0, dc = 0, kind = "spawn" } ], after = [ 2, 4, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0 ], before = 0, score = 0 }
+    , { key = "A", tiles = [ { r = 0, c = 0, v = 2, dr = 0, dc = 0, kind = "move" }, { r = 0, c = 1, v = 4, dr = 0, dc = 0, kind = "move" }, { r = 0, c = 2, v = 2, dr = 0, dc = 0, kind = "gone" }, { r = 0, c = 3, v = 2, dr = 0, dc = -1, kind = "gone" }, { r = 0, c = 2, v = 4, dr = 0, dc = 0, kind = "merged" }, { r = 3, c = 0, v = 2, dr = 0, dc = 0, kind = "move" }, { r = 1, c = 3, v = 2, dr = 0, dc = 0, kind = "spawn" } ], after = [ 2, 4, 4, 0, 0, 0, 0, 2, 0, 0, 0, 0, 2, 0, 0, 0 ], before = 0, score = 4 }
+    , { key = "S", tiles = [ { r = 3, c = 0, v = 2, dr = 0, dc = 0, kind = "gone" }, { r = 0, c = 0, v = 2, dr = 3, dc = 0, kind = "gone" }, { r = 3, c = 0, v = 4, dr = 0, dc = 0, kind = "merged" }, { r = 0, c = 1, v = 4, dr = 3, dc = 0, kind = "move" }, { r = 0, c = 2, v = 4, dr = 3, dc = 0, kind = "move" }, { r = 1, c = 3, v = 2, dr = 2, dc = 0, kind = "move" }, { r = 0, c = 3, v = 4, dr = 0, dc = 0, kind = "spawn" } ], after = [ 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 4, 4, 4, 2 ], before = 4, score = 8 }
+    , { key = "D", tiles = [ { r = 0, c = 3, v = 4, dr = 0, dc = 0, kind = "move" }, { r = 3, c = 3, v = 2, dr = 0, dc = 0, kind = "move" }, { r = 3, c = 2, v = 4, dr = 0, dc = 0, kind = "gone" }, { r = 3, c = 1, v = 4, dr = 0, dc = 1, kind = "gone" }, { r = 3, c = 2, v = 8, dr = 0, dc = 0, kind = "merged" }, { r = 3, c = 0, v = 4, dr = 0, dc = 1, kind = "move" }, { r = 2, c = 0, v = 2, dr = 0, dc = 0, kind = "spawn" } ], after = [ 0, 0, 0, 4, 0, 0, 0, 0, 2, 0, 0, 0, 0, 4, 8, 2 ], before = 8, score = 16 }
     ]
 
 
@@ -452,9 +466,18 @@ slotStack f =
         )
 
 
-svTile : String -> Int -> Html msg
-svTile cls v =
-    div [ class ("sv-tile " ++ cls ++ " sv-v" ++ String.fromInt v) ] [ text (String.fromInt v) ]
+miniTile : MiniTile -> Html msg
+miniTile t =
+    div
+        [ class ("mt mt-" ++ t.kind ++ " mv" ++ String.fromInt t.v ++ " mr" ++ String.fromInt t.r ++ " mc" ++ String.fromInt t.c)
+        , Html.Attributes.attribute "style" ("--dx:" ++ String.fromInt t.dc ++ ";--dy:" ++ String.fromInt t.dr)
+        ]
+        [ text (String.fromInt t.v) ]
+
+
+miniBoard : List (Html msg) -> Html msg
+miniBoard tiles =
+    div [ class "mb" ] (List.map (\_ -> div [ class "mb-cell" ] []) (List.range 1 16) ++ tiles)
 
 
 stageVis : Int -> Html msg
@@ -463,10 +486,13 @@ stageVis i =
         1 ->
             slotStack
                 (\vt ->
-                    div [ class ("sv-grid dir-" ++ vt.dir) ]
-                        (List.map (\_ -> div [ class "sv-cell" ] []) (List.range 1 4)
-                            ++ [ svTile "sv-stay" vt.v, svTile "sv-mov" vt.v, svTile "sv-m" vt.merged ]
-                        )
+                    div [ class "upd" ]
+                        [ miniBoard (List.map miniTile vt.tiles)
+                        , div [ class "upd-cap" ]
+                            [ span [ class "cap-pl" ] [ text "Prolog move e funde" ]
+                            , span [ class "cap-elm" ] [ text "Elm sorteia peça nova" ]
+                            ]
+                        ]
                 )
 
         2 ->
@@ -475,14 +501,29 @@ stageVis i =
                     div [ class "sv-model" ]
                         [ span [ class "sv-k" ] [ text "score" ]
                         , span [ class "sv-val sv-old" ] [ text (String.fromInt vt.before) ]
-                        , span [ class "sv-val sv-new" ] [ text (String.fromInt vt.after) ]
+                        , span [ class "sv-val sv-new" ] [ text (String.fromInt vt.score) ]
+                        , span [ class "sv-gain" ] [ text ("+" ++ String.fromInt (vt.score - vt.before) ++ " do Prolog") ]
                         ]
                 )
 
         3 ->
             slotStack
                 (\vt ->
-                    div [ class "sv-screen" ] [ div [ class ("sv-pop sv-v" ++ String.fromInt vt.merged) ] [ text (String.fromInt vt.merged) ] ]
+                    div [ class "sv-screen" ]
+                        [ div [ class "sv-pop" ]
+                            [ miniBoard
+                                (List.indexedMap
+                                    (\k v ->
+                                        if v == 0 then
+                                            text ""
+
+                                        else
+                                            miniTile { r = k // 4, c = modBy 4 k, v = v, dr = 0, dc = 0, kind = "static" }
+                                    )
+                                    vt.after
+                                )
+                            ]
+                        ]
                 )
 
         _ ->
@@ -595,6 +636,7 @@ viewArt kind =
                         (List.map (\_ -> div [ class "pcell" ] []) (List.range 1 16)
                             ++ [ plTile "pt-out" 0 0 "4" 0, plTile "pt-out" 1 0 "8" 0, plTile "pt-out" 2 0 "2" 0 ]
                         )
+                    , div [ class "pl-label pl-note" ] [ text "sem peça nova: quem sorteia é o Elm" ]
                     , div [ class "pl-label pl-scoreline" ] [ span [ class "v" ] [ text "Score" ], text " = ", span [ class "pl-score" ] [ text "12" ] ]
                     ]
                 ]
