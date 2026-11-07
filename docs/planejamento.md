@@ -67,7 +67,7 @@ Cada pessoa fica com 2 issues, feitas em sequência, nunca em dupla. São 14 no 
 | 20 | Dica, IA, desafios e erros na interface | Elm | 21/11 | #5, #7, #8, #11, #19 |
 | 10 | `/api/move`, validação e erros | Python | 13/11 | #3 |
 | 11 | `/api/hint`, `/api/challenge` e testes de ponta a ponta | Python | 19/11 | #5, #10, #19 |
-| 13 | CI, template de PR, MkDocs e um comando para rodar | Gestão | 13/11 | |
+| 13 | CI, template de PR, documentação e um comando para rodar | Gestão | 13/11 | |
 | 14 | Integração final, QA e ensaio | Gestão | 22/11 | #7, #9, #11, #13, #20 |
 
 A #17 (esqueleto, contrato e estrutura da apresentação) é a base e não conta entre as 14.
@@ -76,13 +76,13 @@ A #17 (esqueleto, contrato e estrutura da apresentação) é a base e não conta
 
 | Nome | GitHub | Issues | Revisa |
 |---|---|---|---|
-| Victor Hugo Lima Schmidt | moonshinerd | a definir | a definir |
-| Bianca Patrocínio Castro | BiancaPatrocinio7 | a definir | a definir |
-| Davi de Aguiar Vieira | davi-aguiar-vieira | a definir | a definir |
-| Kaio Macedo Santana | Bigkaio | a definir | a definir |
-| Mateus de Castro Santos | mat054 | a definir | a definir |
-| Mateus Henrique Queiroz Magalhães Sousa | Mateushqms | a definir | a definir |
-| William Bernardo da Silva | willxbernardo | a definir | a definir |
+| Victor Hugo Lima Schmidt | moonshinerd | #13, #14 | Bianca |
+| Bianca Patrocínio Castro | BiancaPatrocinio7 | #2, #5 | Davi |
+| Davi de Aguiar Vieira | davi-aguiar-vieira | #3, #19 | Kaio |
+| Kaio Macedo Santana | Bigkaio | #4, #11 | Mateus (mat054) |
+| Mateus de Castro Santos | mat054 | #6, #7 | Mateus (Mateushqms) |
+| Mateus Henrique Queiroz Magalhães Sousa | Mateushqms | #8, #9 | William |
+| William Bernardo da Silva | willxbernardo | #10, #20 | Victor |
 
 **Revisão em círculo:** cada pessoa revisa os PRs da seguinte, e a última revisa
 a primeira. Assim cada um revisa 2 issues, com carga igual. Quem revisa deve
@@ -135,4 +135,4 @@ logic-2048/
 | Prova de Elm em 18/11 reduz o tempo | Issues de Elm pesadas vencem antes (#6, #7, #8). Nada vence em 18/11 |
 | Integração só testada no fim | Esqueleto de ponta a ponta já pronto, contrato fechado e CI desde a #13 |
 | Dica lenta com profundidade alta | Profundidade máxima 3 e desempenho exigido na #5 |
-| Repositório privado no plano Free: sem proteção da `main` e sem GitHub Pages | Regras do fluxo acima e CI. O MkDocs roda só localmente |
+| Repositório privado no plano Free: sem proteção da `main` e sem GitHub Pages | Regras do fluxo acima e CI. A documentação fica em `docs/` e na apresentação |
