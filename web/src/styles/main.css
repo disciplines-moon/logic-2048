@@ -532,3 +532,51 @@ button:hover { background: #3d352d; }
 .flow .node.k1 .node-num { color: #0f2a33; }
 
 .cycle.cycle-on .cycle-hint { color: inherit; }
+
+/* ---- Elm: cada etapa com sua visualização ---- */
+.cycle { min-width: 7.6rem; gap: 0.4rem; }
+.sv-row { position: relative; display: flex; gap: 3px; }
+.sv-cell { width: 1.5rem; height: 1.5rem; background: #4a4037; border-radius: 4px; }
+.sv-tile { position: absolute; top: 0;  width: 1.5rem; height: 1.5rem; border-radius: 4px;
+  display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.85rem; background: #eee4da; color: #776e65; }
+.sv-b { animation: sv-slide 3.6s infinite; animation-delay: 1.9s; }
+.sv-a { animation: sv-vanish 3.6s infinite; animation-delay: 1.9s; }
+.sv-m { background: #f2b179; color: #fff; opacity: 0; animation: sv-merged 3.6s infinite; animation-delay: 1.9s; }
+@keyframes sv-slide { 0%, 3% { transform: none; opacity: 1; } 14% { transform: translateX(calc(-1 * (1.5rem + 3px))); opacity: 1; } 15%, 94% { opacity: 0; transform: translateX(calc(-1 * (1.5rem + 3px))); } 100% { opacity: 1; transform: none; } }
+@keyframes sv-vanish { 0%, 14% { opacity: 1; } 15%, 94% { opacity: 0; } 100% { opacity: 1; } }
+@keyframes sv-merged { 0%, 14% { opacity: 0; transform: scale(0.5); } 20% { opacity: 1; transform: scale(1.25); } 28%, 94% { opacity: 1; transform: none; } 99%, 100% { opacity: 0; } }
+.sv-model { position: relative; display: flex; align-items: baseline; gap: 0.4rem; height: 1.8rem; font-family: ui-monospace, monospace; }
+.sv-k { opacity: 0.7; font-size: 0.85rem; }
+.sv-val { font-size: 1.3rem; font-weight: 800; }
+.sv-new { position: absolute; right: 0; opacity: 0; color: #edc22e; animation: sv-new 3.6s infinite; animation-delay: 2.5s; }
+.sv-old { animation: sv-old 3.6s infinite; animation-delay: 2.5s; }
+@keyframes sv-old { 0%, 3% { opacity: 1; } 4%, 94% { opacity: 0; } 100% { opacity: 1; } }
+@keyframes sv-new { 0%, 3% { opacity: 0; transform: scale(0.6); } 8% { opacity: 1; transform: scale(1.4); } 15%, 94% { opacity: 1; transform: none; } 99%, 100% { opacity: 0; } }
+.sv-screen { width: 5.2rem; height: 2.8rem; border: 2px solid #bbada0; border-radius: 6px; background: #bbada0; display: flex; align-items: center; justify-content: center; }
+.sv-pop { width: 1.8rem; height: 1.8rem; border-radius: 4px; background: #f2b179; color: #fff; font-weight: 800; display: flex; align-items: center; justify-content: center; opacity: 0.3; animation: sv-pop 3.6s infinite; animation-delay: 2.9s; }
+@keyframes sv-pop { 0% { opacity: 0.3; transform: scale(0.6); } 6% { opacity: 1; transform: scale(1.3); box-shadow: 0 0 12px #f2b179; } 14%, 94% { opacity: 1; transform: none; } 100% { opacity: 0.3; } }
+
+/* ---- Prolog: regra, tabuleiro 4x4 deslizando e resposta ---- */
+.art-pl { gap: 1.2rem; align-items: center; --u: 3rem; --step: calc(3rem + 6px); }
+.pboard { position: relative; display: grid; grid-template-columns: repeat(4, var(--u)); gap: 6px; padding: 6px; background: #bbada0; border-radius: 10px; }
+.pcell { height: var(--u); border-radius: 6px; background: rgba(238, 228, 218, 0.35); }
+.pt { position: absolute; width: var(--u); height: var(--u); border-radius: 6px; display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 1.4rem; background: #eee4da; color: #776e65;
+  }
+.pt.pv4 { background: #ede0c8; } .pt.pv8 { background: #f2b179; color: #fff; }
+.pt-fade { animation: pt-fade 5s ease-in-out infinite; }
+.pt-keep { animation: pt-keep 5s ease-in-out infinite; }
+.pt-merged { opacity: 0; animation: pt-merged 5s ease-in-out infinite; }
+@keyframes pt-fade { 0%, 12% { transform: none; opacity: 1; } 36% { transform: translateX(calc(var(--dx) * var(--step))); opacity: 1; } 37%, 97% { transform: translateX(calc(var(--dx) * var(--step))); opacity: 0; } 100% { transform: none; opacity: 1; } }
+@keyframes pt-keep { 0%, 12% { transform: none; } 36%, 94% { transform: translateX(calc(var(--dx) * var(--step))); opacity: 1; } 98% { opacity: 0; } 100% { transform: none; opacity: 1; } }
+@keyframes pt-merged { 0%, 36% { opacity: 0; transform: scale(0.5); } 43% { opacity: 1; transform: scale(1.25); } 52%, 94% { opacity: 1; transform: none; } 98%, 100% { opacity: 0; } }
+.pl-clause { animation: pl-fade-in 0.5s ease both; }
+.pl-result { opacity: 0; animation: pl-result 5s infinite; }
+@keyframes pl-result { 0%, 45% { opacity: 0; transform: translateX(-1rem); } 55%, 94% { opacity: 1; transform: none; } 99%, 100% { opacity: 0; } }
+.pl-score { font-weight: 800; color: #edc22e; }
+@keyframes pl-fade-in { from { opacity: 0; } to { opacity: 1; } }
+
+.sc0 { left: 0; } .sc1 { left: calc(1.5rem + 3px); }
+.pc0 { left: 6px; } .pc1 { left: calc(6px + var(--step)); } .pc2 { left: calc(6px + 2 * var(--step)); } .pc3 { left: calc(6px + 3 * var(--step)); }
+.pr0 { top: 6px; } .pr1 { top: calc(6px + var(--step)); } .pr2 { top: calc(6px + 2 * var(--step)); } .pr3 { top: calc(6px + 3 * var(--step)); }
+.pd0 { --dx: 0; } .pd1 { --dx: -1; } .pd2 { --dx: -2; } .pd3 { --dx: -3; }

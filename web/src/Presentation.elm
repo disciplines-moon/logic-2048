@@ -402,6 +402,42 @@ viewFlow nodes active =
         ]
 
 
+plTile : String -> Int -> Int -> String -> Int -> Html msg
+plTile kind r c v dx =
+    div
+        [ class ("pt " ++ kind ++ " pv" ++ v ++ " pr" ++ String.fromInt r ++ " pc" ++ String.fromInt c ++ " pd" ++ String.fromInt (abs dx))
+        ]
+        [ text v ]
+
+
+svTile : String -> String -> Int -> Html msg
+svTile cls v c =
+    div [ class ("sv-tile " ++ cls ++ " sc" ++ String.fromInt c) ] [ text v ]
+
+
+stageVis : Int -> Html msg
+stageVis i =
+    case i of
+        1 ->
+            div [ class "sv-row" ]
+                (List.map (\_ -> div [ class "sv-cell" ] []) (List.range 1 4)
+                    ++ [ svTile "sv-a" "2" 0, svTile "sv-b" "2" 1, svTile "sv-m" "4" 0 ]
+                )
+
+        2 ->
+            div [ class "sv-model" ]
+                [ span [ class "sv-k" ] [ text "score" ]
+                , span [ class "sv-val sv-old" ] [ text "0" ]
+                , span [ class "sv-val sv-new" ] [ text "4" ]
+                ]
+
+        3 ->
+            div [ class "sv-screen" ] [ div [ class "sv-pop" ] [ text "4" ] ]
+
+        _ ->
+            text ""
+
+
 moves : List ( String, String )
 moves =
     [ ( "W", "↑ Move Up" ), ( "A", "← Move Left" ), ( "S", "↓ Move Down" ), ( "D", "→ Move Right" ) ]
@@ -447,7 +483,7 @@ viewArt kind =
                                             )
 
                                       else
-                                        span [ class "cycle-hint" ] [ text hint ]
+                                        stageVis i
                                     ]
                             )
                             [ ( "Msg", "" ), ( "update", "calcula o novo Model" ), ( "Model", "board + score" ), ( "view", "HTML na tela" ) ]
@@ -486,16 +522,32 @@ viewArt kind =
                 ]
 
         "prolog" ->
-            div [ class "art art-prolog" ]
-                [ div [ class "mini-row" ]
-                    [ div [ class "mini-cell" ] []
-                    , div [ class "mini-cell" ] []
-                    , div [ class "mini-cell" ] []
-                    , div [ class "mini-cell" ] []
-                    , div [ class "mini-tile ta" ] [ text "2" ]
-                    , div [ class "mini-tile tb" ] [ text "2" ]
-                    , div [ class "mini-tile tm" ] [ text "4" ]
-                    , div [ class "plus" ] [ text "+4" ]
+            div [ class "art art-pl" ]
+                [ div [ class "pcard pl-clause" ]
+                    [ div [ class "pcard-head" ] [ text "regra" ]
+                    , div [ class "tok" ] [ span [ class "f" ] [ text "move" ], span [ class "p" ] [ text "(" ], span [ class "v" ] [ text "Board" ], span [ class "p" ] [ text ", " ], span [ class "s" ] [ text "left" ], span [ class "p" ] [ text "," ] ]
+                    , div [ class "tok ind" ] [ span [ class "v" ] [ text "New" ], span [ class "p" ] [ text ", " ], span [ class "v" ] [ text "Score" ], span [ class "p" ] [ text ") :-" ] ]
+                    , div [ class "tok ind" ] [ span [ class "f" ] [ text "slide_rows" ], span [ class "p" ] [ text "(...)," ] ]
+                    , div [ class "tok ind" ] [ span [ class "f" ] [ text "merge_equal" ], span [ class "p" ] [ text "(...)." ] ]
+                    ]
+                , div [ class "pboard" ]
+                    (List.map (\_ -> div [ class "pcell" ] []) (List.range 1 16)
+                        ++ [ plTile "pt-fade" 0 0 "2" 0
+                           , plTile "pt-fade" 0 1 "2" -1
+                           , plTile "pt-merged" 0 0 "4" 0
+                           , plTile "pt-fade" 1 1 "4" -1
+                           , plTile "pt-fade" 1 3 "4" -3
+                           , plTile "pt-merged" 1 0 "8" 0
+                           , plTile "pt-keep" 2 2 "2" -2
+                           ]
+                    )
+                , div [ class "pcard pl-result" ]
+                    [ div [ class "pcard-head" ] [ text "resposta" ]
+                    , div [ class "tok" ] [ span [ class "v" ] [ text "New" ], span [ class "p" ] [ text " = " ] ]
+                    , div [ class "tok ind" ] [ span [ class "n" ] [ text "[[4,0,0,0]," ] ]
+                    , div [ class "tok ind" ] [ span [ class "n" ] [ text " [8,0,0,0]," ] ]
+                    , div [ class "tok ind" ] [ span [ class "n" ] [ text " [2,0,0,0],..]" ] ]
+                    , div [ class "tok" ] [ span [ class "v" ] [ text "Score" ], span [ class "p" ] [ text " = " ], span [ class "n pl-score" ] [ text "12" ] ]
                     ]
                 ]
 
