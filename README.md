@@ -9,6 +9,13 @@ server/   API em Python (FastAPI + janus) que chama o Prolog
 web/      interface em Elm (Vite)
 ```
 
+## Apresentação
+
+A apresentação do trabalho é uma página do próprio app, em
+`http://localhost:5173/#/apresentacao` (também pelo botão **Apresentar** na tela
+inicial). Setas navegam, `W A S D` jogam, `n` mostra as notas e `f` abre a tela
+cheia. Detalhes em [`docs/apresentacao.md`](docs/apresentacao.md).
+
 ## Requisitos do sistema
 
 | Ferramenta | Versão | Para quê |
