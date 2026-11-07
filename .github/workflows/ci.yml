@@ -29,7 +29,7 @@ jobs:
         run: |
           sudo apt-add-repository -y ppa:swi-prolog/stable
           sudo apt-get update
-          sudo apt-get install -y swi-prolog swi-prolog-nox libswipl-dev
+          sudo apt-get install -y swi-prolog swi-prolog-nox
       - uses: astral-sh/setup-uv@v5
       - name: pytest
         working-directory: server
