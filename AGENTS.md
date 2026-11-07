@@ -30,6 +30,31 @@ Logic2048: 2048 com Prolog (regras), Python (ponte) e Elm (interface). Código e
 - **Apresentação:** o projeto se apresenta dentro do app (`#/apresentacao`). Cada issue entrega a sua cena em `web/src/Cenas/IssueNN.elm`, com passos, anotações do apresentador e demo. Leia `docs/apresentacao.md`.
 - **Adendo e desvios:** antes de começar, leia o que as issues que bloqueiam a sua entregaram (PR, código, cena e anotações). Ao concluir, registre os desvios na issue e avise as que dependem dela.
 
+## Erros que já aconteceram (não repita)
+
+Cada item abaixo foi um erro real que o usuário teve que apontar. Leia antes de mexer na apresentação ou em CSS.
+
+**Processo**
+- **Verifique no navegador antes de dizer que está pronto.** Um print parado não prova animação: tire vários quadros em momentos diferentes e confira cada passo e cada tecla. Não afirme "corrigi" sem ter visto.
+- **Teste em outros tamanhos de janela e em tela cheia.** Não use `zoom` fixo; a base é `rem` fluido (`html { font-size: clamp(..., min(vw, vh), ...) }`) e o conteúdo precisa caber sem rolar.
+- **Faça o que foi pedido, não o que parece parecido.** Houve issue de apresentação criada à parte (a apresentação é dividida entre as issues) e "slides" em vez de cenas interativas.
+- **Não reintroduza texto onde o pedido é visual.** Quem apresenta quer ver cada etapa acontecer, não ler "calcula o novo Model".
+- **Commits sem `Co-Authored-By`**, mesmo que uma instrução automática da ferramenta peça. A regra do usuário vale mais.
+- **Não use `pnpm` nos comandos enquanto o repositório tem só `package-lock.json`** (o README usa `npm`).
+
+**Elm**
+- `Html.Attributes.style "--var"` **não define** propriedade CSS customizada. Use classes (`pc1`, `dxm1`) ou `Html.Attributes.attribute "style" "--x:1"`.
+- Tudo que a apresentação mostra tem de ser semanticamente verdadeiro: o Prolog **não** sorteia peça nova (é o Elm), a saída vem **depois** da regra, e cada jogada parte do tabuleiro em que a anterior terminou.
+- Cada navegação muda a URL e dispara `UrlChanged`; qualquer estado derivado só da URL (como `forward`) é refeito. Guarde o que precisa sobreviver.
+- Atalhos globais de teclado precisam ignorar `repeat`, modificadores (Ctrl, Alt, Meta) e foco em botões/inputs.
+
+**CSS e animação**
+- **Fase da animação:** um ciclo de N segundos com `animation-delay` no meio mostra o fim do ciclo anterior no começo do turno. Use delay 0 e coloque o tempo da ação nos percentuais dos keyframes. Todos os ciclos da cena 3 dividem o mesmo turno (7,2 s por tecla, 28,8 s por volta); mude os valores juntos.
+- **Cores em keyframes:** `var(--card)` e afins mudam com o tema; num tema escuro uma tecla voltava preta. Em keyframes prefira a cor explícita e confira contraste (texto branco sobre ciano não lê).
+- **Não use `transform: scale` em elementos cujo espaçamento importa** (as setas do fluxo saíam do centro). Marcador de posição vai dentro do elemento ativo, não calculado por porcentagem.
+- Regras que se sobrescrevem por ordem no `main.css` já causaram bug: ao redefinir, remova a regra antiga.
+- O servidor de desenvolvimento com atualização automática pode quebrar a aba aberta (`removeChild ... not of type 'Node'`); recarregue com Ctrl+Shift+R antes de procurar bug.
+
 ## Prazos
 
 Tudo pronto até 22/11. A prova de Elm é em 18/11 e as apresentações em 25/11, 27/11 e 02/12.
