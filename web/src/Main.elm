@@ -239,16 +239,16 @@ viewBoard model =
             [ text
                 (case model.page of
                     PresentationPage ->
-                        "Jogue com W A S D. As setas passam os passos da apresentação."
+                        "Jogue com W A S D."
 
                     GamePage ->
                         "Jogue com as setas ou com W A S D."
                 )
-            , if model.status == "" then
+            , if model.status == "" || model.status == "ok" then
                 text ""
 
               else
-                text ("  [" ++ model.status ++ "]")
+                text ("  " ++ model.status)
             ]
         ]
 
