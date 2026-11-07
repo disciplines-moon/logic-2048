@@ -58,6 +58,18 @@ Cada item abaixo foi um erro real que o usuário teve que apontar. Leia antes de
 - Regras que se sobrescrevem por ordem no `main.css` já causaram bug: ao redefinir, remova a regra antiga.
 - O servidor de desenvolvimento com atualização automática pode quebrar a aba aberta (`removeChild ... not of type 'Node'`); recarregue com Ctrl+Shift+R antes de procurar bug.
 
+## Skills recomendadas
+
+Usadas na apresentação e na revisão. Instale na raiz do repositório e **leia o `SKILL.md` antes de usar** (skills rodam com as permissões do agente):
+
+| Skill | Para quê | Instalar |
+|---|---|---|
+| `motion-design` (LottieFiles) | Regras de timing, easing e coreografia ao criar animações e cenas | `npx -y skills add lottiefiles/motion-design-skill --skill motion-design --agent claude-code` |
+| `review-animations` (Emil Kowalski) | Revisa animações contra um padrão rigoroso; chame com `/review-animations`. Os limites dela (UI abaixo de 300 ms) são para produto: nossas animações explicativas são lentas de propósito | `npx -y skills add https://github.com/emilkowalski/skills --skill review-animations --agent claude-code` |
+| `/code-review` (já vem no Claude Code) | Revisão do diff antes de abrir o PR | `/code-review medium main...HEAD` |
+
+Versões instaladas ficam em `skills-lock.json`.
+
 ## Prazos
 
 Tudo pronto até 22/11. A prova de Elm é em 18/11 e as apresentações em 25/11, 27/11 e 02/12.
