@@ -10,7 +10,8 @@
     "test": "elm-test",
     "format": "elm-format src tests --yes",
     "format:check": "elm-format src tests --validate",
-    "check": "npm run format:check && npm run test && npm run build"
+    "check": "npm run armadilhas && npm run format:check && npm run test && npm run build",
+    "armadilhas": "sh scripts/armadilhas.sh"
   },
   "devDependencies": {
     "elm": "^0.19.3-0",

@@ -32,6 +32,8 @@ Logic2048: 2048 com Prolog (regras), Python (ponte) e Elm (interface). Código e
 
 ## Erros que já aconteceram (não repita)
 
+**Todo agente de IA do grupo deve seguir esta seção como checklist**, porque quem errou aqui nem percebeu: os erros só apareceram em revisão ou quando o usuário apontou. `npm run check` já roda `web/scripts/armadilhas.sh`, que barra alguns deles (por exemplo `style "--x"` e `Co-Authored-By`); o resto depende de você. Antes de abrir o PR, rode `/code-review` (ou peça a revisão a outro agente) e confira o resultado no navegador.
+
 Cada item abaixo foi um erro real que o usuário teve que apontar. Leia antes de mexer na apresentação ou em CSS.
 
 **Processo**

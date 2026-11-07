@@ -221,7 +221,7 @@ viewBoard model =
     div [ class "demo-board" ]
         [ p [ class "score" ]
             [ text "Pontos: "
-            , Html.span [ class "score-num", style "--n" (String.fromInt model.score) ] []
+            , Html.span [ class "score-num", Html.Attributes.attribute "style" ("--n:" ++ String.fromInt model.score) ] []
             ]
         , Keyed.node "div"
             [ class "board"
