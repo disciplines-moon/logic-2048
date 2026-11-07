@@ -402,7 +402,7 @@ viewFlow nodes active =
 
 pressKey : String -> Int -> Html msg
 pressKey label i =
-    div [ class "key press", style "animation-delay" (String.fromFloat (toFloat i * 0.7) ++ "s") ] [ text label ]
+    div [ class "key press", style "animation-delay" (String.fromFloat (toFloat i * 3.6) ++ "s") ] [ text label ]
 
 
 viewArt : String -> Html msg
@@ -422,7 +422,7 @@ viewArt kind =
                     ]
                 , div [ class "msg-lane" ]
                     (List.indexedMap
-                        (\i k -> div [ class "msg-chip", style "animation-delay" (String.fromFloat (toFloat i * 0.7) ++ "s") ] [ text ("KeyDown " ++ k) ])
+                        (\i k -> div [ class "msg-chip", style "animation-delay" (String.fromFloat (toFloat i * 3.6) ++ "s") ] [ text ("KeyDown " ++ k) ])
                         [ "W", "A", "S", "D" ]
                     )
                 , div [ class "elm-box" ]
@@ -430,7 +430,7 @@ viewArt kind =
                     , div [ class "elm-loop" ]
                         (List.indexedMap
                             (\i ( label, hint ) ->
-                                div [ class "cycle", style "animation-delay" (String.fromFloat (toFloat i * 0.9) ++ "s") ]
+                                div [ class "cycle", style "animation-delay" (String.fromFloat (1.4 + toFloat i * 0.5) ++ "s") ]
                                     [ span [ class "cycle-name" ] [ text label ]
                                     , span [ class "cycle-hint" ] [ text hint ]
                                     ]

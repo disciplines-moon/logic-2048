@@ -323,10 +323,10 @@ kbd {
   font-weight: 800; font-size: 1.4rem; background: var(--card); border: 2px solid var(--line);
   border-bottom-width: 6px; border-radius: 10px;
 }
-.key.press { animation: keypress 2.8s ease-in-out infinite; }
+.key.press { animation: keypress 14.4s ease-in-out infinite; }
 @keyframes keypress {
-  0%, 20%, 100% { transform: none; border-bottom-width: 6px; background: var(--card); }
-  5%, 15% { transform: translateY(4px); border-bottom-width: 2px; background: var(--gold); }
+  0%, 5%, 100% { transform: none; border-bottom-width: 6px; background: var(--card); }
+  1%, 4% { transform: translateY(4px); border-bottom-width: 2px; background: var(--gold); }
 }
 
 /* Elm: o ciclo Msg, update, Model, view acende em sequência */
@@ -336,8 +336,8 @@ kbd {
   background: var(--card); border: 2px solid var(--line); animation: cycle 2.4s ease-in-out infinite;
 }
 @keyframes cycle {
-  0%, 30%, 100% { background: var(--card); border-color: var(--line); transform: none; }
-  10%, 20% { background: color-mix(in srgb, var(--elm) 25%, white); border-color: var(--elm); transform: translateY(-4px); }
+  0%, 16%, 100% { background: var(--card); border-color: var(--line); transform: none; }
+  2%, 13% { background: color-mix(in srgb, var(--elm) 25%, white); border-color: var(--elm); transform: translateY(-4px); }
 }
 
 /* Python: o JSON aparece linha por linha */
@@ -394,17 +394,16 @@ kbd {
 .mini-kb { display: flex; flex-direction: column; gap: 6px; align-items: center; }
 .mini-kb .key-row { display: flex; gap: 6px; }
 .mini-kb .key { width: 3rem; height: 3rem; font-size: 1.2rem; }
-.mini-kb .key.press { animation-duration: 2.8s; }
 .msg-lane { position: relative; width: 9rem; height: 2.4rem; border-bottom: 2px dashed var(--line); }
 .msg-chip {
   position: absolute; top: 0; left: 0; padding: 0.3rem 0.7rem; border-radius: 999px; font: 700 0.85rem ui-monospace, monospace;
-  background: var(--accent); color: #fff; animation: fly 2.8s ease-in-out infinite; opacity: 0;
+  background: var(--accent); color: #fff; animation: fly 14.4s ease-in-out infinite; opacity: 0;
 }
 @keyframes fly {
-  0%, 4% { transform: translateX(-3rem); opacity: 0; }
-  7% { opacity: 1; }
-  26% { transform: translateX(5rem); opacity: 1; }
-  30%, 100% { transform: translateX(6rem); opacity: 0; }
+  0%, 2% { transform: translateX(-3rem); opacity: 0; }
+  3% { opacity: 1; }
+  9% { transform: translateX(5rem); opacity: 1; }
+  10%, 100% { transform: translateX(6rem); opacity: 0; }
 }
 .elm-box { border: 2px solid var(--elm); border-radius: 14px; padding: 0.6rem 0.8rem; background: color-mix(in srgb, var(--elm) 8%, white); }
 .elm-title { font-weight: 800; margin-bottom: 0.4rem; text-align: center; }
