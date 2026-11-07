@@ -525,3 +525,8 @@ button:hover { background: #3d352d; }
   9% { transform: translateX(9rem); opacity: 1; }
   10%, 100% { transform: translateX(10rem); opacity: 0; }
 }
+
+/* contraste: texto escuro sobre o ciano do Elm */
+.flow .node.k1, .flow .node.k1.active { color: #0f2a33; }
+.flow .node.k1 .sub { color: rgba(15, 42, 51, 0.8); }
+.flow .node.k1 .node-num { color: #0f2a33; }
