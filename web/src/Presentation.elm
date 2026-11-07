@@ -410,29 +410,80 @@ plTile kind r c v dx =
         [ text v ]
 
 
-svTile : String -> String -> Int -> Html msg
-svTile cls v c =
-    div [ class ("sv-tile " ++ cls ++ " sc" ++ String.fromInt c) ] [ text v ]
+type alias Variant =
+    { dir : String
+    , v : Int
+    , merged : Int
+    , before : Int
+    , after : Int
+    }
+
+
+variants : List Variant
+variants =
+    [ { dir = "up", v = 2, merged = 4, before = 0, after = 4 }
+    , { dir = "left", v = 4, merged = 8, before = 4, after = 12 }
+    , { dir = "down", v = 8, merged = 16, before = 12, after = 28 }
+    , { dir = "right", v = 16, merged = 32, before = 28, after = 60 }
+    ]
+
+
+slotStack : (Variant -> Html msg) -> Html msg
+slotStack f =
+    div [ class "slot-stack" ]
+        (List.indexedMap
+            (\j vt ->
+                div
+                    [ class "slot-v"
+                    , style "animation-delay"
+                        (String.fromFloat
+                            (if j == 0 then
+                                0
+
+                             else
+                                toFloat j * 3.6 - 14.4
+                            )
+                            ++ "s"
+                        )
+                    ]
+                    [ f vt ]
+            )
+            variants
+        )
+
+
+svTile : String -> Int -> Html msg
+svTile cls v =
+    div [ class ("sv-tile " ++ cls ++ " sv-v" ++ String.fromInt v) ] [ text (String.fromInt v) ]
 
 
 stageVis : Int -> Html msg
 stageVis i =
     case i of
         1 ->
-            div [ class "sv-row" ]
-                (List.map (\_ -> div [ class "sv-cell" ] []) (List.range 1 4)
-                    ++ [ svTile "sv-a" "2" 0, svTile "sv-b" "2" 1, svTile "sv-m" "4" 0 ]
+            slotStack
+                (\vt ->
+                    div [ class ("sv-grid dir-" ++ vt.dir) ]
+                        (List.map (\_ -> div [ class "sv-cell" ] []) (List.range 1 4)
+                            ++ [ svTile "sv-stay" vt.v, svTile "sv-mov" vt.v, svTile "sv-m" vt.merged ]
+                        )
                 )
 
         2 ->
-            div [ class "sv-model" ]
-                [ span [ class "sv-k" ] [ text "score" ]
-                , span [ class "sv-val sv-old" ] [ text "0" ]
-                , span [ class "sv-val sv-new" ] [ text "4" ]
-                ]
+            slotStack
+                (\vt ->
+                    div [ class "sv-model" ]
+                        [ span [ class "sv-k" ] [ text "score" ]
+                        , span [ class "sv-val sv-old" ] [ text (String.fromInt vt.before) ]
+                        , span [ class "sv-val sv-new" ] [ text (String.fromInt vt.after) ]
+                        ]
+                )
 
         3 ->
-            div [ class "sv-screen" ] [ div [ class "sv-pop" ] [ text "4" ] ]
+            slotStack
+                (\vt ->
+                    div [ class "sv-screen" ] [ div [ class ("sv-pop sv-v" ++ String.fromInt vt.merged) ] [ text (String.fromInt vt.merged) ] ]
+                )
 
         _ ->
             text ""

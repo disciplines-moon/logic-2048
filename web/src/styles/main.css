@@ -585,3 +585,23 @@ button:hover { background: #3d352d; }
 .flow .node, .flow .node.done { transform: none; }
 .flow .node.active { transform: translateY(-4px); }
 .flow .arrow { display: flex; align-items: center; justify-content: center; padding: 0; }
+
+/* ---- variações por tecla: W 2+2, A 4+4, S 8+8, D 16+16 ---- */
+.slot-stack { display: grid; justify-items: center; }
+.slot-v { grid-area: 1 / 1; opacity: 0; animation: slotshow 14.4s infinite; }
+@keyframes slotshow { 0%, 24% { opacity: 1; } 25%, 100% { opacity: 0; } }
+.sv-grid { --s: calc(1.5rem + 3px); position: relative; display: grid; grid-template-columns: repeat(2, 1.5rem); gap: 3px; }
+.sv-grid .sv-tile { top: 0; left: 0; width: 1.5rem; height: 1.5rem; }
+.dir-left .sv-stay { left: 0; top: 0; } .dir-left .sv-mov { left: var(--s); top: 0; --sx: calc(-1 * var(--s)); --sy: 0px; } .dir-left .sv-m { left: 0; top: 0; }
+.dir-right .sv-stay { left: var(--s); top: 0; } .dir-right .sv-mov { left: 0; top: 0; --sx: var(--s); --sy: 0px; } .dir-right .sv-m { left: var(--s); top: 0; }
+.dir-up .sv-stay { left: 0; top: 0; } .dir-up .sv-mov { left: 0; top: var(--s); --sx: 0px; --sy: calc(-1 * var(--s)); } .dir-up .sv-m { left: 0; top: 0; }
+.dir-down .sv-stay { left: 0; top: var(--s); } .dir-down .sv-mov { left: 0; top: 0; --sx: 0px; --sy: var(--s); } .dir-down .sv-m { left: 0; top: var(--s); }
+.sv-grid .sv-stay { animation: sv-vanish 3.6s infinite; animation-delay: 1.9s; }
+.sv-grid .sv-mov { animation: sv-mover 3.6s infinite; animation-delay: 1.9s; }
+.sv-grid .sv-m { opacity: 0; animation: sv-merged 3.6s infinite; animation-delay: 1.9s; }
+@keyframes sv-mover { 0%, 3% { transform: none; opacity: 1; } 14% { transform: translate(var(--sx), var(--sy)); opacity: 1; } 15%, 94% { opacity: 0; transform: translate(var(--sx), var(--sy)); } 100% { opacity: 1; transform: none; } }
+.sv-v2 { background: #eee4da; color: #776e65; } .sv-v4 { background: #ede0c8; color: #776e65; }
+.sv-v8 { background: #f2b179; color: #fff; } .sv-v16 { background: #f59563; color: #fff; } .sv-v32 { background: #f67c5f; color: #fff; }
+.sv-grid .sv-m.sv-v4, .sv-grid .sv-m.sv-v8, .sv-grid .sv-m.sv-v16, .sv-grid .sv-m.sv-v32 { opacity: 0; }
+.sv-model { justify-content: center; min-width: 5rem; }
+.sv-pop.sv-v4, .sv-pop.sv-v8, .sv-pop.sv-v16, .sv-pop.sv-v32 { font-size: 0.95rem; }
