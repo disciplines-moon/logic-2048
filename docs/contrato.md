@@ -6,10 +6,17 @@ primeiro, em PR, e avise o grupo.
 ## Tabuleiro
 
 - Lista de N listas com N inteiros, com **N entre 3 e 6** (padrão 4).
-- `0` é casa vazia. As outras casas são potências de 2 (2, 4, 8...).
+- `0` é casa vazia. As outras casas são potências de 2 a partir de 2 (2, 4, 8...). O número 1 não vale.
 - Direções: `left`, `right`, `up`, `down`.
-- Vitória: existe peça >= 2048. O jogo continua depois de vencer.
+- **Peça de vitória depende de N**, porque 2048 é inalcançável no 3×3:
+
+  | N | 3 | 4 | 5 | 6 |
+  |---|---|---|---|---|
+  | Vitória | 256 | 2048 | 4096 | 8192 |
+
+- Vitória: existe peça **>=** a peça de vitória do N. O jogo continua depois de vencer, e `won` continua `true` com peças maiores.
 - Derrota: sem casas vazias e sem fusões possíveis.
+- **Quem valida:** o Python rejeita (422) tabuleiro não quadrado, N fora de 3..6, valores negativos, zero fora de casa vazia ou que não sejam potência de 2. O Prolog assume entrada válida.
 
 ## Quem faz o quê
 
@@ -21,7 +28,10 @@ primeiro, em PR, e avise o grupo.
 
 ## API
 
-Erros: HTTP 400/422 com `{ "error": "<mensagem>" }`.
+Erros: toda entrada inválida devolve **HTTP 422** com `{ "error": "<mensagem>" }`
+(o servidor troca o formato padrão `{"detail": ...}` do FastAPI). Falha inesperada
+devolve **500** no mesmo formato. Não se usa 400. O Elm trata 422 mostrando a
+mensagem e 500 ou rede com texto genérico.
 
 ### `POST /api/move`
 
@@ -43,11 +53,14 @@ Erros: HTTP 400/422 com `{ "error": "<mensagem>" }`.
 ```
 ```json
 { "direction": "left",
-  "scores": { "left": 12.5, "right": 12.5, "up": 9.0, "down": 9.0 } }
+  "scores": { "left": 12.5, "right": 12.5, "down": 9.0 } }
 ```
 
-`depth` é opcional (padrão 2, máximo 3). `direction` é `null` se não há jogada.
-Direções sem movimento válido ficam fora de `scores`.
+`up` não aparece: com as peças na linha de cima, nada se move. `depth` é
+opcional (padrão 2). O máximo é **3 para N <= 4 e 2 para N >= 5**, para a dica
+não travar o servidor, e valores maiores devolvem 422. `direction` é `null` se
+não há jogada. Direções sem movimento válido ficam fora de `scores`. Empate: vale
+a primeira na ordem `left`, `right`, `up`, `down`.
 
 ### `GET /api/challenges`
 
@@ -55,7 +68,7 @@ Lista fixa em `server/data/challenges.json`:
 
 ```json
 [ { "id": "c1", "title": "Chegue a 16 em 3 jogadas",
-    "board": [[2,2,4,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]],
+    "board": [[2,2,4,8],[0,0,0,0],[0,0,0,0],[0,0,0,0]],
     "target": 16, "max_moves": 3 } ]
 ```
 
@@ -71,17 +84,28 @@ Lista fixa em `server/data/challenges.json`:
 Sem solução: `{ "solvable": false, "moves": [] }`. Nos desafios **nenhuma peça
 nova nasce**: só vale deslizar e fundir o que já está no tabuleiro.
 
+Regras do desafio:
+- Vence quando **alguma peça >= `target`** (não precisa ser igual).
+- `moves` é a **menor** sequência encontrada, com **no máximo** `max_moves` jogadas (`max_moves` entre 1 e 6, senão 422).
+- Jogada que não muda o tabuleiro não conta e nunca entra em `moves`.
+- Como a soma das peças não muda sem peças novas, `target` maior que a soma não tem solução.
+
 ## Predicados Prolog (`prolog/game.pl`)
 
 ```prolog
 slide_left(+Row, -NewRow, -Points)
 move(+Board, +Dir, -NewBoard, -Score)      % se nada muda, devolve o mesmo tabuleiro com Score 0
 available_moves(+Board, -Dirs)             % só direções que mudam o tabuleiro
-game_won(+Board)
+game_won(+Board)                           % usa a peça de vitória do N do tabuleiro
 game_lost(+Board)
-hint(+Board, +Depth, -Best, -Scores)       % Scores = [left-V1, right-V2, ...]
+hint(+Board, +Depth, -Best, -Scores)       % Scores = [left-V1, right-V2, ...]; Best = none se não há jogada
 challenge(+Board, +Target, +MaxMoves, -Moves)   % falha se não houver solução
 ```
+
+Conversões na fronteira (feitas no Python, testadas em `server/test_main.py`):
+`Scores` vira objeto JSON, `Best = none` vira `null`, e a falha de `challenge`
+vira `{"solvable": false, "moves": []}`. O janus converte strings Python em
+átomos, então `direction` chega ao Prolog como `left`, `right`, `up` ou `down`.
 
 ## Exemplos de `slide_left`
 

@@ -42,20 +42,21 @@ endpoints e dos predicados estão no [contrato](contrato.md).
 
 **Experiência (foco no desktop)**
 - Animações de deslizar e fundir.
+- Apresentação embutida no próprio app (`#/apresentacao`), com demo ao vivo no lugar de slides externos.
 - Sons, confete e comemoração de vitória (ports, como no jogo da memória da aula).
 - Recorde salvo por tamanho de tabuleiro e tema claro/escuro.
 - Swipe no celular como extra.
 
 ## Issues, prazos e dependências
 
-Cada pessoa fica com 2 issues, feitas em sequência, nunca em dupla. Os prazos
+Cada pessoa fica com 2 issues, feitas em sequência, nunca em dupla. São 15 no total, e a #21 (apresentação embutida) é a que sobra: quem terminar antes pega. Os prazos
 (Target date) e as dependências (Relationships) estão no
 [GitHub Project](https://github.com/orgs/disciplines-moon/projects/1).
 
 | # | Issue | Frente | Prazo | Bloqueada por |
 |---|---|---|---|---|
-| 2 | Deslizar e fundir uma linha | Prolog | 10/11 | |
-| 3 | `move/4` nas 4 direções, N×N | Prolog | 12/11 | #2 |
+| 2 | Deslizar e fundir uma linha | Prolog | 09/11 | |
+| 3 | `move/4` nas 4 direções, N×N | Prolog | 11/11 | #2 |
 | 4 | Vitória, derrota e jogadas disponíveis | Prolog | 12/11 | #3 |
 | 5 | Dica com expectimax | Prolog | 16/11 | #3, #4 |
 | 19 | Desafios com CLP(FD) | Prolog | 17/11 | #3, #4 |
@@ -66,10 +67,11 @@ Cada pessoa fica com 2 issues, feitas em sequência, nunca em dupla. Os prazos
 | 20 | Dica, IA, desafios e erros na interface | Elm | 21/11 | #5, #7, #8, #11, #19 |
 | 10 | `/api/move`, validação e erros | Python | 13/11 | #3 |
 | 11 | `/api/hint`, `/api/challenge` e testes de ponta a ponta | Python | 19/11 | #5, #10, #19 |
-| 13 | CI, template de PR e MkDocs | Gestão | 13/11 | |
-| 14 | Integração final, QA e apresentação | Gestão | 22/11 | #7, #9, #11, #13, #20 |
+| 13 | CI, template de PR, MkDocs, pnpm e um comando para rodar | Gestão | 13/11 | |
+| 21 | Apresentação embutida no app, com demo ao vivo | Elm | 21/11 | #6, #8 |
+| 14 | Integração final, QA e ensaio | Gestão | 22/11 | #7, #9, #11, #13, #20, #21 |
 
-A #17 (esqueleto e contrato) é a base e não conta entre as 14.
+A #17 (esqueleto e contrato) é a base e não conta entre as 15.
 
 ## Equipe
 
@@ -91,7 +93,7 @@ conseguir explicar o que aprovou.
 
 | Data | Marco |
 |---|---|
-| 10/11 a 13/11 | Regras básicas em Prolog, estado do Elm e `/api/move` funcionando, CI rodando |
+| 09/11 a 13/11 | Regras básicas em Prolog, estado do Elm e `/api/move` funcionando, CI rodando |
 | 16/11 a 17/11 | Dica, desafios, interface e animações |
 | 18/11 | Prova de Elm (nenhuma issue vence nesse dia) |
 | 19/11 a 21/11 | Ports, endpoints dos extras e a interface ligada aos extras |
