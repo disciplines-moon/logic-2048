@@ -10,7 +10,8 @@
     "test": "elm-test",
     "format": "elm-format src tests --yes",
     "format:check": "elm-format src tests --validate",
-    "check": "npm run format:check && npm run test && npm run build"
+    "check": "npm run armadilhas && npm run format:check && npm run test && npm run build",
+    "armadilhas": "sh scripts/armadilhas.sh"
   },
   "devDependencies": {
     "elm": "^0.19.3-0",
@@ -18,5 +19,8 @@
     "elm-test": "^0.19.3-0",
     "vite": "^8.3.5",
     "vite-plugin-elm": "^3.0.1"
+  },
+  "overrides": {
+    "cross-spawn": "^7.0.6"
   }
 }
