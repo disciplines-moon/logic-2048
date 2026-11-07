@@ -1,4 +1,4 @@
-"""API do Logic2048. Rode com `pnpm api` na pasta web, ou `uv run fastapi dev main.py`.
+"""API do Logic2048. Rode com `npm run api` na pasta web, ou `uv run fastapi dev main.py`.
 
     POST /api/move   { "board": [[...]], "direction": "left" }
 """
@@ -7,15 +7,30 @@ from pathlib import Path
 from typing import Literal
 
 import janus_swi as janus
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, field_validator
 
 ROOT = Path(__file__).parent
 janus.consult(str(ROOT.parent / "prolog" / "game.pl"))
 
-SIZE = 4
+MIN_N, MAX_N = 3, 6
 
 app = FastAPI(title="Logic2048")
+
+
+@app.exception_handler(RequestValidationError)
+async def entrada_invalida(_: Request, exc: RequestValidationError):
+    """Contrato: entrada inválida é 422 com { "error": "<mensagem>" }."""
+    msg = "; ".join(str(e.get("msg", "entrada inválida")) for e in exc.errors())
+    return JSONResponse(status_code=422, content={"error": msg})
+
+
+@app.exception_handler(Exception)
+async def erro_interno(_: Request, exc: Exception):
+    """Contrato: erro interno é 500 no mesmo formato."""
+    return JSONResponse(status_code=500, content={"error": f"erro interno: {exc}"})
 
 
 class MoveRequest(BaseModel):
@@ -25,8 +40,12 @@ class MoveRequest(BaseModel):
     @field_validator("board")
     @classmethod
     def square(cls, board):
-        if len(board) != SIZE or any(len(row) != SIZE for row in board):
-            raise ValueError(f"o tabuleiro deve ser {SIZE}x{SIZE}")
+        n = len(board)
+        if not MIN_N <= n <= MAX_N or any(len(row) != n for row in board):
+            raise ValueError(f"o tabuleiro deve ser quadrado, de {MIN_N}x{MIN_N} a {MAX_N}x{MAX_N}")
+        for v in (v for row in board for v in row):
+            if v != 0 and (v < 2 or v & (v - 1) != 0):
+                raise ValueError(f"valor inválido {v}: use 0 ou uma potência de 2 a partir de 2")
         return board
 
 
@@ -43,6 +62,8 @@ def move(req: MoveRequest) -> MoveResponse:
     r = janus.query_once(
         "game:move(B, D, N, S)", {"B": req.board, "D": req.direction}
     )
+    if not r.get("truth", True) or "N" not in r:
+        raise RuntimeError("game:move/4 falhou para este tabuleiro")
     new, score = r["N"], r["S"]
     won = janus.query_once("game:game_won(B)", {"B": new})["truth"]
     lost = janus.query_once("game:game_lost(B)", {"B": new})["truth"]

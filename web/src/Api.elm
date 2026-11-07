@@ -21,11 +21,27 @@ type alias MoveResponse =
     }
 
 
+{-| Falha quando a tecla está sendo repetida (segurada), para não mandar várias jogadas do mesmo tabuleiro.
+-}
+notRepeat : D.Decoder ()
+notRepeat =
+    D.field "repeat" D.bool
+        |> D.andThen
+            (\r ->
+                if r then
+                    D.fail "tecla repetida"
+
+                else
+                    D.succeed ()
+            )
+
+
 {-| Setas do teclado viram direções. Outras teclas viram `Nothing`.
 -}
 keyDecoder : D.Decoder (Maybe Direction)
 keyDecoder =
-    D.field "key" D.string
+    notRepeat
+        |> D.andThen (\_ -> D.field "key" D.string)
         |> D.map
             (\key ->
                 case key of
@@ -50,7 +66,8 @@ keyDecoder =
 -}
 wasdDecoder : D.Decoder (Maybe Direction)
 wasdDecoder =
-    D.field "key" D.string
+    notRepeat
+        |> D.andThen (\_ -> D.field "key" D.string)
         |> D.map
             (\key ->
                 case String.toLower key of

@@ -1,4 +1,4 @@
-module Presentation exposing (Model, Msg(..), init, keyDecoder, sceneCount, update, view)
+module Presentation exposing (Model, Msg(..), init, keyDecoder, keyToMsg, sceneCount, update, view)
 
 {-| Página `#/apresentacao`: a apresentação roda dentro do próprio app.
 
@@ -133,49 +133,64 @@ update msg model =
 
 keyDecoder : D.Decoder Msg
 keyDecoder =
-    D.field "key" D.string
-        |> D.map
-            (\key ->
-                case key of
-                    "ArrowRight" ->
-                        Next
+    D.map5
+        (\key ctrl alt meta repeat ->
+            if ctrl || alt || meta || repeat then
+                Ignored
 
-                    " " ->
-                        Next
+            else
+                keyToMsg key
+        )
+        (D.field "key" D.string)
+        (D.field "ctrlKey" D.bool)
+        (D.field "altKey" D.bool)
+        (D.field "metaKey" D.bool)
+        (D.field "repeat" D.bool)
 
-                    "PageDown" ->
-                        Next
 
-                    "ArrowLeft" ->
-                        Prev
+{-| Setas, PageUp/Down, Home/End e Esc navegam; N e F (maiúsculas também) abrem notas e tela cheia.
+O espaço não está ligado de propósito: com um botão focado ele também o acionaria.
+-}
+keyToMsg : String -> Msg
+keyToMsg key =
+    case key of
+        "ArrowRight" ->
+            Next
 
-                    "PageUp" ->
-                        Prev
+        "PageDown" ->
+            Next
 
-                    "ArrowDown" ->
-                        NextScene
+        "ArrowLeft" ->
+            Prev
 
-                    "ArrowUp" ->
-                        PrevScene
+        "PageUp" ->
+            Prev
 
-                    "Home" ->
-                        First
+        "ArrowDown" ->
+            NextScene
 
-                    "End" ->
-                        Last
+        "ArrowUp" ->
+            PrevScene
 
-                    "n" ->
-                        ToggleNotes
+        "Home" ->
+            First
 
-                    "f" ->
-                        ToggleFullscreen
+        "End" ->
+            Last
 
-                    "Escape" ->
-                        Exit
+        "Escape" ->
+            Exit
 
-                    _ ->
-                        Ignored
-            )
+        _ ->
+            case String.toLower key of
+                "n" ->
+                    ToggleNotes
+
+                "f" ->
+                    ToggleFullscreen
+
+                _ ->
+                    Ignored
 
 
 view : Config msg -> Model -> Html msg

@@ -24,7 +24,7 @@ issue, com a demo rodando ao lado da explicação.
 
 | Tecla | Ação |
 |---|---|
-| `→`, espaço, `PageDown` | Próximo passo (e, no último, próxima cena) |
+| `→`, `PageDown` | Próximo passo (e, no último, próxima cena) |
 | `←`, `PageUp` | Passo anterior |
 | `↓` / `↑` | Próxima / anterior cena |
 | `Home` / `End` | Primeira / última cena |

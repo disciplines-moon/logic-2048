@@ -156,12 +156,28 @@ update msg model =
         PresentationMsg Presentation.Exit ->
             ( model, Nav.pushUrl model.key "#/" )
 
+        PresentationMsg Presentation.Ignored ->
+            ( model, Cmd.none )
+
         PresentationMsg pmsg ->
             let
                 next =
                     Presentation.update pmsg model.presentation
+
+                moved =
+                    ( next.scene, next.step ) /= ( model.presentation.scene, model.presentation.step )
             in
-            ( { model | presentation = { next | showNotes = next.showNotes } }, Nav.replaceUrl model.key (presentationUrl next) )
+            if model.page /= PresentationPage then
+                ( model, Cmd.none )
+
+            else
+                ( { model | presentation = next }
+                , if moved then
+                    Nav.replaceUrl model.key (presentationUrl next)
+
+                  else
+                    Cmd.none
+                )
 
         UrlRequested (Browser.Internal url) ->
             ( model, Nav.pushUrl model.key (Url.toString url) )
@@ -174,7 +190,7 @@ update msg model =
                 ( page, presentation ) =
                     route url
             in
-            ( { model | page = page, presentation = { presentation | showNotes = model.presentation.showNotes } }, Cmd.none )
+            ( { model | page = page, presentation = { presentation | showNotes = model.presentation.showNotes, forward = model.presentation.forward } }, Cmd.none )
 
         Ignored ->
             ( model, Cmd.none )
