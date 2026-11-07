@@ -714,3 +714,19 @@ button:hover { background: #3d352d; }
 
 /* responsivo: a unidade base (rem) acompanha a tela, então tudo cresce junto em tela cheia */
 html { font-size: clamp(12px, min(1.02vw, 2.2vh), 34px); }
+
+/* Prolog: entrada = tabuleiro que o Elm mandou + direção; tudo no mesmo turno das teclas (7,2 s) */
+.pl-in-wrap { display: flex; flex-direction: column; align-items: center; gap: 0.4rem; }
+.pl-dir { font: 700 0.85rem ui-monospace, monospace; color: #edc22e; }
+.pt.pv16 { background: #f59563; color: #fff; } .pt.pv32 { background: #f67c5f; color: #fff; }
+.pt-out { opacity: 0; animation: po2 7.2s ease-in-out infinite; animation-delay: 0s; }
+.pl-scoreline { opacity: 0; animation: po2 7.2s ease-in-out infinite; animation-delay: 0s; }
+.ln1 { animation: ln1b 7.2s infinite; animation-delay: 0s; }
+.ln2 { animation: ln2b 7.2s infinite; animation-delay: 0s; }
+@keyframes po2 { 0%, 72% { opacity: 0; transform: scale(0.5); } 79% { opacity: 1; transform: scale(1.2); } 86%, 100% { opacity: 1; transform: none; } }
+@keyframes ln1b { 0%, 22% { background: transparent; } 26%, 48% { background: rgba(237, 194, 46, 0.3); } 52%, 100% { background: transparent; } }
+@keyframes ln2b { 0%, 50% { background: transparent; } 54%, 70% { background: rgba(237, 194, 46, 0.3); } 74%, 100% { background: transparent; } }
+.pl-clause { min-width: 21rem; }
+
+/* a altura manda: o conteúdo inteiro (cena + notas + rodapé) tem que caber sem rolar */
+html { font-size: clamp(10px, min(1.02vw, 1.8vh), 34px); }

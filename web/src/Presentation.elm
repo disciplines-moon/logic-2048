@@ -563,6 +563,22 @@ moveArrow key =
             "→"
 
 
+dirName : String -> String
+dirName key =
+    case key of
+        "W" ->
+            "up"
+
+        "A" ->
+            "left"
+
+        "S" ->
+            "down"
+
+        _ ->
+            "right"
+
+
 moveNumber : String -> String
 moveNumber key =
     case key of
@@ -657,28 +673,54 @@ viewArt kind =
         "prolog" ->
             div [ class "art art-pl" ]
                 [ div [ class "pl-col" ]
-                    [ div [ class "pl-label" ] [ span [ class "v" ] [ text "Board" ], text "  entrada" ]
-                    , div [ class "pboard" ]
-                        (List.map (\_ -> div [ class "pcell" ] []) (List.range 1 16)
-                            ++ [ plTile "pt-in" 0 0 "2" 0, plTile "pt-in" 0 1 "2" 0, plTile "pt-in" 1 1 "4" 0, plTile "pt-in" 1 3 "4" 0, plTile "pt-in" 2 2 "2" 0 ]
+                    [ div [ class "pl-label" ] [ span [ class "v" ] [ text "Board" ], text "  o que o Elm mandou" ]
+                    , slotStack
+                        (\vt ->
+                            div [ class "pl-in-wrap" ]
+                                [ div [ class "pboard" ]
+                                    (List.map (\_ -> div [ class "pcell" ] []) (List.range 1 16)
+                                        ++ (vt.tiles
+                                                |> List.filter (\t -> t.kind == "move" || t.kind == "gone")
+                                                |> List.map (\t -> plTile "pt-in" t.r t.c (String.fromInt t.v) 0)
+                                           )
+                                    )
+                                , div [ class "pl-dir" ] [ span [ class "chip-key" ] [ text vt.key ], text (" = " ++ moveArrow vt.key ++ " " ++ dirName vt.key) ]
+                                ]
                         )
                     ]
                 , div [ class "pl-arrow" ] [ text "→" ]
-                , div [ class "pcard pl-clause" ]
-                    [ div [ class "pcard-head" ] [ text "regra, direção left" ]
-                    , div [ class "tok" ] [ span [ class "f" ] [ text "move" ], span [ class "p" ] [ text "(" ], span [ class "v" ] [ text "Board" ], span [ class "p" ] [ text ", left, " ], span [ class "v" ] [ text "New" ], span [ class "p" ] [ text ", " ], span [ class "v" ] [ text "Score" ], span [ class "p" ] [ text ") :-" ] ]
-                    , div [ class "tok ind ln ln1" ] [ span [ class "f" ] [ text "slide_rows" ], span [ class "p" ] [ text "(...)," ], span [ class "ln-note" ] [ text "  % encosta tudo à esquerda" ] ]
-                    , div [ class "tok ind ln ln2" ] [ span [ class "f" ] [ text "merge_equal" ], span [ class "p" ] [ text "(...)." ], span [ class "ln-note" ] [ text "  % 2+2=4, 4+4=8" ] ]
-                    ]
+                , slotStack
+                    (\vt ->
+                        div [ class "pcard pl-clause" ]
+                            [ div [ class "pcard-head" ] [ text ("regra, direção " ++ dirName vt.key) ]
+                            , div [ class "tok" ] [ span [ class "f" ] [ text "move" ], span [ class "p" ] [ text "(" ], span [ class "v" ] [ text "Board" ], span [ class "p" ] [ text ", " ], span [ class "s" ] [ text (dirName vt.key) ], span [ class "p" ] [ text ", " ], span [ class "v" ] [ text "New" ], span [ class "p" ] [ text ", " ], span [ class "v" ] [ text "Score" ], span [ class "p" ] [ text ") :-" ] ]
+                            , div [ class "tok ind ln ln1" ] [ span [ class "f" ] [ text "slide_rows" ], span [ class "p" ] [ text "(...)," ], span [ class "ln-note" ] [ text ("  % encosta tudo para " ++ dirName vt.key) ] ]
+                            , div [ class "tok ind ln ln2" ] [ span [ class "f" ] [ text "merge_equal" ], span [ class "p" ] [ text "(...)." ], span [ class "ln-note" ] [ text "  % junta iguais e soma" ] ]
+                            ]
+                    )
                 , div [ class "pl-arrow" ] [ text "→" ]
                 , div [ class "pl-col" ]
-                    [ div [ class "pl-label" ] [ span [ class "v" ] [ text "New" ], text "  saída" ]
-                    , div [ class "pboard" ]
-                        (List.map (\_ -> div [ class "pcell" ] []) (List.range 1 16)
-                            ++ [ plTile "pt-out" 0 0 "4" 0, plTile "pt-out" 1 0 "8" 0, plTile "pt-out" 2 0 "2" 0 ]
+                    [ div [ class "pl-label" ] [ span [ class "v" ] [ text "New" ], text "  resposta" ]
+                    , slotStack
+                        (\vt ->
+                            div [ class "pl-in-wrap" ]
+                                [ div [ class "pboard" ]
+                                    (List.map (\_ -> div [ class "pcell" ] []) (List.range 1 16)
+                                        ++ (vt.after
+                                                |> List.indexedMap
+                                                    (\k v ->
+                                                        if v == 0 || List.any (\t -> t.kind == "spawn" && t.r * 4 + t.c == k) vt.tiles then
+                                                            text ""
+
+                                                        else
+                                                            plTile "pt-out" (k // 4) (modBy 4 k) (String.fromInt v) 0
+                                                    )
+                                           )
+                                    )
+                                , div [ class "pl-label pl-scoreline" ] [ span [ class "v" ] [ text "Score" ], text " = ", span [ class "pl-score" ] [ text ("+" ++ String.fromInt (vt.score - vt.before)) ] ]
+                                ]
                         )
                     , div [ class "pl-label pl-note" ] [ text "sem peça nova: quem sorteia é o Elm" ]
-                    , div [ class "pl-label pl-scoreline" ] [ span [ class "v" ] [ text "Score" ], text " = ", span [ class "pl-score" ] [ text "12" ] ]
                     ]
                 ]
 
