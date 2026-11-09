@@ -18,7 +18,7 @@ jobs:
       - name: Testes plunit
         run: |
           for f in prolog/test_*.pl; do
-            swipl -g "load_files('$f'),run_tests" -t halt
+            swipl --on-error=status -g "load_files('$f'),run_tests" -t halt
           done
 
   python:

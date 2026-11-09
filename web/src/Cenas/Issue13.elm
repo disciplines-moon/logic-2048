@@ -24,7 +24,8 @@ cenas =
               }
             , { notes = "A main não tem proteção do GitHub porque o repositório é privado no plano Free. Quem protege é a CI: três jobs, um por camada, em todo PR."
               , blocks =
-                    [ Code { file = ".github/workflows/ci.yml", from = 9, to = 22, mark = [ 9, 20, 21 ] }
+                    [ Clear
+                    , Code { file = ".github/workflows/ci.yml", from = 9, to = 22, mark = [ 9, 20, 21 ] }
                     ]
               }
             , { notes = "O job do Elm roda o npm run check, que já junta formato, armadilhas conhecidas, testes e build. Se um teste quebra, o check fica vermelho e o PR não deve ser aprovado."
