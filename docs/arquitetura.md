@@ -49,10 +49,18 @@ O Python continua chamando `game:hint(...)` e `game:challenge(...)`: o `game.pl`
 
 | Arquivo | Conteúdo | Issue |
 |---|---|---|
-| `main.py` | cria o `app`, validação, handlers de erro, `POST /api/move` | #10 |
+| `main.py` | cria o `app`, validação, handlers de erro, `POST /api/move` e serve a interface compilada (`web/dist`) se existir | #10 (move), #13 (estáticos) |
 | `extras.py` | `APIRouter` com `/api/hint`, `/api/challenge`, `/api/challenges`; incluído por `main.py` | #11 |
 | `data/challenges.json` | lista fixa de desafios | #11 |
 | `test_main.py`, `test_extras.py` | testes pytest | cada issue |
+
+### Scripts e automação (`scripts/`, `.github/`)
+
+| Arquivo | Conteúdo | Issue |
+|---|---|---|
+| `scripts/rodar.sh` | compila a interface e sobe o servidor FastAPI num comando só | #13 |
+| `.github/workflows/ci.yml` | CI com jobs de teste para Prolog, Python e Elm | #13 |
+| `.github/pull_request_template.md` | template com checklist para PRs | #13 |
 
 ### Elm (`web/src/`)
 
