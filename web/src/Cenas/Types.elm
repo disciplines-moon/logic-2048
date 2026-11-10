@@ -19,6 +19,13 @@ type Block
     | Demo
       -- Frase grande de destaque.
     | Lead String
+      -- Linha de peças animada: desliza para a esquerda e funde os pares, como o `slide_left/3`.
+      -- Recebe a linha de entrada; o destino de cada peça é calculado na hora.
+    | Slide (List Int)
+      -- As três fases do `slide_left/3` (exclude, merge, completa), uma linha por fase.
+    | Fases (List Int)
+      -- O corte `!` lado a lado: com ele (uma resposta) e sem ele (resposta errada no backtracking).
+    | Corte
       -- Capa: título grande, subtítulo e etiquetas. Em cenas com `title = ""` o título comum some.
     | Hero { title : String, subtitle : String, chips : List String }
       -- Diagrama de etapas ligadas por setas. `active` (a partir de 0) acende a

@@ -805,3 +805,119 @@ html { font-size: clamp(10px, min(1.02vw, 1.8vh), 34px); }
 .team { display: flex; flex-wrap: wrap; justify-content: center; gap: 1.6rem 1.4rem; max-width: 62rem; }
 .member { width: 13.5rem; }
 .member:nth-child(5) { grid-column: auto; }
+
+/* ---------- cena: linha deslizando (bloco Slide) ----------
+   Um ciclo de 6 s por linha: parada (0-22%), desliza (22-48%), funde (50-62%),
+   mostra o resultado (até 92%) e some para recomeçar. Delay 0; o tempo da ação
+   está nos percentuais. Cores explícitas (as das peças já são gradientes fixos). */
+.sl-wrap { margin: 0.8rem 0 0; display: flex; flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+.sl-caption { font-family: ui-monospace, monospace; font-size: 0.95rem; opacity: 0.8; }
+.sl-loop {
+  position: relative;
+  width: calc(var(--n) * 4.7rem - 0.5rem);
+  height: 4.2rem;
+  display: flex;
+  flex-wrap: nowrap;
+  animation: sl-life 6s linear infinite;
+}
+.sl-cell {
+  flex: none;
+  width: 4.2rem; height: 4.2rem;
+  margin-right: 0.5rem;
+  border-radius: 6px;
+  background: rgba(187, 173, 160, 0.35);
+}
+.sl-cell:last-of-type { margin-right: 0; }
+.sl-mover {
+  position: absolute; top: 0;
+  left: calc(var(--i) * 4.7rem);
+  width: 4.2rem; height: 4.2rem;
+  animation: sl-move 6s ease-in-out infinite;
+}
+.sl-mover .tile.v2, .sl-mover .tile { animation: none; }
+.sl-mover > .tile, .sl-mover > div { position: absolute; inset: 0; }
+.sl-old { animation: sl-old 6s linear infinite; }
+.sl-new { animation: sl-new 6s ease-out infinite; }
+.sl-gone { animation: sl-gone 6s linear infinite; }
+.sl-points {
+  position: absolute; right: -3.4rem; top: 0.9rem;
+  font-weight: 700; font-size: 1.3rem; color: #25b865;
+  animation: sl-plus 6s ease-out infinite;
+}
+@keyframes sl-life { 0% { opacity: 0; } 4%, 92% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes sl-move { 0%, 22% { transform: translateX(0); } 48%, 100% { transform: translateX(calc(var(--dx) * 4.7rem)); } }
+@keyframes sl-old { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0; } }
+@keyframes sl-new { 0%, 49% { opacity: 0; transform: scale(0.7); } 56% { opacity: 1; transform: scale(1.15); } 62%, 100% { opacity: 1; transform: scale(1); } }
+@keyframes sl-gone { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0; } }
+@keyframes sl-plus { 0%, 50% { opacity: 0; transform: translateY(6px); } 62%, 90% { opacity: 1; transform: translateY(-4px); } 100% { opacity: 0; } }
+
+/* ---------- cena: fases do slide_left (Fases) e corte (Corte) ----------
+   Fases: ciclo de 10 s, cada linha nasce num momento (0, 22, 44, 66%) e todas
+   somem juntas no fim. Corte: ciclo próprio de 29 s, mais abaixo. */
+.fs-loop { margin: 0.8rem 0 0; display: flex; flex-direction: column; gap: 0.6rem; animation: fs-life 10s linear infinite; }
+.fs-row { display: flex; align-items: center; gap: 1rem; opacity: 0; }
+.fs-label { width: 17rem; font-family: ui-monospace, monospace; font-size: 0.9rem; opacity: 0.85; }
+.fs-tiles { display: flex; gap: 0.5rem; }
+.fs-tiles .tile { animation: none; }
+.fs-tiles .sl-cell { margin-right: 0; }
+.fs-row.fs0 { animation: fs-in0 10s ease-out infinite; }
+.fs-row.fs1 { animation: fs-in1 10s ease-out infinite; }
+.fs-row.fs2 { animation: fs-in2 10s ease-out infinite; }
+.fs-row.fs3 { animation: fs-in3 10s ease-out infinite; }
+@keyframes fs-life { 0%, 94% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes fs-in0 { 0%, 2% { opacity: 0; transform: translateY(8px); } 8%, 100% { opacity: 1; transform: none; } }
+@keyframes fs-in1 { 0%, 22% { opacity: 0; transform: translateY(8px); } 30%, 100% { opacity: 1; transform: none; } }
+@keyframes fs-in2 { 0%, 44% { opacity: 0; transform: translateY(8px); } 52%, 100% { opacity: 1; transform: none; } }
+@keyframes fs-in3 { 0%, 66% { opacity: 0; transform: translateY(8px); } 74%, 100% { opacity: 1; transform: none; } }
+
+.ct-wrap { display: flex; gap: 2.5rem; flex-wrap: wrap; }
+.ct-title { font-weight: 700; font-size: 1.1rem; }
+.ct-com .ct-title { color: #25b865; }
+.ct-sem .ct-title { color: #e0301a; }
+.ct-verdict { font-family: ui-monospace, monospace; font-size: 0.9rem; max-width: 22rem; opacity: 0; }
+.ct-com .ct-verdict { color: #25b865; }
+.ct-sem .ct-verdict { color: #e0301a; }
+
+/* o ! do corte: verde e fixo com o corte; vermelho piscando (erro) sem ele */
+.ct-bang { display: inline-block; margin-left: 0.2rem; min-width: 1.6rem; padding: 0 0.4rem; text-align: center; border-radius: 6px; color: #fff; font-weight: 800; }
+.ct-com .ct-bang { background: #25b865; }
+.ct-sem .ct-bang { background: #e0301a; animation: ct-blink 1s steps(1, end) infinite; }
+@keyframes ct-blink { 0%, 100% { background: #e0301a; box-shadow: 0 0 12px rgba(224, 48, 26, 0.8); } 50% { background: #7a1a0e; box-shadow: none; } }
+@keyframes ct-blink-text { 0%, 100% { text-shadow: 0 0 8px rgba(224, 48, 26, 0.7); } 50% { text-shadow: none; } }
+
+/* segunda resposta (;): com ! nada (tracejado), sem ! a linha errada piscando */
+.ct-second { margin-top: 0.4rem; display: flex; flex-direction: column; gap: 0.3rem; }
+.ct-row { display: flex; gap: 0.5rem; min-height: 4.2rem; padding: 0.3rem; border-radius: 10px; opacity: 0; }
+.ct-row .sl-cell { margin-right: 0; }
+.ct-row .tile { animation: none; }
+.ct-com .ct-row { border: 2px dashed #25b865; }
+.ct-sem .ct-row { border: 2px solid #e0301a; }
+.ct-row:empty::before { content: "—"; align-self: center; padding: 0 1.5rem; color: #25b865; font-size: 1.4rem; }
+@keyframes ct-blink-box { 0%, 100% { box-shadow: 0 0 14px rgba(224, 48, 26, 0.8); } 50% { box-shadow: none; } }
+
+/* ---------- Corte: ciclo de 29 s, texto parado ~15 s antes de recomeçar ----------
+   Tempos absolutos: desliza 4,4-9,6 s; funde 10 s; 2ª linha entra 11,2-12,4 s;
+   sem o !, as peças tremem 12,4-16,4 s; o texto fica de 12,4 s até 27.8 s. */
+.ct-wrap .ct-panel .sl-loop { animation: ct-life 29s linear infinite; }
+.ct-wrap .ct-panel .sl-mover { animation: ct-move 29s ease-in-out infinite; }
+.ct-wrap .ct-panel .sl-old { animation: ct-old 29s linear infinite; }
+.ct-wrap .ct-panel .sl-gone { animation: ct-old 29s linear infinite; }
+.ct-wrap .ct-panel .sl-new { animation: ct-new 29s ease-out infinite; }
+.ct-wrap .ct-panel .sl-points { animation: ct-plus 29s ease-out infinite; }
+.ct-wrap .ct-com .ct-verdict, .ct-wrap .ct-com .ct-row { animation: ct-say2 29s ease-out infinite; }
+@keyframes ct-life { 0% { opacity: 0; } 4.14%, 95.86% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes ct-move { 0%, 15.17% { transform: translateX(0); } 33.10%, 100% { transform: translateX(calc(var(--dx) * 4.7rem)); } }
+@keyframes ct-old { 0%, 33.79% { opacity: 1; } 34.48%, 100% { opacity: 0; } }
+@keyframes ct-new { 0%, 33.79% { opacity: 0; transform: scale(0.7); } 38.62% { opacity: 1; transform: scale(1.15); } 42.76%, 100% { opacity: 1; transform: scale(1); } }
+@keyframes ct-plus { 0%, 34.48% { opacity: 0; transform: translateY(6px); } 42.76%, 95.86% { opacity: 1; transform: translateY(-4px); } 100% { opacity: 0; } }
+@keyframes ct-say2 { 0%, 38.62% { opacity: 0; } 42.76%, 95.86% { opacity: 1; } 100% { opacity: 0; } }
+
+/* sem o !: uma linha só. As peças tentam se fundir, tremem e voltam (4,4-10,4 s);
+   o erro pisca e o texto fica de 6 s até 27,8 s. */
+.ct-wrap .ct-sem .ct-row.ct-solo { animation: ct-life 29s linear infinite, ct-blink-box 1s steps(1, end) infinite; margin-top: 0; }
+.ct-wrap .ct-sem .ct-verdict { animation: ct-say3 29s ease-out infinite, ct-blink-text 1s steps(1, end) infinite; }
+.ct-wrap .ct-sem .ct-solo .tile:nth-child(1) { animation: ct-try-r 29s ease-in-out infinite; }
+.ct-wrap .ct-sem .ct-solo .tile:nth-child(2) { animation: ct-try-l 29s ease-in-out infinite; }
+@keyframes ct-say3 { 0%, 15.17% { opacity: 0; } 20.69%, 95.86% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes ct-try-r { 0%, 15.17% { transform: none; } 18.62% { transform: translateX(0.9rem); } 22.07% { transform: none; } 25.52% { transform: translateX(0.9rem); } 28.97% { transform: none; } 32.41% { transform: translateX(0.9rem); } 35.86%, 100% { transform: none; } }
+@keyframes ct-try-l { 0%, 15.17% { transform: none; } 18.62% { transform: translateX(-0.9rem); } 22.07% { transform: none; } 25.52% { transform: translateX(-0.9rem); } 28.97% { transform: none; } 32.41% { transform: translateX(-0.9rem); } 35.86%, 100% { transform: none; } }

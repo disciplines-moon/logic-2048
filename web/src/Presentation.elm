@@ -12,7 +12,7 @@ import Cenas
 import Cenas.Types exposing (Block(..), FlowNode, Member, Scene, Step, visibleBlocks)
 import Dict exposing (Dict)
 import Html exposing (Html, button, div, h1, h2, kbd, li, p, pre, span, text, ul)
-import Html.Attributes exposing (class, classList, style)
+import Html.Attributes exposing (attribute, class, classList, style)
 import Html.Events exposing (onClick)
 import Html.Keyed as Keyed
 import Json.Decode as D
@@ -338,6 +338,15 @@ viewBlock config block =
         Lead s ->
             p [ class "lead" ] [ text s ]
 
+        Slide row ->
+            viewSlide row
+
+        Fases row ->
+            viewFases row
+
+        Corte ->
+            viewCorte
+
         Hero { title, subtitle, chips } ->
             div [ class "hero" ]
                 [ div [ class "hero-title" ] [ text title ]
@@ -356,6 +365,221 @@ viewBlock config block =
                 [ h2 [] [ text "Cena pendente" ]
                 , text hint
                 ]
+
+
+{-| O que acontece com uma peça da linha ao deslizar para a esquerda.
+`Stay` anda sem fundir; `Keep` é a primeira do par e vira o dobro; `Gone` é a
+segunda do par e some dentro da primeira.
+-}
+type Fate
+    = Stay
+    | Keep
+    | Gone
+
+
+type alias Mover =
+    { from : Int
+    , to : Int
+    , value : Int
+    , fate : Fate
+    }
+
+
+{-| Mesmo algoritmo do `merge/3` do Prolog: percorre as peças não vazias e, se as
+duas primeiras são iguais, funde as duas (e segue no resto, nunca na peça nova).
+-}
+planSlide : List Int -> List Mover
+planSlide row =
+    let
+        go : List ( Int, Int ) -> Int -> List Mover
+        go tiles slot =
+            case tiles of
+                ( i, x ) :: ( j, y ) :: rest ->
+                    if x == y then
+                        { from = i, to = slot, value = x, fate = Keep }
+                            :: { from = j, to = slot, value = y, fate = Gone }
+                            :: go rest (slot + 1)
+
+                    else
+                        { from = i, to = slot, value = x, fate = Stay } :: go (( j, y ) :: rest) (slot + 1)
+
+                ( i, x ) :: [] ->
+                    [ { from = i, to = slot, value = x, fate = Stay } ]
+
+                [] ->
+                    []
+    in
+    row
+        |> List.indexedMap Tuple.pair
+        |> List.filter (\( _, v ) -> v /= 0)
+        |> (\tiles -> go tiles 0)
+
+
+viewSlide : List Int -> Html msg
+viewSlide row =
+    let
+        movers =
+            planSlide row
+
+        n =
+            List.length row
+
+        points =
+            movers
+                |> List.filter (\m -> m.fate == Keep)
+                |> List.map (\m -> 2 * m.value)
+                |> List.sum
+
+        result =
+            List.range 0 (n - 1)
+                |> List.map
+                    (\s ->
+                        movers
+                            |> List.filter (\m -> m.to == s && m.fate /= Gone)
+                            |> List.head
+                            |> Maybe.map
+                                (\m ->
+                                    m.value
+                                        * (if m.fate == Keep then
+                                            2
+
+                                           else
+                                            1
+                                          )
+                                )
+                            |> Maybe.withDefault 0
+                    )
+
+        listText xs =
+            "[" ++ String.join ", " (List.map String.fromInt xs) ++ "]"
+
+        tile v extra =
+            div [ class ("tile v" ++ String.fromInt v ++ extra) ] [ text (String.fromInt v) ]
+
+        viewMover m =
+            div
+                [ class "sl-mover"
+                , attribute "style" ("--i:" ++ String.fromInt m.from ++ ";--dx:" ++ String.fromInt (m.to - m.from))
+                ]
+                (case m.fate of
+                    Keep ->
+                        [ div [ class "sl-old" ] [ tile m.value "" ]
+                        , div [ class "sl-new" ] [ tile (2 * m.value) "" ]
+                        ]
+
+                    Gone ->
+                        [ div [ class "sl-gone" ] [ tile m.value "" ] ]
+
+                    Stay ->
+                        [ tile m.value "" ]
+                )
+    in
+    div [ class "sl-wrap" ]
+        [ div [ class "sl-caption" ]
+            [ text (listText row ++ "  →  " ++ listText result) ]
+        , div [ class "sl-loop", attribute "style" ("--n:" ++ String.fromInt n) ]
+            (List.map (\_ -> div [ class "sl-cell" ] []) row
+                ++ List.map viewMover movers
+                ++ (if points > 0 then
+                        [ div [ class "sl-points" ] [ text ("+" ++ String.fromInt points) ] ]
+
+                    else
+                        []
+                   )
+            )
+        ]
+
+
+{-| Quatro linhas que aparecem uma a uma: entrada, depois de `exclude`, depois de
+`merge` e depois de `pad_zeros`. Cada linha nasce no seu momento do ciclo.
+-}
+viewFases : List Int -> Html msg
+viewFases row =
+    let
+        tiles =
+            List.filter (\v -> v /= 0) row
+
+        merged =
+            planSlide row
+                |> List.filterMap
+                    (\m ->
+                        case m.fate of
+                            Keep ->
+                                Just (2 * m.value)
+
+                            Stay ->
+                                Just m.value
+
+                            Gone ->
+                                Nothing
+                    )
+
+        padded =
+            merged ++ List.repeat (List.length row - List.length merged) 0
+
+        tile v =
+            if v == 0 then
+                div [ class "sl-cell" ] []
+
+            else
+                div [ class ("tile v" ++ String.fromInt v) ] [ text (String.fromInt v) ]
+
+        line k label values =
+            div [ class ("fs-row fs" ++ String.fromInt k) ]
+                [ div [ class "fs-label" ] [ text label ]
+                , div [ class "fs-tiles" ] (List.map tile values)
+                ]
+    in
+    div [ class "fs-loop" ]
+        [ line 0 "Row" row
+        , line 1 "exclude(==(0), Row, Tiles)" tiles
+        , line 2 "merge(Tiles, Merged, Points)" merged
+        , line 3 "pad_zeros(Row, Merged, NewRow)" padded
+        ]
+
+
+{-| Com e sem o `!`, a mesma linha `[2,2,0,0]`. As duas animações dividem o mesmo
+ciclo de 6 s do bloco `Slide`.
+-}
+viewCorte : Html msg
+viewCorte =
+    let
+        tile v =
+            if v == 0 then
+                div [ class "sl-cell" ] []
+
+            else
+                div [ class ("tile v" ++ String.fromInt v) ] [ text (String.fromInt v) ]
+
+        -- Segunda resposta, pedida com `;`: com o corte não existe; sem o corte
+        -- o Prolog volta atrás e entrega a linha sem fundir.
+        second tag label row =
+            div [ class ("ct-second " ++ tag) ]
+                [ div [ class "ct-row" ] (List.map tile row)
+                , div [ class "ct-verdict" ] [ text label ]
+                ]
+
+        panel title tag second_ =
+            div [ class ("ct-panel " ++ tag) ]
+                [ div [ class "ct-title" ] [ text title, span [ class "ct-bang" ] [ text "!" ] ]
+                , viewSlide [ 2, 2, 0, 0 ]
+                , second_
+                ]
+
+        -- Sem o corte: uma linha só. As duas peças tentam se fundir, tremem e
+        -- voltam, porque o Prolog entrega a resposta sem fusão.
+        semPanel =
+            div [ class "ct-panel ct-sem" ]
+                [ div [ class "ct-title" ] [ text "sem ", span [ class "ct-bang" ] [ text "!" ] ]
+                , div [ class "sl-caption" ] [ text "[2, 2, 0, 0]  →  [2, 2, 0, 0]  (não fundiu)" ]
+                , div [ class "ct-row ct-solo" ] (List.map tile [ 2, 2, 0, 0 ])
+                , div [ class "ct-verdict" ] [ text "Sem o corte, o Prolog volta atrás (;), tenta a cláusula sem fusão e o par NÃO funde: L = [2,2,0,0], P = 0. Resposta errada." ]
+                ]
+    in
+    div [ class "ct-wrap" ]
+        [ panel "com " "ct-com" (second "ct-com" "pede outra (;): false. O corte fechou a porta, então só existe a resposta acima." [])
+        , semPanel
+        ]
 
 
 viewFlow : List FlowNode -> Int -> Html msg
