@@ -807,7 +807,7 @@ html { font-size: clamp(10px, min(1.02vw, 1.8vh), 34px); }
 .member:nth-child(5) { grid-column: auto; }
 
 /* ---------- cena: linha deslizando (bloco Slide) ----------
-   Um ciclo de 12 s por linha: parada (0-22%), desliza (22-48%), funde (50-62%),
+   Um ciclo de 6 s por linha: parada (0-22%), desliza (22-48%), funde (50-62%),
    mostra o resultado (até 92%) e some para recomeçar. Delay 0; o tempo da ação
    está nos percentuais. Cores explícitas (as das peças já são gradientes fixos). */
 .sl-wrap { margin: 0.8rem 0 0; display: flex; flex-direction: column; align-items: flex-start; gap: 0.5rem; }
@@ -818,7 +818,7 @@ html { font-size: clamp(10px, min(1.02vw, 1.8vh), 34px); }
   height: 4.2rem;
   display: flex;
   flex-wrap: nowrap;
-  animation: sl-life 12s linear infinite;
+  animation: sl-life 6s linear infinite;
 }
 .sl-cell {
   flex: none;
@@ -832,17 +832,17 @@ html { font-size: clamp(10px, min(1.02vw, 1.8vh), 34px); }
   position: absolute; top: 0;
   left: calc(var(--i) * 4.7rem);
   width: 4.2rem; height: 4.2rem;
-  animation: sl-move 12s ease-in-out infinite;
+  animation: sl-move 6s ease-in-out infinite;
 }
 .sl-mover .tile.v2, .sl-mover .tile { animation: none; }
 .sl-mover > .tile, .sl-mover > div { position: absolute; inset: 0; }
-.sl-old { animation: sl-old 12s linear infinite; }
-.sl-new { animation: sl-new 12s ease-out infinite; }
-.sl-gone { animation: sl-gone 12s linear infinite; }
+.sl-old { animation: sl-old 6s linear infinite; }
+.sl-new { animation: sl-new 6s ease-out infinite; }
+.sl-gone { animation: sl-gone 6s linear infinite; }
 .sl-points {
   position: absolute; right: -3.4rem; top: 0.9rem;
   font-weight: 700; font-size: 1.3rem; color: #25b865;
-  animation: sl-plus 12s ease-out infinite;
+  animation: sl-plus 6s ease-out infinite;
 }
 @keyframes sl-life { 0% { opacity: 0; } 4%, 92% { opacity: 1; } 100% { opacity: 0; } }
 @keyframes sl-move { 0%, 22% { transform: translateX(0); } 48%, 100% { transform: translateX(calc(var(--dx) * 4.7rem)); } }
@@ -852,17 +852,17 @@ html { font-size: clamp(10px, min(1.02vw, 1.8vh), 34px); }
 @keyframes sl-plus { 0%, 50% { opacity: 0; transform: translateY(6px); } 62%, 90% { opacity: 1; transform: translateY(-4px); } 100% { opacity: 0; } }
 
 /* ---------- cena: fases do slide_left (Fases) e corte (Corte) ----------
-   Fases: ciclo de 20 s, cada linha nasce num momento (0, 22, 44, 66%) e todas
-   somem juntas no fim. Corte: veredito aparece depois da fusão (ciclo de 12 s). */
-.fs-loop { margin: 0.8rem 0 0; display: flex; flex-direction: column; gap: 0.6rem; animation: fs-life 20s linear infinite; }
+   Fases: ciclo de 10 s, cada linha nasce num momento (0, 22, 44, 66%) e todas
+   somem juntas no fim. Corte: veredito aparece depois da fusão (ciclo de 6 s). */
+.fs-loop { margin: 0.8rem 0 0; display: flex; flex-direction: column; gap: 0.6rem; animation: fs-life 10s linear infinite; }
 .fs-row { display: flex; align-items: center; gap: 1rem; opacity: 0; }
 .fs-label { width: 17rem; font-family: ui-monospace, monospace; font-size: 0.9rem; opacity: 0.85; }
 .fs-tiles { display: flex; gap: 0.5rem; }
 .fs-tiles .tile { animation: none; }
-.fs-row.fs0 { animation: fs-in0 20s ease-out infinite; }
-.fs-row.fs1 { animation: fs-in1 20s ease-out infinite; }
-.fs-row.fs2 { animation: fs-in2 20s ease-out infinite; }
-.fs-row.fs3 { animation: fs-in3 20s ease-out infinite; }
+.fs-row.fs0 { animation: fs-in0 10s ease-out infinite; }
+.fs-row.fs1 { animation: fs-in1 10s ease-out infinite; }
+.fs-row.fs2 { animation: fs-in2 10s ease-out infinite; }
+.fs-row.fs3 { animation: fs-in3 10s ease-out infinite; }
 @keyframes fs-life { 0%, 94% { opacity: 1; } 100% { opacity: 0; } }
 @keyframes fs-in0 { 0%, 2% { opacity: 0; transform: translateY(8px); } 8%, 100% { opacity: 1; transform: none; } }
 @keyframes fs-in1 { 0%, 22% { opacity: 0; transform: translateY(8px); } 30%, 100% { opacity: 1; transform: none; } }
@@ -873,7 +873,7 @@ html { font-size: clamp(10px, min(1.02vw, 1.8vh), 34px); }
 .ct-title { font-weight: 700; font-size: 1.1rem; }
 .ct-com .ct-title { color: #25b865; }
 .ct-sem .ct-title { color: #e0301a; }
-.ct-verdict { font-family: ui-monospace, monospace; font-size: 0.9rem; max-width: 22rem; opacity: 0; animation: ct-say 12s ease-out infinite; }
+.ct-verdict { font-family: ui-monospace, monospace; font-size: 0.9rem; max-width: 22rem; opacity: 0; animation: ct-say 6s ease-out infinite; }
 .ct-com .ct-verdict { color: #25b865; }
 .ct-sem .ct-verdict { color: #e0301a; }
 /* sem o corte: depois da fusão a mesma linha volta a aparecer, sem fundir */
@@ -885,34 +885,18 @@ html { font-size: clamp(10px, min(1.02vw, 1.8vh), 34px); }
 .ct-bang { display: inline-block; margin-left: 0.2rem; min-width: 1.6rem; padding: 0 0.4rem; text-align: center; border-radius: 6px; color: #fff; font-weight: 800; }
 .ct-com .ct-bang { background: #25b865; }
 .ct-sem .ct-bang { background: #e0301a; animation: ct-blink 1s steps(1, end) infinite; }
-.ct-sem .ct-verdict { animation-name: ct-say, ct-blink-text; animation-duration: 12s, 1s; animation-iteration-count: infinite, infinite; animation-timing-function: ease-out, steps(1, end); }
+.ct-sem .ct-verdict { animation-name: ct-say, ct-blink-text; animation-duration: 6s, 1s; animation-iteration-count: infinite, infinite; animation-timing-function: ease-out, steps(1, end); }
 @keyframes ct-blink { 0%, 100% { background: #e0301a; box-shadow: 0 0 12px rgba(224, 48, 26, 0.8); } 50% { background: #7a1a0e; box-shadow: none; } }
 @keyframes ct-blink-text { 0%, 100% { text-shadow: 0 0 8px rgba(224, 48, 26, 0.7); } 50% { text-shadow: none; } }
 
 /* segunda resposta (;): com ! nada (tracejado), sem ! a linha errada piscando */
 .ct-second { margin-top: 0.4rem; display: flex; flex-direction: column; gap: 0.3rem; }
-.ct-row { display: flex; gap: 0.5rem; min-height: 4.2rem; padding: 0.3rem; border-radius: 10px; opacity: 0; animation: ct-say 12s ease-out infinite; }
+.ct-row { display: flex; gap: 0.5rem; min-height: 4.2rem; padding: 0.3rem; border-radius: 10px; opacity: 0; animation: ct-say 6s ease-out infinite; }
 .ct-row .tile { animation: none; }
 .ct-com .ct-row { border: 2px dashed #25b865; }
-.ct-sem .ct-row { border: 2px solid #e0301a; animation-name: ct-say, ct-blink-box; animation-duration: 12s, 1s; animation-timing-function: ease-out, steps(1, end); }
+.ct-sem .ct-row { border: 2px solid #e0301a; animation-name: ct-say, ct-blink-box; animation-duration: 6s, 1s; animation-timing-function: ease-out, steps(1, end); }
 .ct-row:empty::before { content: "—"; align-self: center; padding: 0 1.5rem; color: #25b865; font-size: 1.4rem; }
 @keyframes ct-blink-box { 0%, 100% { box-shadow: 0 0 14px rgba(224, 48, 26, 0.8); } 50% { box-shadow: none; } }
-
-/* ---------- Corte em ciclo longo (20 s) ----------
-   0-56%: a primeira resposta (desliza e funde). 56-62%: a segunda linha aparece.
-   62-77%: sem o !, as duas peças tentam se fundir, tremem e voltam (não fundem).
-   62-96%: o texto fica na tela para dar tempo de ler. */
-.ct-wrap .sl-loop, .ct-wrap .sl-mover, .ct-wrap .sl-old, .ct-wrap .sl-new,
-.ct-wrap .sl-gone, .ct-wrap .sl-points { animation-duration: 20s; }
-.ct-wrap .ct-verdict { font-size: 1.05rem; max-width: 26rem; line-height: 1.35; }
-.ct-com .ct-verdict, .ct-com .ct-row { animation-duration: 20s; }
-.ct-sem .ct-verdict { animation-duration: 20s, 1s; }
-.ct-sem .ct-row { animation-duration: 20s, 1s; }
-.ct-sem .ct-row .tile:nth-child(1) { animation: ct-bump-r 20s ease-in-out infinite; }
-.ct-sem .ct-row .tile:nth-child(2) { animation: ct-bump-l 20s ease-in-out infinite; }
-@keyframes ct-say { 0%, 56% { opacity: 0; } 62%, 96% { opacity: 1; } 100% { opacity: 0; } }
-@keyframes ct-bump-r { 0%, 62% { transform: none; } 65% { transform: translateX(0.9rem); } 68% { transform: none; } 71% { transform: translateX(0.9rem); } 74% { transform: none; } 77%, 100% { transform: none; } }
-@keyframes ct-bump-l { 0%, 62% { transform: none; } 65% { transform: translateX(-0.9rem); } 68% { transform: none; } 71% { transform: translateX(-0.9rem); } 74% { transform: none; } 77%, 100% { transform: none; } }
 
 /* ---------- Corte: ciclo de 29 s, texto parado ~15 s antes de recomeçar ----------
    Tempos absolutos: desliza 4,4-9,6 s; funde 10 s; 2ª linha entra 11,2-12,4 s;
