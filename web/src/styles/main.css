@@ -853,12 +853,13 @@ html { font-size: clamp(10px, min(1.02vw, 1.8vh), 34px); }
 
 /* ---------- cena: fases do slide_left (Fases) e corte (Corte) ----------
    Fases: ciclo de 10 s, cada linha nasce num momento (0, 22, 44, 66%) e todas
-   somem juntas no fim. Corte: veredito aparece depois da fusão (ciclo de 6 s). */
+   somem juntas no fim. Corte: ciclo próprio de 29 s, mais abaixo. */
 .fs-loop { margin: 0.8rem 0 0; display: flex; flex-direction: column; gap: 0.6rem; animation: fs-life 10s linear infinite; }
 .fs-row { display: flex; align-items: center; gap: 1rem; opacity: 0; }
 .fs-label { width: 17rem; font-family: ui-monospace, monospace; font-size: 0.9rem; opacity: 0.85; }
 .fs-tiles { display: flex; gap: 0.5rem; }
 .fs-tiles .tile { animation: none; }
+.fs-tiles .sl-cell { margin-right: 0; }
 .fs-row.fs0 { animation: fs-in0 10s ease-out infinite; }
 .fs-row.fs1 { animation: fs-in1 10s ease-out infinite; }
 .fs-row.fs2 { animation: fs-in2 10s ease-out infinite; }
@@ -873,28 +874,24 @@ html { font-size: clamp(10px, min(1.02vw, 1.8vh), 34px); }
 .ct-title { font-weight: 700; font-size: 1.1rem; }
 .ct-com .ct-title { color: #25b865; }
 .ct-sem .ct-title { color: #e0301a; }
-.ct-verdict { font-family: ui-monospace, monospace; font-size: 0.9rem; max-width: 22rem; opacity: 0; animation: ct-say 6s ease-out infinite; }
+.ct-verdict { font-family: ui-monospace, monospace; font-size: 0.9rem; max-width: 22rem; opacity: 0; }
 .ct-com .ct-verdict { color: #25b865; }
 .ct-sem .ct-verdict { color: #e0301a; }
-/* sem o corte: depois da fusão a mesma linha volta a aparecer, sem fundir */
-.ct-sem .sl-mover { animation-name: ct-sem-move; }
-@keyframes ct-say { 0%, 66% { opacity: 0; } 74%, 90% { opacity: 1; } 100% { opacity: 0; } }
-@keyframes ct-sem-move { 0%, 22% { transform: translateX(0); } 48%, 100% { transform: translateX(calc(var(--dx) * 4.7rem)); } }
 
 /* o ! do corte: verde e fixo com o corte; vermelho piscando (erro) sem ele */
 .ct-bang { display: inline-block; margin-left: 0.2rem; min-width: 1.6rem; padding: 0 0.4rem; text-align: center; border-radius: 6px; color: #fff; font-weight: 800; }
 .ct-com .ct-bang { background: #25b865; }
 .ct-sem .ct-bang { background: #e0301a; animation: ct-blink 1s steps(1, end) infinite; }
-.ct-sem .ct-verdict { animation-name: ct-say, ct-blink-text; animation-duration: 6s, 1s; animation-iteration-count: infinite, infinite; animation-timing-function: ease-out, steps(1, end); }
 @keyframes ct-blink { 0%, 100% { background: #e0301a; box-shadow: 0 0 12px rgba(224, 48, 26, 0.8); } 50% { background: #7a1a0e; box-shadow: none; } }
 @keyframes ct-blink-text { 0%, 100% { text-shadow: 0 0 8px rgba(224, 48, 26, 0.7); } 50% { text-shadow: none; } }
 
 /* segunda resposta (;): com ! nada (tracejado), sem ! a linha errada piscando */
 .ct-second { margin-top: 0.4rem; display: flex; flex-direction: column; gap: 0.3rem; }
-.ct-row { display: flex; gap: 0.5rem; min-height: 4.2rem; padding: 0.3rem; border-radius: 10px; opacity: 0; animation: ct-say 6s ease-out infinite; }
+.ct-row { display: flex; gap: 0.5rem; min-height: 4.2rem; padding: 0.3rem; border-radius: 10px; opacity: 0; }
+.ct-row .sl-cell { margin-right: 0; }
 .ct-row .tile { animation: none; }
 .ct-com .ct-row { border: 2px dashed #25b865; }
-.ct-sem .ct-row { border: 2px solid #e0301a; animation-name: ct-say, ct-blink-box; animation-duration: 6s, 1s; animation-timing-function: ease-out, steps(1, end); }
+.ct-sem .ct-row { border: 2px solid #e0301a; }
 .ct-row:empty::before { content: "—"; align-self: center; padding: 0 1.5rem; color: #25b865; font-size: 1.4rem; }
 @keyframes ct-blink-box { 0%, 100% { box-shadow: 0 0 14px rgba(224, 48, 26, 0.8); } 50% { box-shadow: none; } }
 
@@ -908,18 +905,12 @@ html { font-size: clamp(10px, min(1.02vw, 1.8vh), 34px); }
 .ct-wrap .ct-panel .sl-new { animation: ct-new 29s ease-out infinite; }
 .ct-wrap .ct-panel .sl-points { animation: ct-plus 29s ease-out infinite; }
 .ct-wrap .ct-com .ct-verdict, .ct-wrap .ct-com .ct-row { animation: ct-say2 29s ease-out infinite; }
-.ct-wrap .ct-sem .ct-verdict { animation: ct-say2 29s ease-out infinite, ct-blink-text 1s steps(1, end) infinite; }
-.ct-wrap .ct-sem .ct-row { animation: ct-say2 29s ease-out infinite, ct-blink-box 1s steps(1, end) infinite; }
-.ct-wrap .ct-sem .ct-row .tile:nth-child(1) { animation: ct-bump-r2 29s ease-in-out infinite; }
-.ct-wrap .ct-sem .ct-row .tile:nth-child(2) { animation: ct-bump-l2 29s ease-in-out infinite; }
 @keyframes ct-life { 0% { opacity: 0; } 4.14%, 95.86% { opacity: 1; } 100% { opacity: 0; } }
 @keyframes ct-move { 0%, 15.17% { transform: translateX(0); } 33.10%, 100% { transform: translateX(calc(var(--dx) * 4.7rem)); } }
 @keyframes ct-old { 0%, 33.79% { opacity: 1; } 34.48%, 100% { opacity: 0; } }
 @keyframes ct-new { 0%, 33.79% { opacity: 0; transform: scale(0.7); } 38.62% { opacity: 1; transform: scale(1.15); } 42.76%, 100% { opacity: 1; transform: scale(1); } }
 @keyframes ct-plus { 0%, 34.48% { opacity: 0; transform: translateY(6px); } 42.76%, 95.86% { opacity: 1; transform: translateY(-4px); } 100% { opacity: 0; } }
 @keyframes ct-say2 { 0%, 38.62% { opacity: 0; } 42.76%, 95.86% { opacity: 1; } 100% { opacity: 0; } }
-@keyframes ct-bump-r2 { 0%, 42.76% { transform: none; } 46.21% { transform: translateX(0.9rem); } 49.66% { transform: none; } 53.10% { transform: translateX(0.9rem); } 56.55%, 100% { transform: none; } }
-@keyframes ct-bump-l2 { 0%, 42.76% { transform: none; } 46.21% { transform: translateX(-0.9rem); } 49.66% { transform: none; } 53.10% { transform: translateX(-0.9rem); } 56.55%, 100% { transform: none; } }
 
 /* sem o !: uma linha só. As peças tentam se fundir, tremem e voltam (4,4-10,4 s);
    o erro pisca e o texto fica de 6 s até 27,8 s. */
