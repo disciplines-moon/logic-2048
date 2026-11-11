@@ -1,6 +1,6 @@
 % Motor de regras do 2048. O tabuleiro é uma lista de N linhas (listas de N
 % inteiros, 0 = vazio), com N de 3 a 6. O Prolog é puro: não sorteia peças.
-:- module(game, [slide_left/3, move/4, game_won/1, game_lost/1]).
+:- module(game, [slide_left/3, move/4, available_moves/2, game_won/1, game_lost/1]).
 
 %! slide_left(+Row, -NewRow, -Points) is det.
 %  Desliza uma linha para a esquerda, fundindo pares iguais vizinhos.
@@ -85,11 +85,46 @@ transpose_board_([_|Guide], Rows, [Col|Cols]) :-
 first_rest([X|Xs], X, Xs).
 
 %! game_won(+Board) is semidet.
-%  TODO(#4): a peça de vitória depende de N (256, 2048, 4096, 8192) e vale >=.
+%  Verdadeiro se alguma peça é >= à peça de vitória do N do tabuleiro. Continua
+%  verdadeiro com peças maiores: o jogo segue depois de vencer (docs/contrato.md).
+%  É uma pergunta, não um laço: o member/2 volta atrás (backtracking) por todas
+%  as linhas e casas até achar uma que satisfaz o Tile >= Win.
 game_won(Board) :-
-    member(Row, Board),
-    member(2048, Row), !.
+    length(Board, N),                 % o tamanho decide a peça de vitória
+    win_tile(N, Win),
+    member(Row, Board),               % alguma linha...
+    member(Tile, Row),                % ...tem alguma casa...
+    Tile >= Win,                      % ...com peça grande o bastante?
+    !.                                % achou uma: não precisa procurar outras
+
+%  win_tile(?N, ?Win): peça de vitória por tamanho. 2048 é inalcançável no 3×3.
+%  São só fatos: a tabela do contrato escrita como relação.
+win_tile(3, 256).
+win_tile(4, 2048).
+win_tile(5, 4096).
+win_tile(6, 8192).
+
+%! can_move(+Board, ?Dir) is nondet.
+%  Verdadeiro se jogar Dir muda o tabuleiro. Com Dir livre, o member/2 tenta as
+%  quatro direções por backtracking e devolve só as que mudam alguma coisa.
+can_move(Board, Dir) :-
+    member(Dir, [left, right, up, down]),
+    move(Board, Dir, NewBoard, _),
+    NewBoard \== Board.               % o move/4 devolve o mesmo tabuleiro se nada muda
+
+%! available_moves(+Board, -Dirs) is det.
+%  Dirs são as direções que mudam o tabuleiro, na ordem left, right, up, down.
+%  O findall/3 junta numa lista todas as respostas de can_move/2.
+%  Ex.: [[2,2,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]] -> [left, right, down].
+available_moves(Board, Dirs) :-
+    findall(Dir, can_move(Board, Dir), Dirs).
 
 %! game_lost(+Board) is semidet.
-%  TODO(esqueleto): nunca perde.
-game_lost(_) :- fail.
+%  Perdeu quando não há casa vazia e nenhuma direção muda o tabuleiro (sem par
+%  igual vizinho na linha ou na coluna). As duas condições usam negação por
+%  falha: \+ Objetivo é verdadeiro quando o Prolog NÃO consegue provar Objetivo.
+%  A casa vazia vem primeiro porque é a mais barata e já decide a maioria das
+%  jogadas; ela também impede que o tabuleiro todo vazio conte como derrota.
+game_lost(Board) :-
+    \+ ( member(Row, Board), member(0, Row) ),   % não existe casa vazia...
+    \+ can_move(Board, _).                       % ...nem direção que mude algo

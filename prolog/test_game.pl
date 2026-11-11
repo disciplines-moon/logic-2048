@@ -1,16 +1,145 @@
 :- use_module(game).
 :- use_module(library(plunit)).
 
-:- begin_tests(game).
+:- begin_tests(fim_de_jogo).
 
+% Testes da #4: vitória, derrota e jogadas válidas.
+
+% Vitória: a peça de vitória depende de N (3->256, 4->2048, 5->4096, 6->8192).
 test(vitoria) :-
     game_won([[2048,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]]).
 test(sem_vitoria, [fail]) :-
     game_won([[2,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]]).
+test(vitoria_n3) :-
+    game_won([[0,0,0],[0,256,0],[0,0,0]]).
+test(sem_vitoria_n3, [fail]) :-
+    game_won([[128,128,64],[0,0,0],[0,0,0]]).
+test(vitoria_n5) :-
+    game_won([[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,4096]]).
+test(sem_vitoria_n5_com_2048, [fail]) :-
+    game_won([[2048,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0]]).
+test(vitoria_n6) :-
+    game_won([[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,8192,0,0,0],
+              [0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0]]).
+test(sem_vitoria_n6_com_4096, [fail]) :-
+    game_won([[4096,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],
+              [0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0]]).
+test(sem_vitoria_com_1024, [fail]) :-
+    game_won([[1024,1024,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]]).
+% Vale >=: depois de vencer, o jogo continua e won segue verdadeiro.
+test(vitoria_continua_com_peca_maior) :-
+    game_won([[4096,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]]).
+test(vitoria_n3_com_2048) :-
+    game_won([[2048,0,0],[0,0,0],[0,0,0]]).
+test(vitoria_varias_pecas_uma_resposta) :-
+    game_won([[2048,2048,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]]).
 
-% TODO: testes de game_lost/1.
+% Derrota: só sem casa vazia e sem fusão (horizontal e vertical).
+test(derrota_contrato) :-
+    game_lost([[2,4,2,4],[4,2,4,2],[2,4,2,4],[4,2,4,2]]).
+test(derrota_n3) :-
+    game_lost([[2,4,8],[8,16,2],[2,4,8]]).
+test(derrota_n6) :-
+    game_lost([[2,4,2,4,2,4],[4,2,4,2,4,2],[2,4,2,4,2,4],
+               [4,2,4,2,4,2],[2,4,2,4,2,4],[4,2,4,2,4,2]]).
+test(cheio_com_fusao_horizontal, [fail]) :-
+    game_lost([[2,2,4,8],[4,8,16,32],[8,16,32,64],[16,32,64,128]]).
+test(cheio_com_fusao_vertical, [fail]) :-
+    game_lost([[2,4,8,16],[2,8,16,32],[8,16,32,64],[16,32,64,128]]).
+test(uma_casa_vazia, [fail]) :-
+    game_lost([[2,4,2,4],[4,2,4,2],[2,4,0,4],[4,2,4,2]]).
+test(vazio_nao_perde, [fail]) :-
+    game_lost([[0,0,0],[0,0,0],[0,0,0]]).
 
-:- end_tests(game).
+% Jogadas válidas: só as direções que mudam o tabuleiro, em ordem fixa.
+test(jogadas_exemplo_da_issue) :-
+    available_moves([[2,2,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]], D),
+    D == [left, right, down].
+test(jogadas_cheio_sem_fusao) :-
+    available_moves([[2,4,2,4],[4,2,4,2],[2,4,2,4],[4,2,4,2]], D),
+    D == [].
+test(jogadas_cheio_com_fusao_horizontal) :-
+    available_moves([[2,2,4,8],[4,8,16,32],[8,16,32,64],[16,32,64,128]], D),
+    D == [left, right].
+test(jogadas_cheio_com_fusao_vertical) :-
+    available_moves([[2,4,8,16],[2,8,16,32],[8,16,32,64],[16,32,64,128]], D),
+    D == [up, down].
+test(jogadas_vazio) :-
+    available_moves([[0,0,0],[0,0,0],[0,0,0]], D),
+    D == [].
+test(jogadas_todas) :-
+    available_moves([[0,0,0,0],[0,2,0,0],[0,0,0,0],[0,0,0,0]], D),
+    D == [left, right, up, down].
+test(jogadas_n3) :-
+    available_moves([[2,0,0],[0,0,0],[0,0,0]], D),
+    D == [right, down].
+test(jogadas_n5) :-
+    available_moves([[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0],[2,4,8,16,32]], D),
+    D == [up].
+test(jogadas_n6) :-
+    available_moves([[2,4,2,4,2,4],[4,2,4,2,4,2],[2,4,2,4,2,4],
+                     [4,2,4,2,4,2],[2,4,2,4,2,4],[4,2,4,2,4,8]], D),
+    D == [].
+test(jogadas_tabuleiro_livre, [error(instantiation_error)]) :-
+    available_moves(_, _).
+
+:- end_tests(fim_de_jogo).
+
+% Propriedades da #4 em tabuleiros sorteados: 400 com casas vazias e 400
+% cheios (100 de cada por N, 3 a 6). Os cheios usam poucas peças diferentes
+% para aparecerem tabuleiros perdidos e quase perdidos.
+:- begin_tests(fim_de_jogo_propriedades).
+
+tabuleiros(Boards) :-
+    set_random(seed(4)),
+    findall(B, ( between(3, 6, N), between(1, 100, _),
+                 member(Pecas, [[0,0,2,4,8,16], [2,4,8,16,32,64]]),
+                 sorteado(N, Pecas, B) ),
+            Boards).
+
+sorteado(N, Pecas, B) :-
+    length(B, N),
+    maplist([Linha]>>(length(Linha, N), maplist([V]>>random_member(V, Pecas), Linha)), B).
+
+% Definição da derrota sem usar o move/4: nenhum 0 e nenhum vizinho igual
+% (na linha ou na coluna, olhando a casa da direita e a de baixo).
+sem_vazio_e_sem_par(B) :-
+    \+ ( member(L, B), member(0, L) ),
+    length(B, N), Max is N - 1,
+    \+ ( between(0, Max, I), between(0, Max, J),
+         nth0(I, B, L), nth0(J, L, V),
+         ( J < Max, J1 is J + 1, nth0(J1, L, V)
+         ; I < Max, I1 is I + 1, nth0(I1, B, L1), nth0(J, L1, V) ) ).
+
+test(derrota_bate_com_a_definicao) :-
+    tabuleiros(Bs),
+    forall(member(B, Bs),
+           ( game_lost(B) -> sem_vazio_e_sem_par(B) ; \+ sem_vazio_e_sem_par(B) )).
+
+test(derrota_quando_nao_ha_jogadas) :-
+    tabuleiros(Bs),
+    forall(member(B, Bs),
+           ( available_moves(B, Ds), ( game_lost(B) -> Ds == [] ; Ds \== [] ) )).
+
+test(jogadas_mudam_o_tabuleiro) :-
+    tabuleiros(Bs),
+    forall(( member(B, Bs), member(D, [left,right,up,down]) ),
+           ( available_moves(B, Ds), move(B, D, B2, _),
+             ( memberchk(D, Ds) -> B2 \== B ; B2 == B ) )).
+
+% A amostra tem os dois casos: tabuleiros perdidos e não perdidos.
+test(amostra_tem_derrotas) :-
+    tabuleiros(Bs),
+    include(game_lost, Bs, Perdidos),
+    length(Perdidos, P), length(Bs, T),
+    P > 0, P < T.
+
+test(sempre_deterministico) :-
+    tabuleiros(Bs),
+    forall(member(B, Bs),
+           ( call_cleanup(available_moves(B, _), Det = true), Det == true )).
+
+:- end_tests(fim_de_jogo_propriedades).
 
 % Testes da #2. O plunit também avisa se um teste deixar ponto de escolha
 % sobrando, então cada caso abaixo já confere o determinismo.
