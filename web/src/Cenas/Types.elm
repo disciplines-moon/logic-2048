@@ -32,6 +32,10 @@ type Block
     | Etapas (List Etapa)
       -- Tabuleiros lado a lado, sem setas: o mesmo tabuleiro em direções diferentes.
     | Tabuleiros (List Etapa)
+      -- Botões que carregam um tabuleiro pronto na `Demo` (por exemplo um cenário
+      -- quase perdido). Cada botão mostra o tabuleiro e a legenda (`label`); use
+      -- junto com um `Demo` no mesmo passo.
+    | Cenarios (List Etapa)
       -- Capa: título grande, subtítulo e etiquetas. Em cenas com `title = ""` o título comum some.
     | Hero { title : String, subtitle : String, chips : List String }
       -- Diagrama de etapas ligadas por setas. `active` (a partir de 0) acende a

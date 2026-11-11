@@ -189,6 +189,7 @@ view model =
                 Presentation.view
                     { toMsg = PresentationMsg
                     , demo = Html.map GameMsg (Game.View.view True model.game)
+                    , loadBoard = GameMsg << Game.LoadBoard
                     , sources = model.sources
                     }
                     model.presentation

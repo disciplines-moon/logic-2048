@@ -43,6 +43,13 @@ answer res model =
     Game.update (GotMove model.board (Ok res)) model |> Tuple.first
 
 
+{-| Tabuleiro 3×3 quase cheio, como os cenários da apresentação (#4).
+-}
+cenario3 : Game.Board
+cenario3 =
+    [ [ 2, 4, 8 ], [ 8, 16, 2 ], [ 2, 4, 0 ] ]
+
+
 nonZero : Game.Board -> List Int
 nonZero board =
     List.concat board |> List.filter ((/=) 0)
@@ -225,6 +232,45 @@ suite =
                         |> Game.update (SizeChosen 7)
                         |> Tuple.first
                         |> Expect.equal started
+            , test "carregar tabuleiro troca o jogo, zera o score e libera o teclado" <|
+                \_ ->
+                    started
+                        |> answer (response movedBoard 4 True)
+                        |> Game.update (LoadBoard cenario3)
+                        |> Tuple.first
+                        |> Expect.all
+                            [ .board >> Expect.equal cenario3
+                            , .size >> Expect.equal 3
+                            , .score >> Expect.equal 0
+                            , .status >> Expect.equal Playing
+                            , .waiting >> Expect.equal False
+                            ]
+            , test "carregar tabuleiro depois de perder volta a jogar" <|
+                \_ ->
+                    answer { board = started.board, score = 0, moved = False, won = False, lost = True } started
+                        |> Game.update (LoadBoard cenario3)
+                        |> Tuple.first
+                        |> .status
+                        |> Expect.equal Playing
+            , test "carregar tabuleiro descarta a peça sorteada para o tabuleiro anterior" <|
+                \_ ->
+                    let
+                        loaded =
+                            started
+                                |> answer (response movedBoard 4 True)
+                                |> Game.update (LoadBoard cenario3)
+                                |> Tuple.first
+                    in
+                    Game.update (Spawned movedBoard [ tile 1 1 2 ]) loaded
+                        |> Tuple.first
+                        |> Expect.equal loaded
+            , test "carregar tabuleiro com tamanho inválido é ignorado" <|
+                \_ ->
+                    Expect.all
+                        [ \_ -> Game.update (LoadBoard [ [ 2, 4 ], [ 4, 2 ] ]) started |> Tuple.first |> Expect.equal started
+                        , \_ -> Game.update (LoadBoard [ [ 2, 4, 2 ], [ 4, 2 ], [ 2, 4, 2 ] ]) started |> Tuple.first |> Expect.equal started
+                        ]
+                        ()
             ]
         , describe "swipe"
             [ test "arrasto para a esquerda" <|

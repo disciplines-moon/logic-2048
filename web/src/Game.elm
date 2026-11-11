@@ -86,7 +86,8 @@ type alias Model =
 
 {-| Tudo o que pode acontecer. `GotMove` é a resposta do Prolog e `Spawned` são as
 peças sorteadas pelo runtime (2 no início, 1 após cada jogada); as duas trazem o
-tabuleiro em que foram pedidas, para descartar respostas atrasadas.
+tabuleiro em que foram pedidas, para descartar respostas atrasadas. `LoadBoard`
+troca o jogo por um tabuleiro pronto (os cenários da apresentação, issue #4).
 -}
 type Msg
     = Pressed Direction
@@ -96,6 +97,7 @@ type Msg
     | SizeChosen Int
     | TouchStarted Point
     | TouchEnded Point
+    | LoadBoard Board
     | NoOp
 
 
@@ -174,8 +176,39 @@ update msg model =
                 Nothing ->
                     ( { model | touchStart = Nothing }, Cmd.none )
 
+        LoadBoard board ->
+            loadBoard board model
+
         NoOp ->
             ( model, Cmd.none )
+
+
+{-| Começa a jogar a partir de um tabuleiro pronto, sem sortear nada: score 0,
+status `Playing` e teclado liberado. Respostas e sorteios pedidos para o
+tabuleiro anterior são descartados (o tabuleiro mudou). Tamanho fora de 3 a 6 é
+ignorado, como em `SizeChosen`.
+-}
+loadBoard : Board -> Model -> ( Model, Cmd Msg )
+loadBoard board model =
+    let
+        n =
+            List.length board
+    in
+    if n >= 3 && n <= 6 && List.all (\row -> List.length row == n) board then
+        ( { model
+            | board = board
+            , size = n
+            , score = 0
+            , status = Playing
+            , waiting = False
+            , error = Nothing
+            , touchStart = Nothing
+          }
+        , Cmd.none
+        )
+
+    else
+        ( model, Cmd.none )
 
 
 {-| O Prolog respondeu. Se o tabuleiro mudou, guarda a resposta e pede ao runtime
