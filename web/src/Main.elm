@@ -55,14 +55,17 @@ init flags url key =
     let
         ( page, presentation ) =
             route url
+
+        ( game, gameCmd ) =
+            Game.init
     in
     ( { key = key
       , page = page
       , presentation = presentation
       , sources = sourcesFrom flags
-      , game = Game.init
+      , game = game
       }
-    , Cmd.none
+    , Cmd.map GameMsg gameCmd
     )
 
 

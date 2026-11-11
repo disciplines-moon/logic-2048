@@ -49,6 +49,7 @@ button:active { transform: translateY(1px); }
   padding: 8px;
   background: #bbada0;
   border-radius: 10px;
+  touch-action: none; /* #6: o arrasto do dedo vira swipe, não rolagem */
 }
 .tile {
   width: 4.2rem;
@@ -75,6 +76,13 @@ button:active { transform: translateY(1px); }
 .tile.v2048 { background: linear-gradient(145deg, #c996ff, #8a3ff0); color: #fff; font-size: 1.1rem; box-shadow: 0 0 26px rgba(138, 63, 240, 0.85); }
 .dirs { margin: 0.7rem 0; display: flex; gap: 6px; }
 .status { color: var(--muted); font-size: 0.9rem; }
+/* #6: Novo jogo e tamanho. Peças menores em 5×5 e 6×6 para o tabuleiro caber na demo. */
+.controls { margin: 0.7rem 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.controls .size { padding-left: 0.55rem; padding-right: 0.55rem; } /* cabe numa linha na coluna da demo */
+.demo .dirs, .demo .controls { margin: 0.5rem 0 0; }
+.controls .size.active { border-color: var(--accent); color: var(--accent); }
+.board.n5 .tile { width: 3.4rem; height: 3.4rem; font-size: 1.25rem; }
+.board.n6 .tile { width: 2.8rem; height: 2.8rem; font-size: 1.05rem; }
 
 /* ---------- apresentação ---------- */
 

@@ -360,8 +360,8 @@ viewBlock config block =
                 , div [ class "chips" ] (List.map (\c -> span [ class "chip" ] [ text c ]) chips)
                 ]
 
-        Flow { nodes, active } ->
-            viewFlow nodes active
+        Flow { nodes, active, back } ->
+            viewFlow nodes active back
 
         Clear ->
             text ""
@@ -635,8 +635,8 @@ viewEtapas etapas =
         )
 
 
-viewFlow : List FlowNode -> Int -> Html msg
-viewFlow nodes active =
+viewFlow : List FlowNode -> Int -> String -> Html msg
+viewFlow nodes active back =
     let
         node i n =
             div
@@ -686,7 +686,7 @@ viewFlow nodes active =
         , div [ class "flow-return" ]
             [ text
                 (if active == List.length nodes - 1 then
-                    "↩  o resultado volta pelo mesmo caminho, em JSON"
+                    back
 
                  else
                     ""

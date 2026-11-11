@@ -38,7 +38,8 @@ type Block
       -- etapa atual e mostra o `detail` dela. Use `Clear` + um novo `Flow` com
       -- outro `active` para "caminhar" pelo fluxo a cada passo. `art` escolhe a
       -- ilustração animada da etapa: "keyboard", "elm", "python", "prolog" (ou "" para nenhuma).
-    | Flow { nodes : List FlowNode, active : Int }
+      -- `back` é a frase que aparece embaixo quando a última etapa acende (o caminho de volta).
+    | Flow { nodes : List FlowNode, active : Int, back : String }
       -- Equipe: foto do GitHub (`login`), nome e etiqueta opcional, com animação de entrada.
     | Team (List Member)
       -- Cena ainda não escrita. Falha a revisão final (#14).
