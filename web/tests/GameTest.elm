@@ -36,11 +36,13 @@ movedBoard =
     [ [ 4, 0, 0, 0 ], [ 0, 0, 0, 0 ], [ 0, 0, 0, 0 ], [ 0, 0, 0, 0 ] ]
 
 
-{-| Manda a resposta de uma jogada pedida a partir do tabuleiro atual.
+{-| Manda a resposta de uma jogada pedida a partir do tabuleiro atual. Como no
+jogo de verdade, a resposta chega com o jogo esperando (`waiting`), como depois
+de uma tecla.
 -}
 answer : Api.MoveResponse -> Game.Model -> Game.Model
 answer res model =
-    Game.update (GotMove model.board (Ok res)) model |> Tuple.first
+    Game.update (GotMove model.board (Ok res)) { model | waiting = True } |> Tuple.first
 
 
 {-| Tabuleiro 3×3 quase cheio, como os cenários da apresentação (#4).
@@ -199,7 +201,7 @@ suite =
                         |> Expect.equal lost
             , test "erro de rede mostra mensagem e libera o teclado" <|
                 \_ ->
-                    started
+                    { started | waiting = True }
                         |> Game.update (GotMove started.board (Err Http.NetworkError))
                         |> Tuple.first
                         |> Expect.all
@@ -264,6 +266,21 @@ suite =
                     Game.update (Spawned movedBoard [ tile 1 1 2 ]) loaded
                         |> Tuple.first
                         |> Expect.equal loaded
+            , test "recarregar o mesmo tabuleiro descarta a jogada que estava a caminho" <|
+                \_ ->
+                    let
+                        loaded =
+                            Game.update (LoadBoard cenario3) started |> Tuple.first
+
+                        reloaded =
+                            Game.update (Pressed Up) loaded
+                                |> Tuple.first
+                                |> Game.update (LoadBoard cenario3)
+                                |> Tuple.first
+                    in
+                    Game.update (GotMove cenario3 (Ok (response [ [ 2, 4, 8 ], [ 8, 16, 4 ], [ 2, 4, 0 ] ] 0 True))) reloaded
+                        |> Tuple.first
+                        |> Expect.equal reloaded
             , test "carregar tabuleiro com tamanho inválido é ignorado" <|
                 \_ ->
                     Expect.all

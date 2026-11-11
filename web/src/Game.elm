@@ -141,15 +141,16 @@ update msg model =
                 ( { model | waiting = True }, Api.postMove model.board dir (GotMove model.board) )
 
         GotMove sent result ->
-            if sent /= model.board then
-                -- Resposta de um tabuleiro que já não está na tela (por exemplo, veio Novo jogo).
+            if not model.waiting || sent /= model.board then
+                -- Resposta de um tabuleiro que já não está na tela (por exemplo, veio Novo jogo)
+                -- ou que ninguém espera mais (um tabuleiro foi carregado com `LoadBoard`).
                 ( model, Cmd.none )
 
             else
                 gotMove result model
 
         Spawned target tiles ->
-            if target /= model.board then
+            if not model.waiting || target /= model.board then
                 ( model, Cmd.none )
 
             else
@@ -184,9 +185,10 @@ update msg model =
 
 
 {-| Começa a jogar a partir de um tabuleiro pronto, sem sortear nada: score 0,
-status `Playing` e teclado liberado. Respostas e sorteios pedidos para o
-tabuleiro anterior são descartados (o tabuleiro mudou). Tamanho fora de 3 a 6 é
-ignorado, como em `SizeChosen`.
+status `Playing` e teclado liberado. Respostas e sorteios ainda pendentes são
+descartados, porque o jogo deixa de esperar (`waiting = False`), mesmo que o
+tabuleiro carregado seja igual ao anterior. Tamanho fora de 3 a 6 é ignorado,
+como em `SizeChosen`.
 -}
 loadBoard : Board -> Model -> ( Model, Cmd Msg )
 loadBoard board model =
