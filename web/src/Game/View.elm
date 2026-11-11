@@ -6,9 +6,10 @@ module Game.View exposing (view)
 import Api exposing (Direction(..))
 import Game
 import Html exposing (Html, button, div, p, text)
-import Html.Attributes exposing (class, style)
-import Html.Events exposing (onClick)
+import Html.Attributes exposing (class, classList, style)
+import Html.Events exposing (on, onClick)
 import Html.Keyed as Keyed
+import Json.Decode as D
 
 
 {-| Tabuleiro, placar e botões de direção. É o que a demo da apresentação mostra.
@@ -27,9 +28,12 @@ view inPresentation model =
             , Html.span [ class "score-num", Html.Attributes.attribute "style" ("--n:" ++ String.fromInt model.score) ] []
             ]
         , Keyed.node "div"
-            [ class "board"
-            , style "grid-template-columns" ("repeat(" ++ String.fromInt n ++ ", auto)")
-            ]
+            ([ class "board"
+             , class ("n" ++ String.fromInt n)
+             , style "grid-template-columns" ("repeat(" ++ String.fromInt n ++ ", auto)")
+             ]
+                ++ swipe
+            )
             (model.board
                 |> List.indexedMap (\r row -> List.indexedMap (\c v -> viewTile r c v) row)
                 |> List.concat
@@ -38,21 +42,61 @@ view inPresentation model =
             (List.map (\( label, dir ) -> button [ onClick (Game.Pressed dir) ] [ text label ])
                 [ ( "A ←", Left ), ( "W ↑", Up ), ( "S ↓", Down ), ( "D →", Right ) ]
             )
-        , p [ class "status" ]
-            [ text
-                (if inPresentation then
-                    "Jogue com W A S D."
+        , if inPresentation && statusText model == "" then
+            -- Na apresentação o rodapé já diz que W A S D jogam; a linha só aparece com vitória, derrota ou erro.
+            text ""
 
-                 else
-                    "Jogue com as setas ou com W A S D."
-                )
-            , if model.status == "" || model.status == "ok" then
-                text ""
+          else if inPresentation then
+            p [ class "status" ] [ text (statusText model) ]
 
-              else
-                text ("  " ++ model.status)
-            ]
+          else
+            p [ class "status" ] [ text ("Jogue com as setas ou com W A S D." ++ statusText model) ]
+        , div [ class "controls" ]
+            (button [ onClick Game.NewGame ] [ text "Novo jogo" ]
+                :: List.map (sizeButton model.size) [ 3, 4, 5, 6 ]
+            )
         ]
+
+
+statusText : Game.Model -> String
+statusText model =
+    case ( model.error, model.status ) of
+        ( Just err, _ ) ->
+            "  " ++ err
+
+        ( Nothing, Game.Won ) ->
+            "  Você venceu! Pode continuar jogando."
+
+        ( Nothing, Game.Lost ) ->
+            "  Fim de jogo."
+
+        ( Nothing, Game.Playing ) ->
+            ""
+
+
+sizeButton : Int -> Int -> Html Game.Msg
+sizeButton current n =
+    button
+        [ onClick (Game.SizeChosen n)
+        , classList [ ( "size", True ), ( "active", n == current ) ]
+        ]
+        [ text (String.fromInt n ++ "×" ++ String.fromInt n) ]
+
+
+{-| Swipe no celular: guarda onde o dedo encostou e decide a direção quando ele sai.
+-}
+swipe : List (Html.Attribute Game.Msg)
+swipe =
+    [ on "touchstart" (D.map Game.TouchStarted touchPoint)
+    , on "touchend" (D.map Game.TouchEnded touchPoint)
+    ]
+
+
+touchPoint : D.Decoder Game.Point
+touchPoint =
+    D.map2 Tuple.pair
+        (D.at [ "changedTouches", "0", "clientX" ] D.float)
+        (D.at [ "changedTouches", "0", "clientY" ] D.float)
 
 
 viewTile : Int -> Int -> Int -> ( String, Html Game.Msg )

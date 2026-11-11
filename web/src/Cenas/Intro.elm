@@ -98,5 +98,5 @@ architecture =
 step : String -> Int -> Step
 step notes active =
     { notes = notes
-    , blocks = [ Clear, Flow { nodes = architecture, active = active } ]
+    , blocks = [ Clear, Flow { nodes = architecture, active = active, back = "↩  o resultado volta pelo mesmo caminho, em JSON" } ]
     }
