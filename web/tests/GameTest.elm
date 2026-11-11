@@ -48,6 +48,36 @@ nonZero board =
     List.concat board |> List.filter ((/=) 0)
 
 
+{-| Uma jogada completa: o Prolog responde que mexeu e o runtime sorteia a peça.
+-}
+play : Game.Board -> Int -> Game.Tile -> Game.Model -> Game.Model
+play board score spawned model =
+    let
+        answered =
+            answer (response board score True) model
+    in
+    Game.update (Spawned board [ spawned ]) answered |> Tuple.first
+
+
+{-| As 3 jogadas do exemplo da issue #7.
+-}
+first : Game.Model
+first =
+    play [ [ 4, 0, 0, 0 ], [ 0, 0, 0, 0 ], [ 0, 0, 0, 0 ], [ 0, 0, 0, 0 ] ] 4 (tile 3 3 2) started
+
+
+three : Game.Model
+three =
+    first
+        |> play [ [ 0, 0, 0, 4 ], [ 0, 0, 0, 0 ], [ 0, 0, 0, 0 ], [ 0, 0, 0, 2 ] ] 0 (tile 0 0 4)
+        |> play [ [ 4, 0, 0, 4 ], [ 0, 0, 0, 0 ], [ 0, 0, 0, 0 ], [ 0, 0, 0, 2 ] ] 0 (tile 2 2 2)
+
+
+step : Game.Msg -> Game.Model -> Game.Model
+step msg model =
+    Game.update msg model |> Tuple.first
+
+
 suite : Test
 suite =
     describe "Game"
@@ -225,6 +255,114 @@ suite =
                         |> Game.update (SizeChosen 7)
                         |> Tuple.first
                         |> Expect.equal started
+            ]
+        , describe "desfazer (#7)"
+            [ test "jogada que mexe guarda o jogo de antes no histórico" <|
+                \_ ->
+                    (first.history |> List.map .board)
+                        |> Expect.equal [ started.board ]
+            , test "jogada que não mexe não guarda nada" <|
+                \_ ->
+                    answer (response started.board 0 False) started
+                        |> .history
+                        |> Expect.equal []
+            , test "3 jogadas e 2 desfazer voltam ao estado após a 1ª, com a peça sorteada" <|
+                \_ ->
+                    three
+                        |> step Undo
+                        |> step Undo
+                        |> Expect.all
+                            [ .board >> Expect.equal first.board
+                            , .score >> Expect.equal first.score
+                            , .history >> Expect.equal first.history
+                            ]
+            , test "desfazer sem histórico não muda nada" <|
+                \_ -> step Undo started |> Expect.equal started
+            , test "desfazer durante a espera do servidor é ignorado" <|
+                \_ ->
+                    let
+                        waiting =
+                            step (Pressed Left) first
+                    in
+                    step Undo waiting |> Expect.equal waiting
+            , test "desfazer depois de perder volta a jogar" <|
+                \_ ->
+                    first
+                        |> answer { board = first.board, score = 0, moved = False, won = False, lost = True }
+                        |> step Undo
+                        |> Expect.all
+                            [ .status >> Expect.equal Playing
+                            , .board >> Expect.equal started.board
+                            ]
+            , test "Novo jogo e troca de tamanho zeram o histórico" <|
+                \_ ->
+                    Expect.all
+                        [ \m -> step NewGame m |> .history |> Expect.equal []
+                        , \m -> step (SizeChosen 5) m |> .history |> Expect.equal []
+                        ]
+                        three
+            ]
+        , describe "replay (#7)"
+            [ test "começa no primeiro estado e avança um por tick até o atual" <|
+                \_ ->
+                    let
+                        replay =
+                            step ReplayStarted three
+                    in
+                    Expect.all
+                        [ \m -> Game.shown m |> .board |> Expect.equal started.board
+                        , \m -> step ReplayTicked m |> Game.shown |> .board |> Expect.equal first.board
+                        , \m -> List.foldl (\_ acc -> step ReplayTicked acc) m (List.range 1 5) |> Game.shown |> .board |> Expect.equal three.board
+                        , \m -> List.foldl (\_ acc -> step ReplayTicked acc) m (List.range 1 3) |> .replay |> Maybe.map .playing |> Expect.equal (Just False)
+                        ]
+                        replay
+            , test "o replay não mexe no jogo: ao sair, a tela volta ao estado atual" <|
+                \_ ->
+                    three
+                        |> step ReplayStarted
+                        |> step ReplayTicked
+                        |> step ReplayClosed
+                        |> Expect.equal three
+            , test "pausado, o tick não avança; ao retomar, avança" <|
+                \_ ->
+                    let
+                        paused =
+                            three |> step ReplayStarted |> step ReplayPaused
+                    in
+                    Expect.all
+                        [ \m -> step ReplayTicked m |> Game.shown |> .board |> Expect.equal started.board
+                        , \m -> m |> step ReplayPaused |> step ReplayTicked |> Game.shown |> .board |> Expect.equal first.board
+                        ]
+                        paused
+            , test "a velocidade muda o intervalo do relógio" <|
+                \_ ->
+                    three
+                        |> step ReplayStarted
+                        |> step (ReplaySpeed 250)
+                        |> .replay
+                        |> Maybe.map .interval
+                        |> Expect.equal (Just 250)
+            , test "durante o replay, teclas e desfazer não mexem no jogo" <|
+                \_ ->
+                    let
+                        replay =
+                            step ReplayStarted three
+                    in
+                    Expect.all
+                        [ \m -> Game.update (Pressed Left) m |> Expect.equal ( m, Cmd.none )
+                        , \m -> step Undo m |> Expect.equal m
+                        ]
+                        replay
+            , test "no replay, o status é o da jogada na tela, não o do jogo atual" <|
+                \_ ->
+                    three
+                        |> answer { board = three.board, score = 0, moved = False, won = False, lost = True }
+                        |> step ReplayStarted
+                        |> Game.shown
+                        |> .status
+                        |> Expect.equal Playing
+            , test "sem jogadas não há replay" <|
+                \_ -> step ReplayStarted started |> .replay |> Expect.equal Nothing
             ]
         , describe "swipe"
             [ test "arrasto para a esquerda" <|

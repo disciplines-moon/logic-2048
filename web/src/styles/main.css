@@ -81,6 +81,7 @@ button:active { transform: translateY(1px); }
 .controls .size { padding-left: 0.55rem; padding-right: 0.55rem; } /* cabe numa linha na coluna da demo */
 .demo .dirs, .demo .controls { margin: 0.5rem 0 0; }
 .controls .size.active { border-color: var(--accent); color: var(--accent); }
+.replay-pos { font-weight: 400; color: var(--muted); }
 .board.n5 .tile { width: 3.4rem; height: 3.4rem; font-size: 1.25rem; }
 .board.n6 .tile { width: 2.8rem; height: 2.8rem; font-size: 1.05rem; }
 

@@ -46,6 +46,18 @@ suite =
                 )
                 [ "INPUT", "TEXTAREA", "SELECT" ]
             )
+        , describe "Ctrl+Z desfaz (#7)"
+            [ test "Ctrl+Z" <|
+                \_ -> D.decodeString Api.undoDecoder (undo "z" True False False False) |> Expect.equal (Ok ())
+            , test "Cmd+Z no Mac" <|
+                \_ -> D.decodeString Api.undoDecoder (undo "z" False True False False) |> Expect.equal (Ok ())
+            , test "Z sem Ctrl não desfaz" <|
+                \_ -> D.decodeString Api.undoDecoder (undo "z" False False False False) |> Result.toMaybe |> Expect.equal Nothing
+            , test "Ctrl+Shift+Z não desfaz" <|
+                \_ -> D.decodeString Api.undoDecoder (undo "Z" True False True False) |> Result.toMaybe |> Expect.equal Nothing
+            , test "Ctrl+Z segurado não desfaz em série" <|
+                \_ -> D.decodeString Api.undoDecoder (undo "z" True False False True) |> Result.toMaybe |> Expect.equal Nothing
+            ]
         , test "tecla fora de campo de texto joga" <|
             \_ ->
                 D.decodeString Api.wasdDecoder (keyIn "BODY" "a")
@@ -80,5 +92,21 @@ keyIn tag k =
             , ( "altKey", E.bool False )
             , ( "metaKey", E.bool False )
             , ( "target", E.object [ ( "tagName", E.string tag ) ] )
+            ]
+        )
+
+
+{-| Evento de teclado para o Ctrl+Z: tecla, Ctrl, Meta (Cmd), Shift e repeat.
+-}
+undo : String -> Bool -> Bool -> Bool -> Bool -> String
+undo k ctrl meta shift repeat =
+    E.encode 0
+        (E.object
+            [ ( "key", E.string k )
+            , ( "repeat", E.bool repeat )
+            , ( "ctrlKey", E.bool ctrl )
+            , ( "altKey", E.bool False )
+            , ( "metaKey", E.bool meta )
+            , ( "shiftKey", E.bool shift )
             ]
         )
