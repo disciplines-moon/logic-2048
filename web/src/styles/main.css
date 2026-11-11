@@ -921,3 +921,38 @@ html { font-size: clamp(10px, min(1.02vw, 1.8vh), 34px); }
 @keyframes ct-say3 { 0%, 15.17% { opacity: 0; } 20.69%, 95.86% { opacity: 1; } 100% { opacity: 0; } }
 @keyframes ct-try-r { 0%, 15.17% { transform: none; } 18.62% { transform: translateX(0.9rem); } 22.07% { transform: none; } 25.52% { transform: translateX(0.9rem); } 28.97% { transform: none; } 32.41% { transform: translateX(0.9rem); } 35.86%, 100% { transform: none; } }
 @keyframes ct-try-l { 0%, 15.17% { transform: none; } 18.62% { transform: translateX(-0.9rem); } 22.07% { transform: none; } 25.52% { transform: translateX(-0.9rem); } 28.97% { transform: none; } 32.41% { transform: translateX(-0.9rem); } 35.86%, 100% { transform: none; } }
+
+/* ---------- cena: tabuleiros pequenos (Etapas e Tabuleiros, #3) ----------
+   Etapas: ciclo de 10 s, a etapa k nasce em k * 20% e todas somem juntas no fim.
+   Delay 0; o tempo está nos percentuais (AGENTS.md). Tabuleiros: parados. */
+.eb { display: flex; flex-direction: column; align-items: center; gap: 0.45rem; }
+.eb-board {
+  display: grid;
+  grid-template-columns: repeat(var(--n), 2.8rem);
+  gap: 0.3rem;
+  padding: 0.35rem;
+  border-radius: 8px;
+  background: #3a332c;
+}
+.eb-board .tile { width: 2.8rem; height: 2.8rem; font-size: 1.1rem; border-radius: 4px; animation: none; }
+.eb-board .tile.v128, .eb-board .tile.v256, .eb-board .tile.v512 { font-size: 0.95rem; }
+.eb-cell { width: 2.8rem; height: 2.8rem; border-radius: 4px; background: #4a4037; }
+.eb-label { font-family: ui-monospace, monospace; font-size: 0.85rem; opacity: 0.9; text-align: center; white-space: nowrap; }
+.eb-note { margin-left: 0.45rem; font-weight: 700; color: #25b865; }
+
+.eb-grid { display: flex; flex-wrap: wrap; gap: 1.2rem 2rem; align-items: flex-end; }
+
+.et-chain { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem 0; animation: et-life 10s linear infinite; }
+.et-step { display: flex; align-items: center; opacity: 0; }
+.et-arrow { padding: 0 0.9rem 1.6rem; font-size: 1.6rem; font-weight: 700; color: #f39a2d; }
+.et-step.et0 { animation: et-in0 10s ease-out infinite; }
+.et-step.et1 { animation: et-in1 10s ease-out infinite; }
+.et-step.et2 { animation: et-in2 10s ease-out infinite; }
+.et-step.et3 { animation: et-in3 10s ease-out infinite; }
+.et-step.et4 { animation: et-in4 10s ease-out infinite; }
+@keyframes et-life { 0%, 94% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes et-in0 { 0%, 2% { opacity: 0; transform: translateX(-8px); } 8%, 100% { opacity: 1; transform: none; } }
+@keyframes et-in1 { 0%, 20% { opacity: 0; transform: translateX(-8px); } 28%, 100% { opacity: 1; transform: none; } }
+@keyframes et-in2 { 0%, 40% { opacity: 0; transform: translateX(-8px); } 48%, 100% { opacity: 1; transform: none; } }
+@keyframes et-in3 { 0%, 60% { opacity: 0; transform: translateX(-8px); } 68%, 100% { opacity: 1; transform: none; } }
+@keyframes et-in4 { 0%, 76% { opacity: 0; transform: translateX(-8px); } 84%, 100% { opacity: 1; transform: none; } }

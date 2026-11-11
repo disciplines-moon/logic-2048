@@ -29,9 +29,57 @@ pad_zeros(Row, Merged, NewRow) :-
     maplist(=(0), Zeros).
 
 %! move(+Board, +Dir, -NewBoard, -Score) is det.
-%  Dir é left, right, up ou down. Score é a pontuação ganha nesta jogada.
-%  TODO(esqueleto): devolve o tabuleiro sem alterações.
-move(Board, _Dir, Board, 0).
+%  Dir é left, right, up ou down. Score é a pontuação ganha nesta jogada: a
+%  soma dos pontos de todas as linhas. Se nada muda, NewBoard = Board e Score = 0.
+%  Com Dir livre, enumera as quatro direções (na ordem left, right, up, down).
+move(Board, Dir, NewBoard, Score) :-
+    must_be(list, Board),             % Board é entrada: precisa vir pronto
+    move_dir(Dir, Board, NewBoard, Score).
+
+%  move_dir(?Dir, +Board, -NewBoard, -Score): uma regra por direção. Só a
+%  esquerda desliza de verdade; as outras três são a esquerda vista de outro
+%  ângulo. Dir vem primeiro para o Prolog escolher a cláusula pelo átomo.
+move_dir(left, Board, NewBoard, Score) :-       % esquerda: direto, linha por linha
+    slide_rows(Board, NewBoard, Score).
+move_dir(right, Board, NewBoard, Score) :-      % direita: espelha, vai à esquerda, desespelha
+    mirror(Board, Mirrored),
+    slide_rows(Mirrored, Slid, Score),
+    mirror(Slid, NewBoard).
+move_dir(up, Board, NewBoard, Score) :-         % cima: colunas viram linhas, vai à esquerda
+    transpose(Board, Cols),
+    move_dir(left, Cols, Slid, Score),
+    transpose(Slid, NewBoard).
+move_dir(down, Board, NewBoard, Score) :-       % baixo: colunas viram linhas, vai à direita
+    transpose(Board, Cols),
+    move_dir(right, Cols, Slid, Score),
+    transpose(Slid, NewBoard).
+
+%  slide_rows(+Rows, -NewRows, -Score): slide_left em cada linha (maplist) e
+%  Score é a soma dos pontos de cada uma.
+slide_rows(Rows, NewRows, Score) :-
+    maplist(slide_left, Rows, NewRows, Points),
+    sum_list(Points, Score).
+
+%  mirror(?Rows, ?Mirrored): inverte cada linha, como num espelho.
+%  Ex.: [[2,0,4],[0,8,0]] <-> [[4,0,2],[0,8,0]]. Aplicar duas vezes desfaz.
+mirror(Rows, Mirrored) :-
+    maplist(reverse, Rows, Mirrored).
+
+%  transpose(?Rows, ?Cols): troca linhas por colunas (a coluna I vira a linha I).
+%  Ex.: [[1,2],[3,4]] <-> [[1,3],[2,4]]. Aplicar duas vezes desfaz.
+%  Não depende de N: cada passo tira a primeira peça de todas as linhas.
+transpose([], []).
+transpose([Row|Rows], Cols) :-
+    transpose_(Row, [Row|Rows], Cols).
+
+%  transpose_(?Guide, ?Rows, ?Cols): Guide só conta quantas colunas faltam.
+transpose_([], Rows, []) :-           % acabaram as colunas...
+    maplist(=([]), Rows).             % ...e todas as linhas acabaram juntas
+transpose_([_|Guide], Rows, [Col|Cols]) :-
+    maplist(first_rest, Rows, Col, Rests),  % Col = a primeira peça de cada linha
+    transpose_(Guide, Rests, Cols).         % o resto das linhas dá as outras colunas
+
+first_rest([X|Xs], X, Xs).
 
 %! game_won(+Board) is semidet.
 %  TODO(#4): a peça de vitória depende de N (256, 2048, 4096, 8192) e vale >=.
