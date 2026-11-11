@@ -3,6 +3,7 @@ module Game exposing
     , Model
     , Msg(..)
     , Point
+    , Snapshot
     , Status(..)
     , Tile
     , emptyBoard
@@ -11,6 +12,8 @@ module Game exposing
     , keyMsgs
     , newTile
     , placeTiles
+    , replayTicks
+    , shown
     , startTiles
     , swipeDirection
     , tileValue
@@ -32,9 +35,11 @@ Não conhece a apresentação nem o roteamento, e não desenha nada (a tela é `
 
 import Api exposing (Direction(..))
 import Browser.Events
+import Game.History as History exposing (History, Replay)
 import Http
 import Json.Decode as D
 import Random exposing (Generator)
+import Time
 
 
 
@@ -71,7 +76,8 @@ type Status
 
 
 {-| O estado inteiro do jogo. `waiting` é verdadeiro enquanto se espera a resposta
-do servidor ou o sorteio: teclas nesse meio-tempo são ignoradas.
+do servidor ou o sorteio: teclas nesse meio-tempo são ignoradas. `history` guarda o
+jogo antes de cada jogada (#7) e `replay` existe só enquanto o replay está aberto.
 -}
 type alias Model =
     { board : Board
@@ -81,13 +87,26 @@ type alias Model =
     , waiting : Bool
     , error : Maybe String
     , touchStart : Maybe Point
+    , history : History Snapshot
+    , replay : Maybe (Replay Snapshot)
+    }
+
+
+{-| O que a tela mostra de um momento da partida. O tabuleiro já inclui a peça
+sorteada, então desfazer e replay não sorteiam de novo.
+-}
+type alias Snapshot =
+    { board : Board
+    , score : Int
+    , status : Status
     }
 
 
 {-| Tudo o que pode acontecer. `GotMove` é a resposta do Prolog e `Spawned` são as
 peças sorteadas pelo runtime (2 no início, 1 após cada jogada); as duas trazem o
-tabuleiro em que foram pedidas, para descartar respostas atrasadas. `LoadBoard`
-troca o jogo por um tabuleiro pronto (os cenários da apresentação, issue #4).
+tabuleiro em que foram pedidas, para descartar respostas atrasadas. `Undo` e as
+`Replay*` são do histórico (#7); `ReplayTicked` vem do relógio (`replayTicks`).
+`LoadBoard` troca o jogo por um tabuleiro pronto (os cenários da apresentação, #4).
 -}
 type Msg
     = Pressed Direction
@@ -97,6 +116,12 @@ type Msg
     | SizeChosen Int
     | TouchStarted Point
     | TouchEnded Point
+    | Undo
+    | ReplayStarted
+    | ReplayTicked
+    | ReplayPaused
+    | ReplaySpeed Float
+    | ReplayClosed
     | LoadBoard Board
     | NoOp
 
@@ -121,6 +146,8 @@ newGame n =
       , waiting = True
       , error = Nothing
       , touchStart = Nothing
+      , history = History.empty
+      , replay = Nothing
       }
     , Random.generate (Spawned board) (startTiles n)
     )
@@ -134,7 +161,7 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Pressed dir ->
-            if model.waiting || model.status == Lost then
+            if model.waiting || model.status == Lost || model.replay /= Nothing then
                 ( model, Cmd.none )
 
             else
@@ -177,6 +204,32 @@ update msg model =
                 Nothing ->
                     ( { model | touchStart = Nothing }, Cmd.none )
 
+        Undo ->
+            if model.waiting || model.replay /= Nothing then
+                ( model, Cmd.none )
+
+            else
+                ( undo model, Cmd.none )
+
+        ReplayStarted ->
+            if model.waiting || List.isEmpty model.history then
+                ( model, Cmd.none )
+
+            else
+                ( { model | replay = Just (History.startReplay 500 model.history (snapshot model)) }, Cmd.none )
+
+        ReplayTicked ->
+            ( { model | replay = Maybe.map History.tick model.replay }, Cmd.none )
+
+        ReplayPaused ->
+            ( { model | replay = Maybe.map History.togglePause model.replay }, Cmd.none )
+
+        ReplaySpeed interval ->
+            ( { model | replay = Maybe.map (History.setInterval interval) model.replay }, Cmd.none )
+
+        ReplayClosed ->
+            ( { model | replay = Nothing }, Cmd.none )
+
         LoadBoard board ->
             loadBoard board model
 
@@ -185,10 +238,11 @@ update msg model =
 
 
 {-| Começa a jogar a partir de um tabuleiro pronto, sem sortear nada: score 0,
-status `Playing` e teclado liberado. Respostas e sorteios ainda pendentes são
-descartados, porque o jogo deixa de esperar (`waiting = False`), mesmo que o
-tabuleiro carregado seja igual ao anterior. Tamanho fora de 3 a 6 é ignorado,
-como em `SizeChosen`.
+status `Playing`, teclado liberado, histórico vazio e replay fechado (é uma
+partida nova: desfazer não volta para o jogo anterior). Respostas e sorteios
+ainda pendentes são descartados, porque o jogo deixa de esperar
+(`waiting = False`), mesmo que o tabuleiro carregado seja igual ao anterior.
+Tamanho fora de 3 a 6 é ignorado, como em `SizeChosen`.
 -}
 loadBoard : Board -> Model -> ( Model, Cmd Msg )
 loadBoard board model =
@@ -205,6 +259,8 @@ loadBoard board model =
             , waiting = False
             , error = Nothing
             , touchStart = Nothing
+            , history = History.empty
+            , replay = Nothing
           }
         , Cmd.none
         )
@@ -229,7 +285,7 @@ gotMove result model =
                     }
             in
             if res.moved then
-                ( { answered | board = res.board, waiting = True }
+                ( { answered | board = res.board, waiting = True, history = remember model }
                 , Random.generate (Spawned res.board) (newTile res.board)
                 )
 
@@ -250,6 +306,72 @@ statusFrom res =
 
     else
         Playing
+
+
+
+-- HISTÓRICO E REPLAY (#7)
+
+
+{-| Guarda o jogo de antes da jogada no histórico. O `Model` antigo não muda, então
+guardá-lo não exige cópia.
+-}
+remember : Model -> History Snapshot
+remember model =
+    History.push (snapshot model) model.history
+
+
+{-| O momento atual da partida, para guardar no histórico.
+-}
+snapshot : Model -> Snapshot
+snapshot model =
+    { board = model.board, score = model.score, status = model.status }
+
+
+{-| Volta ao estado anterior da lista: tabuleiro, pontos e status, com a peça que
+tinha sido sorteada. Sem histórico, nada muda.
+-}
+undo : Model -> Model
+undo model =
+    case History.undo model.history of
+        Just ( previous, older ) ->
+            { model
+                | board = previous.board
+                , score = previous.score
+                , status = previous.status
+                , history = older
+                , error = Nothing
+            }
+
+        Nothing ->
+            model
+
+
+{-| O que a tela mostra: no replay, o momento da vez; fora dele, o jogo.
+-}
+shown : Model -> Snapshot
+shown model =
+    case Maybe.andThen History.current model.replay of
+        Just moment ->
+            moment
+
+        Nothing ->
+            snapshot model
+
+
+{-| Relógio do replay: uma `Msg` a cada `interval` ms, só enquanto toca.
+-}
+replayTicks : Model -> Sub Msg
+replayTicks model =
+    case model.replay of
+        Just replay ->
+            if replay.playing then
+                Time.every replay.interval (\_ -> ReplayTicked)
+
+            else
+                Sub.none
+
+        Nothing ->
+            Sub.none
 
 
 
@@ -344,7 +466,8 @@ placeTile tile board =
 -- ENTRADA: teclado e swipe
 
 
-{-| Teclas que jogam. `arrows` diz se as setas também valem (na apresentação elas navegam).
+{-| Teclas que jogam, mais Ctrl+Z (ou Cmd+Z) para desfazer. `arrows` diz se as setas
+também valem (na apresentação elas navegam).
 -}
 keyMsgs : Bool -> Sub Msg
 keyMsgs arrows =
@@ -355,7 +478,9 @@ keyMsgs arrows =
           else
             []
          )
-            ++ [ Browser.Events.onKeyDown (D.map toMsg Api.wasdDecoder) ]
+            ++ [ Browser.Events.onKeyDown (D.map toMsg Api.wasdDecoder)
+               , Browser.Events.onKeyDown (D.map (\_ -> Undo) Api.undoDecoder)
+               ]
         )
 
 

@@ -1,4 +1,4 @@
-module Api exposing (Direction(..), MoveResponse, encodeMove, keyDecoder, moveDecoder, postMove, wasdDecoder)
+module Api exposing (Direction(..), MoveResponse, encodeMove, keyDecoder, moveDecoder, postMove, undoDecoder, wasdDecoder)
 
 import Http
 import Json.Decode as D
@@ -27,14 +27,12 @@ type alias MoveResponse =
 notRepeat : D.Decoder ()
 notRepeat =
     D.map5
-        (\r ctrl alt meta tag ->
-            r || ctrl || alt || meta || List.member tag [ Just "INPUT", Just "TEXTAREA", Just "SELECT" ]
-        )
+        (\r ctrl alt meta typing -> r || ctrl || alt || meta || typing)
         (D.field "repeat" D.bool)
         (D.field "ctrlKey" D.bool)
         (D.field "altKey" D.bool)
         (D.field "metaKey" D.bool)
-        (D.maybe (D.at [ "target", "tagName" ] D.string))
+        inTextField
         |> D.andThen
             (\bloqueada ->
                 if bloqueada then
@@ -138,3 +136,39 @@ postMove board dir toMsg =
         , body = Http.jsonBody (encodeMove board dir)
         , expect = Http.expectJson toMsg moveDecoder
         }
+
+
+{-| Ctrl+Z (ou Cmd+Z no Mac) desfaz (#7). Como nas jogadas, tecla segurada e campo
+de texto não contam; com Shift ou Alt também não (Ctrl+Shift+Z costuma ser refazer).
+-}
+undoDecoder : D.Decoder ()
+undoDecoder =
+    D.map7
+        (\key ctrl meta shift alt r typing ->
+            (String.toLower key == "z")
+                && (ctrl || meta)
+                && not (shift || alt || r || typing)
+        )
+        (D.field "key" D.string)
+        (D.field "ctrlKey" D.bool)
+        (D.field "metaKey" D.bool)
+        (D.field "shiftKey" D.bool)
+        (D.field "altKey" D.bool)
+        (D.field "repeat" D.bool)
+        inTextField
+        |> D.andThen
+            (\isUndo ->
+                if isUndo then
+                    D.succeed ()
+
+                else
+                    D.fail "não é Ctrl+Z"
+            )
+
+
+{-| A tecla foi digitada num campo de texto? Aí ela é do campo, não do jogo.
+-}
+inTextField : D.Decoder Bool
+inTextField =
+    D.maybe (D.at [ "target", "tagName" ] D.string)
+        |> D.map (\tag -> List.member tag [ Just "INPUT", Just "TEXTAREA", Just "SELECT" ])

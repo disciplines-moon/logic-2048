@@ -108,13 +108,17 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
     case model.page of
         GamePage ->
-            Sub.map GameMsg (Game.keyMsgs True)
+            Sub.batch
+                [ Sub.map GameMsg (Game.keyMsgs True)
+                , Sub.map GameMsg (Game.replayTicks model.game)
+                ]
 
         PresentationPage ->
             -- Na apresentação as setas navegam e W, A, S, D jogam na demo.
             Sub.batch
                 [ Browser.Events.onKeyDown (D.map PresentationMsg Presentation.keyDecoder)
                 , Sub.map GameMsg (Game.keyMsgs False)
+                , Sub.map GameMsg (Game.replayTicks model.game)
                 ]
 
 
