@@ -83,6 +83,50 @@ test(jogadas_n6) :-
 test(jogadas_tabuleiro_livre, [error(instantiation_error)]) :-
     available_moves(_, _).
 
+% Os tabuleiros da cena da #4 (web/src/Cenas/Issue04.elm) são escritos à mão.
+% Este teste garante que eles fazem o que a cena diz.
+test(cena_issue04) :-
+    Ex = [[2,2,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]],
+    move(Ex, left, [[4,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]], _),
+    move(Ex, right, [[0,0,0,4],[0,0,0,0],[0,0,0,0],[0,0,0,0]], _),
+    move(Ex, up, Ex, _),
+    move(Ex, down, [[0,0,0,0],[0,0,0,0],[0,0,0,0],[2,2,0,0]], _),
+    game_won([[0,0,0],[0,256,0],[0,0,0]]),
+    game_won([[4096,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]]),
+    % Quase perdido: só up e down mudam o tabuleiro, e depois de qualquer uma
+    % delas, com qualquer peça sorteada (2 ou 4), o jogo está perdido.
+    QuasePerdido = [[128,8,32,64],[8,64,16,32],[64,32,8,128],[64,16,128,64]],
+    available_moves(QuasePerdido, [up, down]),
+    \+ game_lost(QuasePerdido),
+    forall(( member(D, [up, down]), move(QuasePerdido, D, Depois, _),
+             com_peca_nova(Depois, ComPeca) ),
+           ( \+ game_lost(Depois), game_lost(ComPeca) )),
+    % Quase vencido: ainda não venceu, e A (left) funde e vence na mesma resposta.
+    QuaseVencido = [[1024,1024,0,0],[4,8,2,0],[0,0,0,0],[0,0,0,0]],
+    \+ game_won(QuaseVencido),
+    move(QuaseVencido, left, V4, _),
+    game_won(V4),
+    \+ game_won([[128,128,0],[4,8,0],[0,0,0]]),
+    move([[128,128,0],[4,8,0],[0,0,0]], left, V3, _),
+    V3 == [[256,0,0],[4,8,0],[0,0,0]],
+    game_won(V3).
+
+% com_peca_nova(+Board, -ComPeca): coloca 2 ou 4 numa casa vazia, como o sorteio
+% do Elm. No backtracking, devolve todas as casas e os dois valores.
+com_peca_nova(Board, ComPeca) :-
+    append(Board, Casas),
+    nth0(K, Casas, 0, Resto),
+    member(V, [2, 4]),
+    nth0(K, Novas, V, Resto),
+    length(Board, N),
+    linhas(Novas, N, ComPeca).
+
+linhas([], _, []).
+linhas(Casas, N, [Linha|Linhas]) :-
+    length(Linha, N),
+    append(Linha, Resto, Casas),
+    linhas(Resto, N, Linhas).
+
 :- end_tests(fim_de_jogo).
 
 % Propriedades da #4 em tabuleiros sorteados: 400 com casas vazias e 400
