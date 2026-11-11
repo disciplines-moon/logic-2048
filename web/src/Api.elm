@@ -21,18 +21,20 @@ type alias MoveResponse =
     }
 
 
-{-| Falha quando a tecla está sendo repetida (segurada) ou com Ctrl, Alt ou Meta, para não mandar várias jogadas do mesmo tabuleiro.
+{-| Falha quando a tecla está sendo repetida (segurada), vem com Ctrl, Alt ou Meta
+(Ctrl+Z é desfazer, não jogada) ou foi digitada num campo de texto.
 -}
 notRepeat : D.Decoder ()
 notRepeat =
-    D.map4
-        (\r ctrl alt meta ->
-            r || ctrl || alt || meta
+    D.map5
+        (\r ctrl alt meta tag ->
+            r || ctrl || alt || meta || List.member tag [ Just "INPUT", Just "TEXTAREA", Just "SELECT" ]
         )
         (D.field "repeat" D.bool)
         (D.field "ctrlKey" D.bool)
         (D.field "altKey" D.bool)
         (D.field "metaKey" D.bool)
+        (D.maybe (D.at [ "target", "tagName" ] D.string))
         |> D.andThen
             (\bloqueada ->
                 if bloqueada then
