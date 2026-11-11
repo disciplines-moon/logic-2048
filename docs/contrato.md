@@ -100,7 +100,8 @@ Regras do desafio:
 
 ```prolog
 slide_left(+Row, -NewRow, -Points)
-move(+Board, +Dir, -NewBoard, -Score)      % se nada muda, devolve o mesmo tabuleiro com Score 0
+move(+Board, ?Dir, -NewBoard, -Score)      % se nada muda, devolve o mesmo tabuleiro com Score 0
+                                           % det com Dir pronto; com Dir livre, enumera as 4 direções
 available_moves(+Board, -Dirs)             % só direções que mudam o tabuleiro
 game_won(+Board)                           % usa a peça de vitória do N do tabuleiro
 game_lost(+Board)
@@ -134,10 +135,10 @@ Cada peça funde no máximo uma vez por jogada.
 
 ## Trabalhar em paralelo com stubs
 
-O esqueleto só tem o `POST /api/move` (com `move/4` de mentira), então ninguém
-precisa esperar a issue anterior para começar. Os outros endpoints são criados
+O esqueleto começou só com o `POST /api/move`, e o `move/4` de verdade chegou na #3,
+então ninguém precisa esperar a issue anterior para começar. Os outros endpoints são criados
 pelas issues #11 e #10, e o Elm pode usar os JSONs deste arquivo como mock:
 
 - **Elm:** use os JSONs de exemplo deste arquivo como respostas da API (por exemplo, uma função `mock` em `Api.elm`) e troque pela API real ao integrar.
-- **Python:** `/api/move` já funciona com o `move/4` de mentira (devolve o tabuleiro igual). A validação e os handlers de erro já existem no esqueleto; a #10 revisa e completa.
+- **Python:** `/api/move` já devolve resultados reais com o `move/4` da #3, sem nenhuma mudança no Python. A validação e os handlers de erro já existem no esqueleto; a #10 revisa e completa.
 - **Prolog:** cada predicado novo precisa estar no `:- module(game, [...])` de `prolog/game.pl`, senão os testes não o enxergam.

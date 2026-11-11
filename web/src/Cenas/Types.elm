@@ -1,4 +1,4 @@
-module Cenas.Types exposing (Block(..), FlowNode, Member, Scene, Step, isPending, pending, visibleBlocks)
+module Cenas.Types exposing (Block(..), Etapa, FlowNode, Member, Scene, Step, isPending, pending, visibleBlocks)
 
 {-| A apresentação é um conjunto de **cenas** (uma ou mais por issue). Cada cena
 tem **passos**: ao avançar, o próximo passo ACRESCENTA blocos na tela, no ritmo
@@ -26,6 +26,12 @@ type Block
     | Fases (List Int)
       -- O corte `!` lado a lado: com ele (uma resposta) e sem ele (resposta errada no backtracking).
     | Corte
+      -- Tabuleiros ligados por setas, que aparecem um a um em ciclo: as etapas de
+      -- uma jogada do `move/4` (por exemplo transpõe, desliza, transpõe de volta).
+      -- Os tabuleiros são escritos à mão na cena (o teste `cena_issue03` confere).
+    | Etapas (List Etapa)
+      -- Tabuleiros lado a lado, sem setas: o mesmo tabuleiro em direções diferentes.
+    | Tabuleiros (List Etapa)
       -- Capa: título grande, subtítulo e etiquetas. Em cenas com `title = ""` o título comum some.
     | Hero { title : String, subtitle : String, chips : List String }
       -- Diagrama de etapas ligadas por setas. `active` (a partir de 0) acende a
@@ -40,6 +46,16 @@ type Block
     | Pending String
       -- Apaga tudo que apareceu antes na cena (para trocar um bloco por outro).
     | Clear
+
+
+{-| Um tabuleiro com legenda (`label`, de preferência o objetivo Prolog que o
+produziu) e uma nota curta em destaque (`note`, por exemplo "+4"; "" para nenhuma).
+-}
+type alias Etapa =
+    { label : String
+    , note : String
+    , board : List (List Int)
+    }
 
 
 type alias Member =

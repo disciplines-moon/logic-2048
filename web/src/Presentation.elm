@@ -9,7 +9,7 @@ no painel do apresentador (tecla `n`).
 -}
 
 import Cenas
-import Cenas.Types exposing (Block(..), FlowNode, Member, Scene, Step, visibleBlocks)
+import Cenas.Types exposing (Block(..), Etapa, FlowNode, Member, Scene, Step, visibleBlocks)
 import Dict exposing (Dict)
 import Html exposing (Html, button, div, h1, h2, kbd, li, p, pre, span, text, ul)
 import Html.Attributes exposing (attribute, class, classList, style)
@@ -347,6 +347,12 @@ viewBlock config block =
         Corte ->
             viewCorte
 
+        Etapas etapas ->
+            viewEtapas etapas
+
+        Tabuleiros etapas ->
+            div [ class "eb-grid" ] (List.map viewMiniBoard etapas)
+
         Hero { title, subtitle, chips } ->
             div [ class "hero" ]
                 [ div [ class "hero-title" ] [ text title ]
@@ -580,6 +586,53 @@ viewCorte =
         [ panel "com " "ct-com" (second "ct-com" "pede outra (;): false. O corte fechou a porta, então só existe a resposta acima." [])
         , semPanel
         ]
+
+
+{-| Um tabuleiro pequeno com legenda, nas mesmas cores de peça do jogo.
+-}
+viewMiniBoard : Etapa -> Html msg
+viewMiniBoard etapa =
+    let
+        cell v =
+            if v == 0 then
+                div [ class "eb-cell" ] []
+
+            else
+                div [ class ("tile v" ++ String.fromInt v) ] [ text (String.fromInt v) ]
+    in
+    div [ class "eb" ]
+        [ div [ class "eb-board", attribute "style" ("--n:" ++ String.fromInt (List.length etapa.board)) ]
+            (List.concatMap (List.map cell) etapa.board)
+        , div [ class "eb-label" ]
+            [ text etapa.label
+            , if etapa.note == "" then
+                text ""
+
+              else
+                span [ class "eb-note" ] [ text etapa.note ]
+            ]
+        ]
+
+
+{-| Tabuleiros ligados por setas. A etapa `k` (com a seta que chega nela) nasce
+no seu momento do ciclo de 10 s (classes `et0` a `et4`, veja o `main.css`).
+-}
+viewEtapas : List Etapa -> Html msg
+viewEtapas etapas =
+    div [ class "et-chain" ]
+        (List.indexedMap
+            (\k etapa ->
+                div [ class ("et-step et" ++ String.fromInt (min k 4)) ]
+                    [ if k == 0 then
+                        text ""
+
+                      else
+                        div [ class "et-arrow" ] [ text "→" ]
+                    , viewMiniBoard etapa
+                    ]
+            )
+            etapas
+        )
 
 
 viewFlow : List FlowNode -> Int -> String -> Html msg

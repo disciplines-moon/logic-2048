@@ -95,5 +95,5 @@ Regras de módulo:
 
 | Tema | Situação |
 |---|---|
-| **Deslizar fluido das peças (#8)** | O contrato devolve só o tabuleiro final, sem identidade das peças, então dá para animar **aparecer** e **fundir** com `Html.Keyed`, mas o **deslizar** exige o Prolog devolver `moves: [{from,to,merged}]`. Decidir antes de a #3 fechar; afeta #3, #10, #6 e #8. Sem isso, a #8 entrega aparecer e fundir. |
+| **Deslizar fluido das peças (#8)** | **Decidido na #3: sem `moves`.** O contrato continua devolvendo só o tabuleiro final, e a #8 entrega **aparecer** e **fundir** com `Html.Keyed`. Se o grupo quiser o deslizar depois, ele entra como predicado novo (por exemplo `move_trace/5`) e campo opcional na API, sem mudar `move/4` nem o que #4, #5, #10 e #19 já usam. |
 | **Replay determinístico (#7)** | O replay deve guardar também as peças sorteadas, para não sortear de novo. Registrar no `Model`. |
