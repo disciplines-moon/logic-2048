@@ -35,7 +35,7 @@ cenas =
                     , Demo
                     ]
               }
-            , { notes = "O replay toca a mesma lista, do primeiro estado ao atual, com um relógio (Time.every). Não sorteia nem pergunta ao Prolog: os estados já estão guardados, por isso a partida sai idêntica. Dá para pausar e trocar a velocidade."
+            , { notes = "O replay toca a mesma lista, do primeiro estado ao atual, com um relógio (Time.every). Não sorteia nem pergunta ao Prolog: os estados já estão guardados, por isso a partida sai idêntica. Dá para pausar e trocar a velocidade. As jogadas desfeitas saíram da lista, então o replay mostra só a partida que ficou."
               , blocks =
                     [ Clear
                     , Lead "Replay: a mesma lista, tocada em ordem."

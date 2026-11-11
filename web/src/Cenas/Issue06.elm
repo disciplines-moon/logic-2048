@@ -10,7 +10,7 @@ cenas =
       , steps =
             [ cycle "Toda tela em Elm segue o mesmo ciclo, a arquitetura TEA. Começa com uma Msg: um valor que descreve o que aconteceu. Apertar A (esquerda) vira Pressed Left. Ainda não mudou nada." 0
             , cycle "A Msg vai para o update, uma função pura: recebe a Msg e o Model antigo e devolve um Model novo. É o único lugar onde o estado muda. Não há atribuição solta pelo código." 1
-            , cycle "O Model novo é outro valor. O antigo continua intacto, porque em Elm nada é mutável. É isso que a #7 vai usar para desfazer: guardar os Models antigos." 2
+            , cycle "O Model novo é outro valor. O antigo continua intacto, porque em Elm nada é mutável. É isso que a #7 vai usar para desfazer: guardar os estados antigos." 2
             , cycle "A view só lê o Model e desenha. Não sorteia, não fala com o servidor. Depois de desenhar, o app espera a próxima Msg e o ciclo recomeça." 3
             , { notes = "O estado do jogo inteiro cabe nesse registro: tabuleiro, tamanho, pontos e status. Os dois últimos campos, histórico e replay, são da próxima cena (#7)."
               , blocks =
