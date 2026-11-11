@@ -6,15 +6,13 @@ on:
     branches: [main]
 
 jobs:
+  # Prolog e Python rodam dentro da imagem oficial do SWI-Prolog (Docker Hub).
+  # Antes o SWI-Prolog vinha do PPA do launchpad, que caiu em 11/11 e derrubou o CI.
   prolog:
     runs-on: ubuntu-latest
+    container: swipl:10.0.2
     steps:
       - uses: actions/checkout@v4
-      - name: Instalar SWI-Prolog
-        run: |
-          sudo apt-add-repository -y ppa:swi-prolog/stable
-          sudo apt-get update
-          sudo apt-get install -y swi-prolog
       - name: Testes plunit
         run: |
           for f in prolog/test_*.pl; do
@@ -23,13 +21,13 @@ jobs:
 
   python:
     runs-on: ubuntu-latest
+    container: swipl:10.0.2
     steps:
       - uses: actions/checkout@v4
-      - name: Instalar SWI-Prolog (o janus-swi compila contra ele)
+      - name: Compilador e cabeçalhos do Python (o janus-swi compila contra o SWI-Prolog)
         run: |
-          sudo apt-add-repository -y ppa:swi-prolog/stable
-          sudo apt-get update
-          sudo apt-get install -y swi-prolog swi-prolog-nox
+          apt-get update
+          apt-get install -y --no-install-recommends gcc libc6-dev python3-dev
       - uses: astral-sh/setup-uv@v5
       - name: pytest
         working-directory: server
