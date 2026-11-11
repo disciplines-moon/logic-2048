@@ -69,7 +69,7 @@ O Python continua chamando `game:hint(...)` e `game:challenge(...)`: o `game.pl`
 | Módulo | Conteúdo | Issue |
 |---|---|---|
 | `Game.elm` | `Model`, `Msg`, `update`, `init`, teclado, sorteio, tamanho, Novo jogo | #6 |
-| `Game/History.elm` | histórico, desfazer e replay (funções puras sobre `Game.Model`) | #7 |
+| `Game/History.elm` | histórico, desfazer e replay (funções puras sobre uma lista de estados; o `Game` guarda `Snapshot`s) | #7 |
 | `Game/View.elm` | `view` do tabuleiro, placar, controles, temas, `Html.Keyed` | #8 |
 | `Ports.elm` + `web/src/*.js` | ports e efeitos (sons, confete, recorde) | #9 |
 | `Api.elm` | cliente HTTP, decoders, `Http.Error` tratado | #6 (move), #20 (hint, challenge, erros) |
@@ -96,4 +96,4 @@ Regras de módulo:
 | Tema | Situação |
 |---|---|
 | **Deslizar fluido das peças (#8)** | **Decidido na #3: sem `moves`.** O contrato continua devolvendo só o tabuleiro final, e a #8 entrega **aparecer** e **fundir** com `Html.Keyed`. Se o grupo quiser o deslizar depois, ele entra como predicado novo (por exemplo `move_trace/5`) e campo opcional na API, sem mudar `move/4` nem o que #4, #5, #10 e #19 já usam. |
-| **Replay determinístico (#7)** | O replay deve guardar também as peças sorteadas, para não sortear de novo. Registrar no `Model`. |
+| **Replay determinístico (#7)** | Resolvido: o `Model` guarda em `history` o tabuleiro de antes de cada jogada, já com a peça sorteada, e o replay só mostra essa lista de novo, sem sortear nem chamar o Prolog. |
