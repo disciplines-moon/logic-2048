@@ -28,10 +28,12 @@ pad_zeros(Row, Merged, NewRow) :-
     append(Merged, Zeros, NewRow),
     maplist(=(0), Zeros).
 
-%! move(+Board, +Dir, -NewBoard, -Score) is det.
+%! move(+Board, ?Dir, -NewBoard, -Score) is nondet.
 %  Dir é left, right, up ou down. Score é a pontuação ganha nesta jogada: a
 %  soma dos pontos de todas as linhas. Se nada muda, NewBoard = Board e Score = 0.
-%  Com Dir livre, enumera as quatro direções (na ordem left, right, up, down).
+%  Com Dir pronto, é det (uma resposta, sem ponto de escolha). Com Dir livre,
+%  enumera as quatro direções (left, right, up, down), inclusive as que não
+%  mudam o tabuleiro: quem quer só as jogadas válidas compara NewBoard com Board.
 move(Board, Dir, NewBoard, Score) :-
     must_be(list, Board),             % Board é entrada: precisa vir pronto
     move_dir(Dir, Board, NewBoard, Score).
@@ -46,13 +48,13 @@ move_dir(right, Board, NewBoard, Score) :-      % direita: espelha, vai à esque
     slide_rows(Mirrored, Slid, Score),
     mirror(Slid, NewBoard).
 move_dir(up, Board, NewBoard, Score) :-         % cima: colunas viram linhas, vai à esquerda
-    transpose(Board, Cols),
+    transpose_board(Board, Cols),
     move_dir(left, Cols, Slid, Score),
-    transpose(Slid, NewBoard).
+    transpose_board(Slid, NewBoard).
 move_dir(down, Board, NewBoard, Score) :-       % baixo: colunas viram linhas, vai à direita
-    transpose(Board, Cols),
+    transpose_board(Board, Cols),
     move_dir(right, Cols, Slid, Score),
-    transpose(Slid, NewBoard).
+    transpose_board(Slid, NewBoard).
 
 %  slide_rows(+Rows, -NewRows, -Score): slide_left em cada linha (maplist) e
 %  Score é a soma dos pontos de cada uma.
@@ -65,19 +67,20 @@ slide_rows(Rows, NewRows, Score) :-
 mirror(Rows, Mirrored) :-
     maplist(reverse, Rows, Mirrored).
 
-%  transpose(?Rows, ?Cols): troca linhas por colunas (a coluna I vira a linha I).
+%  transpose_board(?Rows, ?Cols): troca linhas por colunas (a coluna I vira a
+%  linha I). Não se chama transpose/2 para não colidir com o da library(clpfd).
 %  Ex.: [[1,2],[3,4]] <-> [[1,3],[2,4]]. Aplicar duas vezes desfaz.
 %  Não depende de N: cada passo tira a primeira peça de todas as linhas.
-transpose([], []).
-transpose([Row|Rows], Cols) :-
-    transpose_(Row, [Row|Rows], Cols).
+transpose_board([], []).
+transpose_board([Row|Rows], Cols) :-
+    transpose_board_(Row, [Row|Rows], Cols).
 
-%  transpose_(?Guide, ?Rows, ?Cols): Guide só conta quantas colunas faltam.
-transpose_([], Rows, []) :-           % acabaram as colunas...
-    maplist(=([]), Rows).             % ...e todas as linhas acabaram juntas
-transpose_([_|Guide], Rows, [Col|Cols]) :-
-    maplist(first_rest, Rows, Col, Rests),  % Col = a primeira peça de cada linha
-    transpose_(Guide, Rests, Cols).         % o resto das linhas dá as outras colunas
+%  transpose_board_(?Guide, ?Rows, ?Cols): Guide só conta quantas colunas faltam.
+transpose_board_([], Rows, []) :-         % acabaram as colunas...
+    maplist(=([]), Rows).                 % ...e todas as linhas acabaram juntas
+transpose_board_([_|Guide], Rows, [Col|Cols]) :-
+    maplist(first_rest, Rows, Col, Rests), % Col = a primeira peça de cada linha
+    transpose_board_(Guide, Rests, Cols).  % o resto das linhas dá as outras colunas
 
 first_rest([X|Xs], X, Xs).
 

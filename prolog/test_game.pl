@@ -169,13 +169,20 @@ test(deterministico, [forall(member(D, [left,right,up,down]))]) :-
     call_cleanup(move([[2,2,0],[0,2,0],[4,0,4]], D, _, _), Det = true),
     Det == true.
 
-% Natureza relacional: com Dir livre, o mesmo predicado lista as 4 jogadas.
+% Natureza relacional: com Dir livre, o mesmo predicado lista as 4 direções.
 test(direcao_livre_enumera) :-
     findall(D-B-S, move([[2,2,0],[0,0,0],[2,0,0]], D, B, S), Respostas),
     Respostas == [ left-[[4,0,0],[0,0,0],[2,0,0]]-4,
                    right-[[0,0,4],[0,0,0],[0,0,2]]-4,
                    up-[[4,2,0],[0,0,0],[0,0,0]]-4,
                    down-[[0,0,0],[0,0,0],[4,2,0]]-4 ].
+% ...inclusive as que não mudam nada: com a peça no canto, left e up devolvem o
+% mesmo tabuleiro. Para achar só as jogadas válidas, é preciso comparar (#4).
+test(direcao_livre_inclui_as_que_nao_mudam) :-
+    B = [[2,0,0],[0,0,0],[0,0,0]],
+    findall(D, move(B, D, _, _), Todas),
+    findall(D, (move(B, D, NB, _), NB \== B), Validas),
+    Todas == [left,right,up,down], Validas == [right,down].
 % ...mas não ao contrário: o tabuleiro de entrada precisa vir pronto (+Board),
 % porque o slide_left usa is/2, que só calcula com valores conhecidos.
 test(tabuleiro_livre, [error(instantiation_error)]) :-
@@ -189,18 +196,18 @@ test(direcao_invalida, [fail]) :-
 % Os auxiliares de transposição e reversão (não exportados: game:...).
 :- begin_tests(move_auxiliares).
 
-test(transpose_3x3) :-
-    game:transpose([[1,2,3],[4,5,6],[7,8,9]], T), T == [[1,4,7],[2,5,8],[3,6,9]].
-test(transpose_retangular) :-
-    game:transpose([[1,2,3],[4,5,6]], T), T == [[1,4],[2,5],[3,6]].
-test(transpose_vazio) :-
-    game:transpose([], T), T == [].
-test(transpose_duas_vezes_desfaz, [forall(between(3, 6, N))]) :-
+test(transpose_board_3x3) :-
+    game:transpose_board([[1,2,3],[4,5,6],[7,8,9]], T), T == [[1,4,7],[2,5,8],[3,6,9]].
+test(transpose_board_retangular) :-
+    game:transpose_board([[1,2,3],[4,5,6]], T), T == [[1,4],[2,5],[3,6]].
+test(transpose_board_vazio) :-
+    game:transpose_board([], T), T == [].
+test(transpose_board_duas_vezes_desfaz, [forall(between(3, 6, N))]) :-
     numlist(1, N, L), findall(Linha, (member(I, L), maplist([J,V]>>(V is I*10+J), L, Linha)), M),
-    game:transpose(M, T), game:transpose(T, M2), M2 == M.
-% Relacional: com a saída conhecida, o transpose acha a entrada.
-test(transpose_ao_contrario) :-
-    game:transpose(M, [[1,4],[2,5]]), M == [[1,2],[4,5]].
+    game:transpose_board(M, T), game:transpose_board(T, M2), M2 == M.
+% Relacional: com a saída conhecida, o transpose_board acha a entrada.
+test(transpose_board_ao_contrario) :-
+    game:transpose_board(M, [[1,4],[2,5]]), M == [[1,2],[4,5]].
 test(mirror) :-
     game:mirror([[2,0,4],[0,8,0]], M), M == [[4,0,2],[0,8,0]].
 test(mirror_duas_vezes_desfaz) :-
@@ -218,7 +225,7 @@ test(cena_issue03) :-
     game:mirror(B, [[0,2,0,2],[0,0,4,2],[8,0,4,0],[8,0,0,4]]),
     game:slide_rows([[0,2,0,2],[0,0,4,2],[8,0,4,0],[8,0,0,4]], [[4,0,0,0],[4,2,0,0],[8,4,0,0],[8,4,0,0]], 4),
     move(B, right, [[0,0,0,4],[0,0,2,4],[0,0,4,8],[0,0,4,8]], 4),
-    game:transpose(B, T), T == [[2,2,0,4],[0,4,4,0],[2,0,0,0],[0,0,8,8]],
+    game:transpose_board(B, T), T == [[2,2,0,4],[0,4,4,0],[2,0,0,0],[0,0,8,8]],
     move(T, left, [[4,4,0,0],[8,0,0,0],[2,0,0,0],[16,0,0,0]], 28),
     move(B, up, [[4,8,2,16],[4,0,0,0],[0,0,0,0],[0,0,0,0]], 28),
     move(T, right, [[0,0,4,4],[0,0,0,8],[0,0,0,2],[0,0,0,16]], 28),
@@ -243,7 +250,7 @@ peca_sorteada(V) :-
 
 pecas(B, Pecas) :- append(B, Todas), exclude(==(0), Todas, Pecas).
 
-% Gira 90 graus no sentido horário, sem usar o transpose do game.pl:
+% Gira 90 graus no sentido horário, sem usar o transpose_board do game.pl:
 % a casa (I, J) do giro é a casa (N-1-J, I) do original.
 girar(B, G) :-
     length(B, N), Max is N - 1,
@@ -295,7 +302,7 @@ linhas_na_direcao(down, B, Ls) :- girar(B, Ls).                        % colunas
 encostada(L) :- append(Pecas, Zeros, L), maplist(\==(0), Pecas), maplist(==(0), Zeros), !.
 
 % Girar o tabuleiro e mover é o mesmo que mover e girar, trocando a direção
-% (esquerda vira cima, cima vira direita...). O giro não usa o transpose do
+% (esquerda vira cima, cima vira direita...). O giro não usa o transpose_board do
 % game.pl, então isto confere as quatro direções umas contra as outras.
 test(giro_troca_a_direcao) :-
     tabuleiros_sorteados(Bs),

@@ -128,6 +128,6 @@ A CI (`.github/workflows/ci.yml`) roda os testes do Prolog, o `pytest` e o
 
 ## Estado atual
 
-Esqueleto de ponta a ponta: as setas do teclado enviam o tabuleiro para
-`POST /api/move`, que chama `game:move/4`. O Prolog ainda devolve o tabuleiro
-sem alterações (veja os `TODO` em `prolog/game.pl` e `web/src/Game.elm`).
+As setas do teclado enviam o tabuleiro para `POST /api/move`, que chama
+`game:move/4`. O Prolog já move, funde e pontua nas 4 direções (#2 e #3);
+vitória e derrota ainda são esboços (veja os `TODO` em `prolog/game.pl`).
