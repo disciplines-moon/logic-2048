@@ -36,11 +36,20 @@ movedBoard =
     [ [ 4, 0, 0, 0 ], [ 0, 0, 0, 0 ], [ 0, 0, 0, 0 ], [ 0, 0, 0, 0 ] ]
 
 
-{-| Manda a resposta de uma jogada pedida a partir do tabuleiro atual.
+{-| Manda a resposta de uma jogada pedida a partir do tabuleiro atual. Como no
+jogo de verdade, a resposta chega com o jogo esperando (`waiting`), como depois
+de uma tecla.
 -}
 answer : Api.MoveResponse -> Game.Model -> Game.Model
 answer res model =
-    Game.update (GotMove model.board (Ok res)) model |> Tuple.first
+    Game.update (GotMove model.board (Ok res)) { model | waiting = True } |> Tuple.first
+
+
+{-| Tabuleiro 3×3 quase cheio, como os cenários da apresentação (#4).
+-}
+cenario3 : Game.Board
+cenario3 =
+    [ [ 2, 4, 8 ], [ 8, 16, 2 ], [ 2, 4, 0 ] ]
 
 
 nonZero : Game.Board -> List Int
@@ -222,7 +231,7 @@ suite =
                         |> Expect.equal lost
             , test "erro de rede mostra mensagem e libera o teclado" <|
                 \_ ->
-                    started
+                    { started | waiting = True }
                         |> Game.update (GotMove started.board (Err Http.NetworkError))
                         |> Tuple.first
                         |> Expect.all
@@ -255,6 +264,60 @@ suite =
                         |> Game.update (SizeChosen 7)
                         |> Tuple.first
                         |> Expect.equal started
+            , test "carregar tabuleiro troca o jogo, zera o score e libera o teclado" <|
+                \_ ->
+                    started
+                        |> answer (response movedBoard 4 True)
+                        |> Game.update (LoadBoard cenario3)
+                        |> Tuple.first
+                        |> Expect.all
+                            [ .board >> Expect.equal cenario3
+                            , .size >> Expect.equal 3
+                            , .score >> Expect.equal 0
+                            , .status >> Expect.equal Playing
+                            , .waiting >> Expect.equal False
+                            ]
+            , test "carregar tabuleiro depois de perder volta a jogar" <|
+                \_ ->
+                    answer { board = started.board, score = 0, moved = False, won = False, lost = True } started
+                        |> Game.update (LoadBoard cenario3)
+                        |> Tuple.first
+                        |> .status
+                        |> Expect.equal Playing
+            , test "carregar tabuleiro descarta a peça sorteada para o tabuleiro anterior" <|
+                \_ ->
+                    let
+                        loaded =
+                            started
+                                |> answer (response movedBoard 4 True)
+                                |> Game.update (LoadBoard cenario3)
+                                |> Tuple.first
+                    in
+                    Game.update (Spawned movedBoard [ tile 1 1 2 ]) loaded
+                        |> Tuple.first
+                        |> Expect.equal loaded
+            , test "recarregar o mesmo tabuleiro descarta a jogada que estava a caminho" <|
+                \_ ->
+                    let
+                        loaded =
+                            Game.update (LoadBoard cenario3) started |> Tuple.first
+
+                        reloaded =
+                            Game.update (Pressed Up) loaded
+                                |> Tuple.first
+                                |> Game.update (LoadBoard cenario3)
+                                |> Tuple.first
+                    in
+                    Game.update (GotMove cenario3 (Ok (response [ [ 2, 4, 8 ], [ 8, 16, 4 ], [ 2, 4, 0 ] ] 0 True))) reloaded
+                        |> Tuple.first
+                        |> Expect.equal reloaded
+            , test "carregar tabuleiro com tamanho inválido é ignorado" <|
+                \_ ->
+                    Expect.all
+                        [ \_ -> Game.update (LoadBoard [ [ 2, 4 ], [ 4, 2 ] ]) started |> Tuple.first |> Expect.equal started
+                        , \_ -> Game.update (LoadBoard [ [ 2, 4, 2 ], [ 4, 2 ], [ 2, 4, 2 ] ]) started |> Tuple.first |> Expect.equal started
+                        ]
+                        ()
             ]
         , describe "desfazer (#7)"
             [ test "jogada que mexe guarda o jogo de antes no histórico" <|
@@ -299,6 +362,14 @@ suite =
                     Expect.all
                         [ \m -> step NewGame m |> .history |> Expect.equal []
                         , \m -> step (SizeChosen 5) m |> .history |> Expect.equal []
+                        ]
+                        three
+            , test "carregar tabuleiro zera o histórico e fecha o replay (#4)" <|
+                \_ ->
+                    Expect.all
+                        [ \m -> step (LoadBoard cenario3) m |> .history |> Expect.equal []
+                        , \m -> step (LoadBoard cenario3) m |> step Undo |> .board |> Expect.equal cenario3
+                        , \m -> step ReplayStarted m |> step (LoadBoard cenario3) |> .replay |> Expect.equal Nothing
                         ]
                         three
             ]

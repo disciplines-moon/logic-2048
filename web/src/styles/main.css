@@ -965,3 +965,11 @@ html { font-size: clamp(10px, min(1.02vw, 1.8vh), 34px); }
 @keyframes et-in2 { 0%, 40% { opacity: 0; transform: translateX(-8px); } 48%, 100% { opacity: 1; transform: none; } }
 @keyframes et-in3 { 0%, 60% { opacity: 0; transform: translateX(-8px); } 68%, 100% { opacity: 1; transform: none; } }
 @keyframes et-in4 { 0%, 76% { opacity: 0; transform: translateX(-8px); } 84%, 100% { opacity: 1; transform: none; } }
+
+/* ---------- cena: botões de cenário (Cenarios, #4) ----------
+   Cada botão carrega um tabuleiro pronto na Demo. Parados, sem animação. */
+.cenarios { display: flex; flex-wrap: wrap; gap: 1rem 1.4rem; align-items: flex-end; }
+.cenario { padding: 0.6rem 0.7rem 0.5rem; border-radius: 12px; }
+.cenario:hover { border-color: #f39a2d; }
+.cenario:focus-visible { outline: 2px solid #f39a2d; outline-offset: 2px; }
+.eb-board .tile.v1024, .eb-board .tile.v2048, .eb-board .tile.v4096, .eb-board .tile.v8192 { font-size: 0.8rem; }

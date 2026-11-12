@@ -42,9 +42,12 @@ type Msg
     | Ignored
 
 
+{-| `loadBoard` é a mensagem que troca o tabuleiro da `Demo` (blocos `Cenarios`).
+-}
 type alias Config msg =
     { toMsg : Msg -> msg
     , demo : Html msg
+    , loadBoard : List (List Int) -> msg
     , sources : Dict String String
     }
 
@@ -352,6 +355,13 @@ viewBlock config block =
 
         Tabuleiros etapas ->
             div [ class "eb-grid" ] (List.map viewMiniBoard etapas)
+
+        Cenarios etapas ->
+            div [ class "cenarios" ]
+                (List.map
+                    (\etapa -> button [ class "cenario", onClick (config.loadBoard etapa.board) ] [ viewMiniBoard etapa ])
+                    etapas
+                )
 
         Hero { title, subtitle, chips } ->
             div [ class "hero" ]

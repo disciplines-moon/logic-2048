@@ -106,6 +106,7 @@ type alias Snapshot =
 peças sorteadas pelo runtime (2 no início, 1 após cada jogada); as duas trazem o
 tabuleiro em que foram pedidas, para descartar respostas atrasadas. `Undo` e as
 `Replay*` são do histórico (#7); `ReplayTicked` vem do relógio (`replayTicks`).
+`LoadBoard` troca o jogo por um tabuleiro pronto (os cenários da apresentação, #4).
 -}
 type Msg
     = Pressed Direction
@@ -121,6 +122,7 @@ type Msg
     | ReplayPaused
     | ReplaySpeed Float
     | ReplayClosed
+    | LoadBoard Board
     | NoOp
 
 
@@ -166,15 +168,16 @@ update msg model =
                 ( { model | waiting = True }, Api.postMove model.board dir (GotMove model.board) )
 
         GotMove sent result ->
-            if sent /= model.board then
-                -- Resposta de um tabuleiro que já não está na tela (por exemplo, veio Novo jogo).
+            if not model.waiting || sent /= model.board then
+                -- Resposta de um tabuleiro que já não está na tela (por exemplo, veio Novo jogo)
+                -- ou que ninguém espera mais (um tabuleiro foi carregado com `LoadBoard`).
                 ( model, Cmd.none )
 
             else
                 gotMove result model
 
         Spawned target tiles ->
-            if target /= model.board then
+            if not model.waiting || target /= model.board then
                 ( model, Cmd.none )
 
             else
@@ -227,8 +230,43 @@ update msg model =
         ReplayClosed ->
             ( { model | replay = Nothing }, Cmd.none )
 
+        LoadBoard board ->
+            loadBoard board model
+
         NoOp ->
             ( model, Cmd.none )
+
+
+{-| Começa a jogar a partir de um tabuleiro pronto, sem sortear nada: score 0,
+status `Playing`, teclado liberado, histórico vazio e replay fechado (é uma
+partida nova: desfazer não volta para o jogo anterior). Respostas e sorteios
+ainda pendentes são descartados, porque o jogo deixa de esperar
+(`waiting = False`), mesmo que o tabuleiro carregado seja igual ao anterior.
+Tamanho fora de 3 a 6 é ignorado, como em `SizeChosen`.
+-}
+loadBoard : Board -> Model -> ( Model, Cmd Msg )
+loadBoard board model =
+    let
+        n =
+            List.length board
+    in
+    if n >= 3 && n <= 6 && List.all (\row -> List.length row == n) board then
+        ( { model
+            | board = board
+            , size = n
+            , score = 0
+            , status = Playing
+            , waiting = False
+            , error = Nothing
+            , touchStart = Nothing
+            , history = History.empty
+            , replay = Nothing
+          }
+        , Cmd.none
+        )
+
+    else
+        ( model, Cmd.none )
 
 
 {-| O Prolog respondeu. Se o tabuleiro mudou, guarda a resposta e pede ao runtime
