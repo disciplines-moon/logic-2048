@@ -496,3 +496,74 @@ test(sempre_deterministico) :-
            ( call_cleanup(move(B, D, _, _), Det = true), Det == true )).
 
 :- end_tests(move_propriedades).
+
+% move_trace/5 (#8): o caminho de cada peça, para a tela deslizar as peças.
+:- begin_tests(move_trace).
+
+test(exemplo_esquerda) :-
+    move_trace([[2,2,0],[0,0,8],[4,0,4]], left, NB, S, Ms),
+    NB == [[4,0,0],[8,0,0],[8,0,0]], S == 12,
+    Ms == [[0,0,0,0,true], [0,1,0,0,true], [1,2,1,0,false], [2,0,2,0,true], [2,2,2,0,true]].
+
+% Para baixo, o par mais perto da borda de baixo é o que funde primeiro.
+test(exemplo_baixo) :-
+    move_trace([[2,0,0],[2,0,0],[0,4,0]], down, NB, _, Ms),
+    NB == [[0,0,0],[0,0,0],[4,4,0]],
+    Ms == [[1,0,2,0,true], [0,0,2,0,true], [2,1,2,1,false]].
+
+test(nada_muda_ninguem_anda) :-
+    move_trace([[2,0,0],[4,0,0],[0,0,0]], left, NB, 0, Ms),
+    NB == [[2,0,0],[4,0,0],[0,0,0]],
+    Ms == [[0,0,0,0,false], [1,0,1,0,false]].
+
+% Tabuleiros sorteados, como em move_propriedades.
+sorteados(Bs) :-
+    set_random(seed(8)),
+    findall(B, ( between(3, 6, N), between(1, 60, _),
+                 length(B, N),
+                 maplist([L]>>( length(L, N),
+                                maplist([V]>>random_member(V, [0,0,0,2,2,4,4,8]), L) ), B) ),
+            Bs).
+
+% Refazer o tabuleiro só com o caminho dá o mesmo NewBoard do move/4: cada peça
+% sai da sua casa uma vez, e cada casa de destino soma as peças que chegaram.
+test(caminho_refaz_o_tabuleiro) :-
+    sorteados(Bs),
+    forall(( member(B, Bs), member(D, [left,right,up,down]) ),
+           ( move_trace(B, D, NB, S, Ms),
+             move(B, D, NB, S),
+             findall(R-C, ( nth0(R, B, L), nth0(C, L, V), V =\= 0 ), Origens),
+             findall(R-C, member([R,C,_,_,_], Ms), Saidas),
+             msort(Saidas, Origens),           % cada peça sai uma vez (a ordem é a da jogada)
+             length(B, N), Max is N - 1,
+             forall(( between(0, Max, R), between(0, Max, C) ),
+                    ( findall(V, ( member([R0,C0,R,C,_], Ms), nth0(R0, B, L0), nth0(C0, L0, V) ), Vs),
+                      sum_list(Vs, Soma),
+                      nth0(R, NB, LN), nth0(C, LN, Soma) )) )).
+
+% Fundiu = true exatamente quando duas peças chegam à mesma casa.
+test(fundiu_quando_divide_a_casa) :-
+    sorteados(Bs),
+    forall(( member(B, Bs), member(D, [left,right,up,down]),
+             move_trace(B, D, _, _, Ms), member([_,_,R,C,F], Ms) ),
+           ( aggregate_all(count, member([_,_,R,C,_], Ms), K),
+             ( K =:= 2 -> F == true ; K =:= 1, F == false ) )).
+
+% Cada peça anda só na direção da jogada, na sua linha ou coluna.
+test(anda_so_na_direcao) :-
+    sorteados(Bs),
+    forall(( member(B, Bs), member(D, [left,right,up,down]),
+             move_trace(B, D, _, _, Ms), member([R0,C0,R,C,_], Ms) ),
+           anda(D, R0-C0, R-C)).
+
+anda(left, R-C0, R-C) :- C =< C0.
+anda(right, R-C0, R-C) :- C >= C0.
+anda(up, R0-C, R-C) :- R =< R0.
+anda(down, R0-C, R-C) :- R >= R0.
+
+test(deterministico) :-
+    sorteados(Bs),
+    forall(( member(B, Bs), member(D, [left,right,up,down]) ),
+           ( call_cleanup(move_trace(B, D, _, _, _), Det = true), Det == true )).
+
+:- end_tests(move_trace).

@@ -3,7 +3,8 @@ module GameTest exposing (suite)
 import Api exposing (Direction(..))
 import Expect
 import Fuzz
-import Game exposing (Msg(..), Status(..))
+import Game exposing (Msg(..), PieceKind(..), Status(..), Theme(..))
+import Game.View
 import Http
 import Random
 import Test exposing (Test, describe, fuzz, test)
@@ -28,7 +29,7 @@ tile r c v =
 
 response : Game.Board -> Int -> Bool -> Api.MoveResponse
 response board score moved =
-    { board = board, score = score, moved = moved, won = False, lost = False }
+    { board = board, score = score, moved = moved, won = False, lost = False, moves = [] }
 
 
 movedBoard : Game.Board
@@ -211,11 +212,11 @@ suite =
                 \_ ->
                     Expect.all
                         [ \_ ->
-                            answer { board = movedBoard, score = 0, moved = True, won = True, lost = False } started
+                            answer { board = movedBoard, score = 0, moved = True, won = True, lost = False, moves = [] } started
                                 |> .status
                                 |> Expect.equal Won
                         , \_ ->
-                            answer { board = started.board, score = 0, moved = False, won = False, lost = True } started
+                            answer { board = started.board, score = 0, moved = False, won = False, lost = True, moves = [] } started
                                 |> .status
                                 |> Expect.equal Lost
                         ]
@@ -224,7 +225,7 @@ suite =
                 \_ ->
                     let
                         lost =
-                            answer { board = started.board, score = 0, moved = False, won = False, lost = True } started
+                            answer { board = started.board, score = 0, moved = False, won = False, lost = True, moves = [] } started
                     in
                     Game.update (Pressed Left) lost
                         |> Tuple.first
@@ -279,7 +280,7 @@ suite =
                             ]
             , test "carregar tabuleiro depois de perder volta a jogar" <|
                 \_ ->
-                    answer { board = started.board, score = 0, moved = False, won = False, lost = True } started
+                    answer { board = started.board, score = 0, moved = False, won = False, lost = True, moves = [] } started
                         |> Game.update (LoadBoard cenario3)
                         |> Tuple.first
                         |> .status
@@ -351,7 +352,7 @@ suite =
             , test "desfazer depois de perder volta a jogar" <|
                 \_ ->
                     first
-                        |> answer { board = first.board, score = 0, moved = False, won = False, lost = True }
+                        |> answer { board = first.board, score = 0, moved = False, won = False, lost = True, moves = [] }
                         |> step Undo
                         |> Expect.all
                             [ .status >> Expect.equal Playing
@@ -427,7 +428,7 @@ suite =
             , test "no replay, o status é o da jogada na tela, não o do jogo atual" <|
                 \_ ->
                     three
-                        |> answer { board = three.board, score = 0, moved = False, won = False, lost = True }
+                        |> answer { board = three.board, score = 0, moved = False, won = False, lost = True, moves = [] }
                         |> step ReplayStarted
                         |> Game.shown
                         |> .status
@@ -443,4 +444,129 @@ suite =
             , test "toque curto não é swipe" <|
                 \_ -> Game.swipeDirection ( 100, 100 ) ( 110, 105 ) |> Expect.equal Nothing
             ]
+        , describe "tela (#8)"
+            [ test "as peças sorteadas no início nascem com id, vaga e aparecem (Born)" <|
+                \_ ->
+                    started.pieces
+                        |> List.map (\p -> ( p.id, ( p.row, p.col, p.value ), ( p.kind, p.slot ) ))
+                        |> Expect.equal [ ( 0, ( 0, 0, 2 ), ( Born, 0 ) ), ( 1, ( 0, 1, 2 ), ( Born, 1 ) ) ]
+            , test "o caminho do Prolog leva cada peça para a casa nova, com o mesmo id" <|
+                \_ ->
+                    mergedTwos
+                        |> .pieces
+                        |> List.map (\p -> ( p.id, ( p.row, p.col, p.value ), ( p.kind, p.ghost ) ))
+                        |> Expect.equal
+                            [ ( 0, ( 0, 0, 2 ), ( Born, True ) )
+                            , ( 1, ( 0, 0, 2 ), ( Born, True ) )
+                            , ( 2, ( 0, 0, 4 ), ( Merged, False ) )
+                            ]
+            , test "a entrada de uma peça nunca muda: a animação não é cortada nem recomeça" <|
+                \_ ->
+                    started
+                        |> answer
+                            { board = [ [ 0, 0, 2, 2 ], [ 0, 0, 0, 0 ], [ 0, 0, 0, 0 ], [ 0, 0, 0, 0 ] ]
+                            , score = 0
+                            , moved = True
+                            , won = False
+                            , lost = False
+                            , moves = [ move ( 0, 0 ) ( 0, 2 ) False, move ( 0, 1 ) ( 0, 3 ) False ]
+                            }
+                        |> .pieces
+                        |> List.map (\p -> ( p.id, p.col, p.kind ))
+                        |> Expect.equal [ ( 0, 2, Born ), ( 1, 3, Born ) ]
+            , test "cada peça mantém a sua vaga; a sorteada pega a menor vaga livre" <|
+                \_ ->
+                    mergedTwos
+                        |> step (Spawned movedBoard [ tile 3 3 2 ])
+                        |> .pieces
+                        |> List.map (\p -> ( p.id, p.slot ))
+                        |> Expect.equal [ ( 0, 0 ), ( 1, 1 ), ( 2, 2 ), ( 3, 3 ) ]
+            , test "a fantasma continua na tela nas duas jogadas seguintes e sai na terceira" <|
+                \_ ->
+                    let
+                        ghosts m =
+                            m.pieces |> List.filter .ghost |> List.length
+
+                        stay m =
+                            answer { board = m.board, score = 0, moved = False, won = False, lost = False, moves = List.map (\p -> move ( p.row, p.col ) ( p.row, p.col ) False) (List.filter (not << .ghost) m.pieces) } m
+
+                        one =
+                            stay mergedTwos
+
+                        two =
+                            stay one
+                    in
+                    [ mergedTwos, one, two, stay two ]
+                        |> List.map ghosts
+                        |> Expect.equal [ 2, 2, 2, 0 ]
+            , test "as peças sempre formam o mesmo tabuleiro do jogo" <|
+                \_ ->
+                    [ started, first, three, mergedTwos ]
+                        |> List.map (\m -> Game.piecesBoard m.size m.pieces == m.board)
+                        |> Expect.equal [ True, True, True, True ]
+            , test "sem caminho na resposta, as peças são refeitas do tabuleiro" <|
+                \_ ->
+                    answer (response movedBoard 4 True) started
+                        |> (\m -> ( Game.piecesBoard 4 m.pieces == m.board, List.map .kind m.pieces ))
+                        |> Expect.equal ( True, [ Plain ] )
+            , test "caminho que não bate com o tabuleiro: as peças são refeitas" <|
+                \_ ->
+                    started
+                        |> answer
+                            { board = movedBoard
+                            , score = 4
+                            , moved = True
+                            , won = False
+                            , lost = False
+                            , moves = [ move ( 0, 0 ) ( 0, 3 ) False, move ( 0, 1 ) ( 0, 2 ) False ]
+                            }
+                        |> (\m -> Game.piecesBoard 4 m.pieces == m.board)
+                        |> Expect.equal True
+            , test "desfazer refaz as peças do tabuleiro anterior, sem animação e sem fantasmas" <|
+                \_ ->
+                    step Undo first
+                        |> (\m -> ( Game.piecesBoard 4 m.pieces == m.board, List.all (\p -> p.kind == Plain && not p.ghost) m.pieces ))
+                        |> Expect.equal ( True, True )
+            , test "o tema é só mais um campo do Model" <|
+                \_ -> step (ThemeChosen Light) started |> .theme |> Expect.equal Light
+            , test "Novo jogo e trocar o tamanho mantêm o tema e a câmera lenta" <|
+                \_ ->
+                    let
+                        chosen =
+                            started |> step (ThemeChosen Light) |> step SlowMotionToggled
+                    in
+                    Expect.all
+                        [ \m -> step NewGame m |> (\g -> ( g.theme, g.slowMotion, g.pieces )) |> Expect.equal ( Light, True, [] )
+                        , \m -> step (SizeChosen 5) m |> (\g -> ( g.theme, g.slowMotion, g.size )) |> Expect.equal ( Light, True, 5 )
+                        ]
+                        chosen
+            , test "classes da peça: cor pelo valor, letra pelos dígitos" <|
+                \_ -> Game.View.tileClasses 128 |> Expect.equal [ "tile", "v128", "d3" ]
+            , test "de 2048 em diante a peça brilha" <|
+                \_ -> Game.View.tileClasses 2048 |> Expect.equal [ "tile", "v2048", "d4", "super" ]
+            , test "acima de 8192 vale a mesma cor (vbig), com 5 dígitos" <|
+                \_ -> Game.View.tileClasses 16384 |> Expect.equal [ "tile", "vbig", "d5", "super" ]
+            , test "casa vazia" <|
+                \_ -> Game.View.tileClasses 0 |> Expect.equal [ "tile", "empty" ]
+            ]
         ]
+
+
+move : ( Int, Int ) -> ( Int, Int ) -> Bool -> Api.Move
+move from to merged =
+    { from = from, to = to, merged = merged }
+
+
+{-| Os dois 2 do início fundem num 4 (resposta com o caminho do Prolog).
+-}
+mergedTwos : Game.Model
+mergedTwos =
+    started
+        |> answer
+            { board = movedBoard
+            , score = 4
+            , moved = True
+            , won = False
+            , lost = False
+            , moves = [ move ( 0, 0 ) ( 0, 0 ) True, move ( 0, 1 ) ( 0, 0 ) True ]
+            }

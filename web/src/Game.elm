@@ -2,15 +2,19 @@ module Game exposing
     ( Board
     , Model
     , Msg(..)
+    , Piece
+    , PieceKind(..)
     , Point
     , Snapshot
     , Status(..)
+    , Theme(..)
     , Tile
     , emptyBoard
     , emptyCells
     , init
     , keyMsgs
     , newTile
+    , piecesBoard
     , placeTiles
     , replayTicks
     , shown
@@ -75,9 +79,23 @@ type Status
     | Lost
 
 
+{-| Tema da interface (#8). A persistência entre sessões é da #9: ela só precisa
+mandar `ThemeChosen` com o tema salvo.
+-}
+type Theme
+    = Dark
+    | Light
+
+
 {-| O estado inteiro do jogo. `waiting` é verdadeiro enquanto se espera a resposta
 do servidor ou o sorteio: teclas nesse meio-tempo são ignoradas. `history` guarda o
 jogo antes de cada jogada (#7) e `replay` existe só enquanto o replay está aberto.
+
+Os quatro últimos campos são da tela (#8). `pieces` são as peças com identidade
+(um `id` que não muda enquanto a peça vive), para a `view` deslizar cada uma de
+uma casa para outra; `nextId` é o próximo `id` livre. O caminho de cada peça vem
+do Prolog (`moves` da resposta): o Elm só o aplica, não calcula nada.
+
 -}
 type alias Model =
     { board : Board
@@ -89,7 +107,47 @@ type alias Model =
     , touchStart : Maybe Point
     , history : History Snapshot
     , replay : Maybe (Replay Snapshot)
+    , theme : Theme
+    , pieces : List Piece
+    , nextId : Int
+    , slowMotion : Bool
     }
+
+
+{-| Uma peça na tela (#8). O `id` é a identidade: é a chave do `Html.Keyed`, então
+a mesma peça é o mesmo nó do navegador, e mudar `row` e `col` faz o CSS deslizá-la.
+
+`kind` é como a peça entrou na tela e não muda enquanto ela vive: assim a
+animação de entrada nunca é cortada nem recomeça. `ghost` diz que ela entrou numa
+fusão: desliza até a casa e some. `slot` é a vaga fixa da peça na lista de nós da
+tela, para o navegador nunca precisar mover o nó (mover cancela o deslize). `age`
+conta as jogadas desde que ela virou fantasma: ela só sai da lista três jogadas
+depois, quando com certeza já sumiu, mesmo com teclas muito rápidas.
+
+-}
+type alias Piece =
+    { id : Int
+    , value : Int
+    , row : Int
+    , col : Int
+    , kind : PieceKind
+    , ghost : Bool
+    , age : Int
+    , slot : Int
+    }
+
+
+{-| Como a peça entrou na tela.
+
+  - `Plain`: já estava (ou o tabuleiro foi trocado de uma vez); não anima a entrada.
+  - `Born`: o Elm sorteou; aparece depois que as outras deslizam.
+  - `Merged`: nasceu de uma fusão; dá um pop quando as duas peças chegam.
+
+-}
+type PieceKind
+    = Plain
+    | Born
+    | Merged
 
 
 {-| O que a tela mostra de um momento da partida. O tabuleiro já inclui a peça
@@ -107,6 +165,7 @@ peças sorteadas pelo runtime (2 no início, 1 após cada jogada); as duas traze
 tabuleiro em que foram pedidas, para descartar respostas atrasadas. `Undo` e as
 `Replay*` são do histórico (#7); `ReplayTicked` vem do relógio (`replayTicks`).
 `LoadBoard` troca o jogo por um tabuleiro pronto (os cenários da apresentação, #4).
+`ThemeChosen` e `SlowMotionToggled` são da tela (#8).
 -}
 type Msg
     = Pressed Direction
@@ -123,6 +182,8 @@ type Msg
     | ReplaySpeed Float
     | ReplayClosed
     | LoadBoard Board
+    | ThemeChosen Theme
+    | SlowMotionToggled
     | NoOp
 
 
@@ -148,9 +209,24 @@ newGame n =
       , touchStart = Nothing
       , history = History.empty
       , replay = Nothing
+      , theme = Dark
+      , pieces = []
+      , nextId = 0
+      , slowMotion = False
       }
     , Random.generate (Spawned board) (startTiles n)
     )
+
+
+{-| Jogo novo que mantém as escolhas da tela: tema e câmera lenta.
+-}
+restart : Int -> Model -> ( Model, Cmd Msg )
+restart n model =
+    let
+        ( fresh, cmd ) =
+            newGame n
+    in
+    ( { fresh | theme = model.theme, slowMotion = model.slowMotion, nextId = model.nextId }, cmd )
 
 
 
@@ -181,14 +257,14 @@ update msg model =
                 ( model, Cmd.none )
 
             else
-                ( { model | board = placeTiles tiles model.board, waiting = False }, Cmd.none )
+                ( born tiles { model | board = placeTiles tiles model.board, waiting = False }, Cmd.none )
 
         NewGame ->
-            newGame model.size
+            restart model.size model
 
         SizeChosen n ->
             if n >= 3 && n <= 6 then
-                newGame n
+                restart n model
 
             else
                 ( model, Cmd.none )
@@ -233,6 +309,12 @@ update msg model =
         LoadBoard board ->
             loadBoard board model
 
+        ThemeChosen theme ->
+            ( { model | theme = theme }, Cmd.none )
+
+        SlowMotionToggled ->
+            ( { model | slowMotion = not model.slowMotion }, Cmd.none )
+
         NoOp ->
             ( model, Cmd.none )
 
@@ -262,6 +344,7 @@ loadBoard board model =
             , history = History.empty
             , replay = Nothing
           }
+            |> rebuild
         , Cmd.none
         )
 
@@ -285,12 +368,12 @@ gotMove result model =
                     }
             in
             if res.moved then
-                ( { answered | board = res.board, waiting = True, history = remember model }
+                ( slide res { answered | board = res.board, waiting = True, history = remember model }
                 , Random.generate (Spawned res.board) (newTile res.board)
                 )
 
             else
-                ( { answered | waiting = False }, Cmd.none )
+                ( slide res { answered | waiting = False }, Cmd.none )
 
         Err _ ->
             ( { model | waiting = False, error = Just "Erro ao falar com o servidor." }, Cmd.none )
@@ -334,13 +417,14 @@ undo : Model -> Model
 undo model =
     case History.undo model.history of
         Just ( previous, older ) ->
-            { model
-                | board = previous.board
-                , score = previous.score
-                , status = previous.status
-                , history = older
-                , error = Nothing
-            }
+            rebuild
+                { model
+                    | board = previous.board
+                    , score = previous.score
+                    , status = previous.status
+                    , history = older
+                    , error = Nothing
+                }
 
         Nothing ->
             model
@@ -372,6 +456,158 @@ replayTicks model =
 
         Nothing ->
             Sub.none
+
+
+
+-- PEÇAS NA TELA (#8): funções puras que mantêm `pieces` igual ao `board`
+
+
+{-| Aplica o caminho que o Prolog mandou (`moves`). Cada peça sai da casa `from`
+e vai para `to`; as duas de uma fusão viram `Ghost`, e nasce uma `Merged` com o
+valor novo.
+
+Nada é cortado no meio da animação, mesmo jogando rápido: o `kind` de uma peça
+nunca muda, e a fantasma só sai da lista três jogadas depois de virar fantasma.
+
+Se a resposta não trouxe o caminho, ou se o resultado não bate com o tabuleiro
+novo, as peças são refeitas a partir do tabuleiro (sem deslizar).
+
+-}
+slide : Api.MoveResponse -> Model -> Model
+slide res model =
+    let
+        aged =
+            model.pieces
+                |> List.map (\p -> { p | age = p.age + 1 })
+                |> List.filter (\p -> not (p.ghost && p.age >= 3))
+
+        follow piece =
+            if piece.ghost then
+                piece
+
+            else
+                case List.filter (\m -> m.from == ( piece.row, piece.col )) res.moves of
+                    m :: _ ->
+                        if m.merged then
+                            { piece | row = Tuple.first m.to, col = Tuple.second m.to, ghost = True, age = 0 }
+
+                        else
+                            { piece | row = Tuple.first m.to, col = Tuple.second m.to }
+
+                    [] ->
+                        piece
+
+        moved =
+            List.map follow aged
+
+        mergedCells =
+            res.moves
+                |> List.filter .merged
+                |> List.map .to
+                |> unique
+
+        newborns =
+            List.indexedMap
+                (\i ( r, c ) -> { id = model.nextId + i, value = cellValue r c model.board, row = r, col = c, kind = Merged, ghost = False, age = 0, slot = 0 })
+                mergedCells
+
+        pieces =
+            moved ++ withSlots moved newborns
+    in
+    if not (List.isEmpty res.moves) && piecesBoard (List.length model.board) pieces == model.board then
+        { model | pieces = pieces, nextId = model.nextId + List.length newborns }
+
+    else
+        rebuild model
+
+
+{-| Dá a cada peça nova a menor vaga livre (`slot`). As peças que já estão na tela
+não mudam de vaga.
+-}
+withSlots : List Piece -> List Piece -> List Piece
+withSlots existing new =
+    let
+        used =
+            List.map .slot existing
+
+        free =
+            List.range 0 (List.length existing + List.length new)
+                |> List.filter (\s -> not (List.member s used))
+    in
+    List.map2 (\p s -> { p | slot = s }) new free
+
+
+{-| Peças novas sorteadas pelo Elm: aparecem (`Born`) com `id` novo, numa vaga livre.
+-}
+born : List Tile -> Model -> Model
+born tiles model =
+    let
+        newborns =
+            List.indexedMap (\i t -> { id = model.nextId + i, value = t.value, row = t.row, col = t.col, kind = Born, ghost = False, age = 0, slot = 0 }) tiles
+    in
+    { model
+        | pieces = model.pieces ++ withSlots model.pieces newborns
+        , nextId = model.nextId + List.length tiles
+    }
+
+
+{-| Refaz as peças a partir do tabuleiro, com `id`s novos e sem animação: para
+desfazer, carregar um tabuleiro ou quando não veio o caminho.
+-}
+rebuild : Model -> Model
+rebuild model =
+    let
+        cells =
+            model.board
+                |> List.indexedMap (\r row -> List.indexedMap (\c v -> ( r, c, v )) row)
+                |> List.concat
+                |> List.filter (\( _, _, v ) -> v /= 0)
+    in
+    { model
+        | pieces = List.indexedMap (\i ( r, c, v ) -> { id = model.nextId + i, value = v, row = r, col = c, kind = Plain, ghost = False, age = 0, slot = i }) cells
+        , nextId = model.nextId + List.length cells
+    }
+
+
+{-| O tabuleiro que as peças vivas formam (as fantasmas não contam). Serve para
+conferir que a tela e o jogo dizem a mesma coisa.
+-}
+piecesBoard : Int -> List Piece -> Board
+piecesBoard n pieces =
+    List.range 0 (n - 1)
+        |> List.map
+            (\r ->
+                List.range 0 (n - 1)
+                    |> List.map
+                        (\c ->
+                            pieces
+                                |> List.filter (\p -> not p.ghost && p.row == r && p.col == c)
+                                |> List.map .value
+                                |> List.sum
+                        )
+            )
+
+
+cellValue : Int -> Int -> Board -> Int
+cellValue r c board =
+    board
+        |> List.drop r
+        |> List.head
+        |> Maybe.andThen (List.drop c >> List.head)
+        |> Maybe.withDefault 0
+
+
+unique : List a -> List a
+unique =
+    List.foldl
+        (\x acc ->
+            if List.member x acc then
+                acc
+
+            else
+                acc ++ [ x ]
+        )
+        []
 
 
 

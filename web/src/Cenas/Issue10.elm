@@ -11,14 +11,14 @@ cenas =
             [ { notes = "Na abertura vimos a jogada inteira. Agora abrimos a caixa do Python. Ele não decide nada de jogo: recebe o tabuleiro em JSON, confere se a entrada é válida e traduz para uma pergunta ao Prolog. Quem faz a tradução é o janus, a biblioteca que liga o Python ao SWI-Prolog no mesmo processo."
               , blocks = [ Flow { nodes = ponte, active = 2, back = "" } ]
               }
-            , { notes = "O Prolog responde ligando N (o tabuleiro novo) e S (os pontos). Na volta, o janus traduz isso para um dict Python, e o Python devolve JSON."
-              , blocks = [ Clear, Flow { nodes = ponte, active = 3, back = "↩  a volta: o janus traz N e S num dict Python, e o Python responde em JSON" } ]
+            , { notes = "O Prolog responde ligando N (o tabuleiro novo), S (os pontos) e M (o caminho das peças). Na volta, o janus traduz isso para um dict Python, e o Python devolve JSON."
+              , blocks = [ Clear, Flow { nodes = ponte, active = 3, back = "↩  a volta: o janus traz N, S e M num dict Python, e o Python responde em JSON" } ]
               }
-            , { notes = "O endpoint inteiro é tradução. Entra JSON: quando a função roda, o FastAPI já transformou o corpo num MoveRequest validado. Chama o Prolog: o query_once pergunta o move/4 e depois faz duas perguntas de sim ou não, vitória e derrota. Sai JSON: o MoveResponse. O moved só compara dois tabuleiros: é um dado, não uma regra do 2048."
+            , { notes = "O endpoint inteiro é tradução. Entra JSON: quando a função roda, o FastAPI já transformou o corpo num MoveRequest validado. Chama o Prolog: o query_once pergunta o move_trace/5, que é o move/4 mais o caminho de cada peça para a animação (#8), e depois faz duas perguntas de sim ou não, vitória e derrota. Sai JSON: o MoveResponse. O moved só compara dois tabuleiros: é um dado, não uma regra do 2048."
               , blocks =
                     [ Clear
                     , Lead "Entra JSON, chama o Prolog, sai JSON."
-                    , Code { file = "server/main.py", from = 168, to = 182, mark = [ 172, 179, 180, 182 ] }
+                    , Code { file = "server/main.py", from = 185, to = 199, mark = [ 189, 196, 197, 199 ] }
                     ]
               }
             , { notes = "O que o query_once devolve, rodando de verdade. Mandamos um dicionário com os valores de B e D; o Prolog prova o objetivo e devolve outro dicionário com as variáveis que ele ligou, N e S, mais o truth, que diz se provou."
@@ -51,8 +51,8 @@ cenas =
               , blocks =
                     [ Clear
                     , Lead "Erros com 422 e 500, sempre como {\"error\": ...}."
-                    , Code { file = "server/main.py", from = 131, to = 134, mark = [ 134 ] }
-                    , Code { file = "server/main.py", from = 156, to = 161, mark = [ 161 ] }
+                    , Code { file = "server/main.py", from = 142, to = 145, mark = [ 145 ] }
+                    , Code { file = "server/main.py", from = 167, to = 172, mark = [ 172 ] }
                     ]
               }
             , { notes = "Ao vivo, pedidos de verdade ao servidor. Primeiro a direção diagonal: 422, e a mensagem diz o campo e o que vale. Depois a peça 3, a linha curta, o texto no lugar do número e o JSON quebrado: cada erro para na borda, e o Prolog nem é chamado. Por fim a jogada válida: 200 com board, score, moved, won e lost. O erro é legível, e o servidor continua de pé."
@@ -89,7 +89,7 @@ ponte =
     [ { label = "Teclado", sub = "você", detail = "", art = "keyboard" }
     , { label = "Elm", sub = "interface", detail = "", art = "elm" }
     , { label = "Python", sub = "ponte", detail = "Recebe o JSON, confere a entrada e, pelo janus, transforma em consulta Prolog. Não conhece as regras do 2048.", art = "python" }
-    , { label = "Prolog", sub = "regras", detail = "Prova game:move(B, D, N, S) e liga N (o tabuleiro novo) e S (os pontos).", art = "prolog" }
+    , { label = "Prolog", sub = "regras", detail = "Prova game:move_trace(B, D, N, S, M) e liga N (o tabuleiro novo), S (os pontos) e M (o caminho das peças).", art = "prolog" }
     ]
 
 

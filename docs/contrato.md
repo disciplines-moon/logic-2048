@@ -57,11 +57,21 @@ dígitos) é entrada inválida: 422, nunca 400.
 ```
 ```json
 { "board": [[4,0,0,0],[0,0,0,0],[4,0,0,0],[0,0,0,0]],
-  "score": 4, "moved": true, "won": false, "lost": false }
+  "score": 4, "moved": true, "won": false, "lost": false,
+  "moves": [ { "from": [0,0], "to": [0,0], "merged": true },
+             { "from": [0,3], "to": [0,0], "merged": true },
+             { "from": [2,1], "to": [2,0], "merged": false } ] }
 ```
 
 `score` são os pontos ganhos **nesta jogada**. `moved` é `false` se nada mudou
 (o Elm não sorteia peça nova).
+
+`moves` (#8) é o caminho de cada peça do tabuleiro enviado: de onde saiu
+(`from`, `[linha, coluna]` a partir de 0), onde chegou (`to`) e se entrou numa
+fusão (`merged`; as duas peças de um par chegam à mesma casa). Peça que não andou
+vem com `from` igual a `to`. Vem do `move_trace/5` do Prolog: o Elm só usa para
+deslizar as peças na tela, sem calcular nada. Para o Elm, o campo é opcional: sem
+ele, as peças só aparecem no lugar novo.
 
 ### `POST /api/hint`
 
@@ -116,6 +126,8 @@ Regras do desafio:
 slide_left(+Row, -NewRow, -Points)
 move(+Board, ?Dir, -NewBoard, -Score)      % se nada muda, devolve o mesmo tabuleiro com Score 0
                                            % det com Dir pronto; com Dir livre, enumera as 4 direções
+move_trace(+Board, +Dir, -NewBoard, -Score, -Moves)   % o move/4 mais o caminho de cada peça (#8):
+                                           % Moves = [[LinhaDe, ColunaDe, LinhaPara, ColunaPara, Fundiu], ...]
 available_moves(+Board, -Dirs)             % só direções que mudam o tabuleiro
 game_won(+Board)                           % usa a peça de vitória do N do tabuleiro
 game_lost(+Board)
@@ -129,7 +141,8 @@ vira `{"solvable": false, "moves": []}`. O janus converte strings Python em
 átomos, então `direction` chega ao Prolog como `left`, `right`, `up` ou `down`.
 Listas e inteiros passam como estão. Na volta, `janus.query_once` devolve um `dict`
 com as variáveis ligadas e `"truth"` (`False` quando o objetivo falha), e um par
-Prolog `left-12.5` vira a tupla Python `("left", 12.5)`.
+Prolog `left-12.5` vira a tupla Python `("left", 12.5)`. O átomo `true` do
+`move_trace/5` chega como a string `"true"`, e o Python o troca pelo booleano do `merged`.
 
 ## Exemplos de `slide_left`
 
