@@ -1,4 +1,4 @@
-module Presentation exposing (Model, Msg(..), init, keyDecoder, keyToMsg, sceneCount, update, view)
+module Presentation exposing (Model, Msg(..), Sent, init, keyDecoder, keyToMsg, sceneCount, send, update, view)
 
 {-| Página `#/apresentacao`: a apresentação roda dentro do próprio app.
 
@@ -8,26 +8,46 @@ no painel do apresentador (tecla `n`).
 
 -}
 
+import Api
 import Cenas
-import Cenas.Types exposing (Block(..), Etapa, FlowNode, Member, Scene, Step, visibleBlocks)
+import Cenas.Types exposing (Block(..), Etapa, FlowNode, Member, Pedido, Scene, Step, visibleBlocks)
 import Dict exposing (Dict)
 import Html exposing (Html, button, div, h1, h2, kbd, li, p, pre, span, text, ul)
 import Html.Attributes exposing (attribute, class, classList, style)
 import Html.Events exposing (onClick)
 import Html.Keyed as Keyed
+import Http
 import Json.Decode as D
+import Json.Encode as E
 import Svg
 import Svg.Attributes as SA
 
 
+{-| `request` é o último pedido do bloco `Pedidos`. Ele não vem da URL, então o
+`Main` o preserva quando a URL muda.
+-}
 type alias Model =
     { scene : Int
     , step : Int
     , showNotes : Bool
     , forward : Bool
+    , request : Maybe Sent
     }
 
 
+{-| Um pedido enviado pelo bloco `Pedidos`. `answer` é `Nothing` enquanto o
+servidor não responde.
+-}
+type alias Sent =
+    { body : String
+    , answer : Maybe (Result Http.Error Api.RawResponse)
+    }
+
+
+{-| `SendRequest` marca o pedido como enviado; quem manda de fato é o `Main`, com
+`send`, como faz com a tela cheia. `GotResponse` traz o corpo que respondeu, para
+descartar respostas atrasadas de outro pedido.
+-}
 type Msg
     = Next
     | Prev
@@ -39,6 +59,8 @@ type Msg
     | ToggleNotes
     | ToggleFullscreen
     | Exit
+    | SendRequest String
+    | GotResponse String (Result Http.Error Api.RawResponse)
     | Ignored
 
 
@@ -78,7 +100,7 @@ init scene step =
         s =
             clamp 0 (sceneCount - 1) scene
     in
-    { scene = s, step = clamp 0 (stepCount s - 1) step, showNotes = True, forward = True }
+    { scene = s, step = clamp 0 (stepCount s - 1) step, showNotes = True, forward = True, request = Nothing }
 
 
 update : Msg -> Model -> Model
@@ -130,8 +152,30 @@ update msg model =
         ToggleNotes ->
             { model | showNotes = not model.showNotes }
 
+        SendRequest body ->
+            { model | request = Just { body = body, answer = Nothing } }
+
+        GotResponse body result ->
+            case model.request of
+                Just sent ->
+                    if sent.body == body then
+                        { model | request = Just { sent | answer = Just result } }
+
+                    else
+                        model
+
+                Nothing ->
+                    model
+
         _ ->
             model
+
+
+{-| Manda o corpo do bloco `Pedidos` ao `POST /api/move` de verdade.
+-}
+send : String -> Cmd Msg
+send body =
+    Api.postRaw "/api/move" body (GotResponse body)
 
 
 keyDecoder : D.Decoder Msg
@@ -216,7 +260,7 @@ view config model =
                               else
                                 h1 [] [ text scene.title ]
                             , div [ class "pres-body" ]
-                                (List.map (viewBlockAt config model.step) (visibleBlocks model.step scene))
+                                (List.map (viewBlockAt config model) (visibleBlocks model.step scene))
                             ]
                       )
                     ]
@@ -250,10 +294,10 @@ viewProgress model =
 {-| Um bloco só anima quando acaba de nascer neste passo; os antigos ficam quietos.
 O `key` no endereço do passo faz o navegador recriar o nó e rodar a animação.
 -}
-viewBlockAt : Config msg -> Int -> ( Int, Block ) -> Html msg
-viewBlockAt config currentStep ( born, block ) =
-    div [ classList [ ( "block", True ), ( "old", born /= currentStep ) ] ]
-        [ viewBlock config block ]
+viewBlockAt : Config msg -> Model -> ( Int, Block ) -> Html msg
+viewBlockAt config model ( born, block ) =
+    div [ classList [ ( "block", True ), ( "old", born /= model.step ) ] ]
+        [ viewBlock config model.request block ]
 
 
 viewNotes : Maybe Step -> Html msg
@@ -317,8 +361,8 @@ viewFooter config model scene =
         ]
 
 
-viewBlock : Config msg -> Block -> Html msg
-viewBlock config block =
+viewBlock : Config msg -> Maybe Sent -> Block -> Html msg
+viewBlock config request block =
     case block of
         Paragraph s ->
             p [] [ text s ]
@@ -372,6 +416,9 @@ viewBlock config block =
 
         Flow { nodes, active, back } ->
             viewFlow nodes active back
+
+        Pedidos pedidos ->
+            viewPedidos config request pedidos
 
         Clear ->
             text ""
@@ -705,6 +752,142 @@ viewFlow nodes active back =
         , div [ class "flow-detail" ] [ text detail ]
         , viewArt art
         ]
+
+
+{-| Botões com pedidos prontos e, depois do primeiro clique, o pedido enviado ao
+lado da resposta real do servidor.
+-}
+viewPedidos : Config msg -> Maybe Sent -> List Pedido -> Html msg
+viewPedidos config request pedidos =
+    let
+        current =
+            Maybe.map .body request
+
+        pedidoButton pedido =
+            button
+                [ classList [ ( "pd-button", True ), ( "on", current == Just pedido.body ) ]
+                , onClick (config.toMsg (SendRequest pedido.body))
+                ]
+                [ text pedido.label ]
+    in
+    div [ class "pd" ]
+        [ div [ class "pd-buttons" ] (List.map pedidoButton pedidos)
+        , case request of
+            Nothing ->
+                div [ class "pd-hint" ] [ text "Clique num pedido: ele vai de verdade ao servidor." ]
+
+            Just sent ->
+                -- O `key` recria o painel do pedido quando o pedido muda, e o da resposta
+                -- a cada estado novo (esperando, 200, 422...), para a animação de entrada rodar.
+                Keyed.node "div"
+                    [ class "pd-panes" ]
+                    [ ( sent.body
+                      , div [ class "pd-pane pd-request" ]
+                            [ div [ class "pd-head" ] [ text "POST /api/move" ]
+                            , pre [ class "pd-json" ] [ text sent.body ]
+                            ]
+                      )
+                    , ( "seta", div [ class "pd-arrow" ] [ text "→" ] )
+                    , ( sent.body ++ answerKey sent.answer, viewAnswer sent.answer )
+                    ]
+        ]
+
+
+answerKey : Maybe (Result Http.Error Api.RawResponse) -> String
+answerKey answer =
+    case answer of
+        Nothing ->
+            "esperando"
+
+        Just (Ok res) ->
+            String.fromInt res.status
+
+        Just (Err _) ->
+            "sem resposta"
+
+
+viewAnswer : Maybe (Result Http.Error Api.RawResponse) -> Html msg
+viewAnswer answer =
+    case answer of
+        Nothing ->
+            div [ class "pd-pane pd-wait" ]
+                [ div [ class "pd-head" ] [ text "esperando o servidor…" ] ]
+
+        Just (Ok res) ->
+            div [ class ("pd-pane " ++ statusClass res.status) ]
+                [ div [ class "pd-head" ] [ text (statusLine res.status) ]
+                , pre [ class "pd-json" ]
+                    [ text
+                        (if res.status >= 500 && String.isEmpty res.body then
+                            -- Com a API parada, o proxy do Vite responde 502 sem corpo.
+                            apiDown
+
+                         else
+                            prettyJson res.body
+                        )
+                    ]
+                ]
+
+        Just (Err _) ->
+            div [ class "pd-pane pd-down" ]
+                [ div [ class "pd-head" ] [ text "sem resposta" ]
+                , pre [ class "pd-json" ] [ text apiDown ]
+                ]
+
+
+apiDown : String
+apiDown =
+    "A API não respondeu. Ela está rodando? (npm run api)"
+
+
+statusLine : Int -> String
+statusLine status =
+    case status of
+        200 ->
+            "200 OK"
+
+        422 ->
+            "422 Unprocessable Content"
+
+        500 ->
+            "500 Internal Server Error"
+
+        502 ->
+            "502 Bad Gateway"
+
+        _ ->
+            String.fromInt status
+
+
+statusClass : Int -> String
+statusClass status =
+    if status < 300 then
+        "pd-ok"
+
+    else if status < 500 then
+        "pd-bad"
+
+    else
+        "pd-down"
+
+
+{-| Uma chave por linha, com cada valor numa linha só (o tabuleiro cabe inteiro).
+Se o corpo não for um objeto JSON, mostra o texto como veio.
+-}
+prettyJson : String -> String
+prettyJson body =
+    case D.decodeString (D.keyValuePairs D.value) body of
+        Ok pairs ->
+            "{\n"
+                ++ String.join ",\n" (List.map (\( k, v ) -> "  " ++ E.encode 0 (E.string k) ++ ": " ++ E.encode 0 v) pairs)
+                ++ "\n}"
+
+        Err _ ->
+            if String.isEmpty body then
+                "(sem corpo)"
+
+            else
+                body
 
 
 plTile : String -> Int -> Int -> String -> Int -> Html msg

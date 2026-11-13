@@ -14,7 +14,8 @@ issue, com a demo rodando ao lado da explicação.
   momento. Ela aparece no painel de baixo (tecla `n`).
 - Os blocos podem ser texto (`Paragraph`, `Bullets`, `Pre`), **código real do
   repositório** com números de linha e destaque (`Code`), a **demo ao vivo** com o
-  jogo funcionando (`Demo`) ou um **fluxo animado** (`Flow`).
+  jogo funcionando (`Demo`), um **fluxo animado** (`Flow`) ou **pedidos de verdade
+  à API** (`Pedidos`), que mostram o JSON enviado e a resposta do servidor.
 - `Clear` apaga o que apareceu antes, para trocar um bloco por outro no passo seguinte.
 - `Flow` desenha etapas ligadas por setas e acende uma por passo. Use `Clear` + um
   novo `Flow` com outro `active` a cada passo (veja a cena "Arquitetura" em

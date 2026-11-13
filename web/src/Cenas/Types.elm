@@ -1,4 +1,4 @@
-module Cenas.Types exposing (Block(..), Etapa, FlowNode, Member, Scene, Step, isPending, pending, visibleBlocks)
+module Cenas.Types exposing (Block(..), Etapa, FlowNode, Member, Pedido, Scene, Step, isPending, pending, visibleBlocks)
 
 {-| A apresentação é um conjunto de **cenas** (uma ou mais por issue). Cada cena
 tem **passos**: ao avançar, o próximo passo ACRESCENTA blocos na tela, no ritmo
@@ -46,6 +46,10 @@ type Block
     | Flow { nodes : List FlowNode, active : Int, back : String }
       -- Equipe: foto do GitHub (`login`), nome e etiqueta opcional, com animação de entrada.
     | Team (List Member)
+      -- Pedidos de verdade ao `POST /api/move`: cada `Pedido` vira um botão, e o
+      -- painel mostra o JSON enviado, o status HTTP e o JSON que o servidor devolveu.
+      -- O `body` vai exatamente como está escrito, então pode ser inválido de propósito.
+    | Pedidos (List Pedido)
       -- Cena ainda não escrita. Falha a revisão final (#14).
     | Pending String
       -- Apaga tudo que apareceu antes na cena (para trocar um bloco por outro).
@@ -59,6 +63,14 @@ type alias Etapa =
     { label : String
     , note : String
     , board : List (List Int)
+    }
+
+
+{-| Um pedido pronto do bloco `Pedidos`: o texto do botão e o corpo JSON enviado.
+-}
+type alias Pedido =
+    { label : String
+    , body : String
     }
 
 

@@ -1,4 +1,4 @@
-module Api exposing (Direction(..), MoveResponse, encodeMove, keyDecoder, moveDecoder, postMove, undoDecoder, wasdDecoder)
+module Api exposing (Direction(..), MoveResponse, RawResponse, encodeMove, keyDecoder, moveDecoder, postMove, postRaw, rawResponse, undoDecoder, wasdDecoder)
 
 import Http
 import Json.Decode as D
@@ -136,6 +136,49 @@ postMove board dir toMsg =
         , body = Http.jsonBody (encodeMove board dir)
         , expect = Http.expectJson toMsg moveDecoder
         }
+
+
+{-| Uma resposta HTTP como veio: o status e o corpo em texto, seja qual for o status.
+-}
+type alias RawResponse =
+    { status : Int
+    , body : String
+    }
+
+
+{-| Manda `body` exatamente como está escrito, mesmo que seja inválido de propósito,
+e devolve a resposta crua. A apresentação da #10 usa isso para mostrar o
+`{"error": ...}` do 422, que o `Http.expectJson` descartaria (veja `docs/contrato.md`).
+-}
+postRaw : String -> String -> (Result Http.Error RawResponse -> msg) -> Cmd msg
+postRaw url body toMsg =
+    Http.post
+        { url = url
+        , body = Http.stringBody "application/json" body
+        , expect = Http.expectStringResponse toMsg rawResponse
+        }
+
+
+{-| Qualquer status com corpo é resposta (200, 422 ou 500). Só é erro quando não
+chega resposta nenhuma: rede fora, tempo esgotado ou endereço inválido.
+-}
+rawResponse : Http.Response String -> Result Http.Error RawResponse
+rawResponse response =
+    case response of
+        Http.GoodStatus_ meta body ->
+            Ok { status = meta.statusCode, body = body }
+
+        Http.BadStatus_ meta body ->
+            Ok { status = meta.statusCode, body = body }
+
+        Http.BadUrl_ url ->
+            Err (Http.BadUrl url)
+
+        Http.Timeout_ ->
+            Err Http.Timeout
+
+        Http.NetworkError_ ->
+            Err Http.NetworkError
 
 
 {-| Ctrl+Z (ou Cmd+Z no Mac) desfaz (#7). Como nas jogadas, tecla segurada e campo

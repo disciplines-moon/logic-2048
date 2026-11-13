@@ -973,3 +973,34 @@ html { font-size: clamp(10px, min(1.02vw, 1.8vh), 34px); }
 .cenario:hover { border-color: #f39a2d; }
 .cenario:focus-visible { outline: 2px solid #f39a2d; outline-offset: 2px; }
 .eb-board .tile.v1024, .eb-board .tile.v2048, .eb-board .tile.v4096, .eb-board .tile.v8192 { font-size: 0.8rem; }
+
+/* Pedidos ao vivo ao /api/move (cena da #10): o pedido à esquerda e a resposta
+   real à direita. Verde é 2xx, laranja é 4xx (entrada inválida), vermelho é 5xx
+   ou servidor fora do ar. */
+.pd { display: flex; flex-direction: column; gap: 1rem; }
+.pd-buttons { display: flex; flex-wrap: wrap; gap: 0.6rem; }
+.pd-button { font-size: 1rem; padding: 0.45rem 0.9rem; font-family: ui-monospace, monospace; }
+.pd-button:hover { border-color: #f39a2d; }
+.pd-button:focus-visible { outline: 2px solid #f39a2d; outline-offset: 2px; }
+.pd-button.on { border-color: #f39a2d; color: #f39a2d; }
+.pd-hint { color: var(--muted); font-size: 1.1rem; }
+.pd-panes { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 1rem; align-items: stretch; }
+.pd-pane {
+  background: var(--code-bg);
+  color: var(--code-ink);
+  border: 2px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
+  animation: rise 0.35s ease both;
+}
+.pd-head { padding: 0.5rem 1.1rem; font: 700 1rem ui-monospace, monospace; background: #2a241e; color: var(--muted); }
+.pd-json { margin: 0; padding: 0.9rem 1.1rem; font: 1.05rem/1.5 ui-monospace, monospace; white-space: pre-wrap; overflow-wrap: anywhere; }
+.pd-arrow { align-self: center; font-size: 2rem; color: #f39a2d; }
+.pd-ok { border-color: #25b865; }
+.pd-ok .pd-head { background: #1d4d32; color: #e6f7ed; }
+.pd-bad { border-color: #f39a2d; }
+.pd-bad .pd-head { background: #5c3810; color: #fdebd6; }
+.pd-down { border-color: #e05d5d; }
+.pd-down .pd-head { background: #5c2020; color: #fbe3e3; }
+.pd-wait .pd-head { animation: pd-blink 1s ease-in-out infinite alternate; }
+@keyframes pd-blink { from { opacity: 0.5; } to { opacity: 1; } }

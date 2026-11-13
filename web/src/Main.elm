@@ -144,6 +144,16 @@ update msg model =
         PresentationMsg Presentation.Ignored ->
             ( model, Cmd.none )
 
+        PresentationMsg ((Presentation.SendRequest body) as pmsg) ->
+            ( { model | presentation = Presentation.update pmsg model.presentation }
+            , Cmd.map PresentationMsg (Presentation.send body)
+            )
+
+        PresentationMsg ((Presentation.GotResponse _ _) as pmsg) ->
+            -- A resposta é guardada mesmo que a pessoa já tenha saído da apresentação;
+            -- senão, ao voltar, o painel ficaria para sempre "esperando o servidor".
+            ( { model | presentation = Presentation.update pmsg model.presentation }, Cmd.none )
+
         PresentationMsg pmsg ->
             let
                 next =
@@ -175,7 +185,18 @@ update msg model =
                 ( page, presentation ) =
                     route url
             in
-            ( { model | page = page, presentation = { presentation | showNotes = model.presentation.showNotes, forward = model.presentation.forward } }, Cmd.none )
+            -- A URL só guarda cena e passo: o resto do estado da apresentação passa adiante.
+            ( { model
+                | page = page
+                , presentation =
+                    { presentation
+                        | showNotes = model.presentation.showNotes
+                        , forward = model.presentation.forward
+                        , request = model.presentation.request
+                    }
+              }
+            , Cmd.none
+            )
 
         Ignored ->
             ( model, Cmd.none )

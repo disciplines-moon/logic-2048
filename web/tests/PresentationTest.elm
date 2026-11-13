@@ -58,6 +58,36 @@ suite =
                     , List.map Tuple.second (visibleBlocks 2 scene)
                     ]
                     [ [ Paragraph "a", Paragraph "b" ], [ Paragraph "c" ] ]
+        , describe "pedidos ao vivo (#10)"
+            [ test "enviar guarda o pedido, ainda sem resposta" <|
+                \_ ->
+                    Presentation.init 0 0
+                        |> Presentation.update (SendRequest "{}")
+                        |> .request
+                        |> Expect.equal (Just { body = "{}", answer = Nothing })
+            , test "a resposta do pedido atual aparece" <|
+                \_ ->
+                    Presentation.init 0 0
+                        |> Presentation.update (SendRequest "{}")
+                        |> Presentation.update (GotResponse "{}" (Ok { status = 422, body = "x" }))
+                        |> .request
+                        |> Expect.equal (Just { body = "{}", answer = Just (Ok { status = 422, body = "x" }) })
+            , test "resposta atrasada de outro pedido é descartada" <|
+                \_ ->
+                    Presentation.init 0 0
+                        |> Presentation.update (SendRequest "a")
+                        |> Presentation.update (SendRequest "b")
+                        |> Presentation.update (GotResponse "a" (Ok { status = 200, body = "x" }))
+                        |> .request
+                        |> Expect.equal (Just { body = "b", answer = Nothing })
+            , test "navegar não apaga o pedido" <|
+                \_ ->
+                    Presentation.init 0 0
+                        |> Presentation.update (SendRequest "{}")
+                        |> Presentation.update Next
+                        |> .request
+                        |> Expect.equal (Just { body = "{}", answer = Nothing })
+            ]
         , test "índice fora do limite é ajustado" <|
             \_ ->
                 Presentation.init 999 999

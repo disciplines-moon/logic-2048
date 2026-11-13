@@ -5,6 +5,7 @@ import { Elm } from "./Main.elm";
 // caminho a partir da raiz; para mostrar outro arquivo, importe-o aqui.
 import gamePl from "../../prolog/game.pl?raw";
 import mainPy from "../../server/main.py?raw";
+import testMainPy from "../../server/test_main.py?raw";
 import apiElm from "./Api.elm?raw";
 import gameElm from "./Game.elm?raw";
 import historyElm from "./Game/History.elm?raw";
@@ -14,6 +15,7 @@ import rodarSh from "../../scripts/rodar.sh?raw";
 const sources = {
   "prolog/game.pl": gamePl,
   "server/main.py": mainPy,
+  "server/test_main.py": testMainPy,
   "web/src/Api.elm": apiElm,
   "web/src/Game.elm": gameElm,
   "web/src/Game/History.elm": historyElm,
