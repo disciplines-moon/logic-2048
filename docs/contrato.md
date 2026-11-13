@@ -34,7 +34,21 @@ devolve **500** no mesmo formato. Não se usa 400. O Elm trata 422 mostrando a
 mensagem e 500 ou rede com texto genérico. **Atenção:** `Http.expectJson` descarta
 o corpo das respostas não 2xx (só entrega `BadStatus 422`). Para ler o
 `{"error": ...}`, use `Http.expectStringResponse` e decodifique o corpo quando o
-status for 422.
+status for 422 (o `Api.rawResponse` já devolve status e corpo de qualquer resposta).
+
+A mensagem é em português, porque o Elm a mostra a quem joga, e começa pelo campo
+errado quando o erro é de um campo. Vários erros saem numa frase só, separados por `; `:
+
+```
+{ "error": "direction: use 'left', 'right', 'up' ou 'down'" }
+{ "error": "board: valor inválido 3: use 0 ou uma potência de 2 a partir de 2" }
+{ "error": "board[0][1]: deve ser um número inteiro" }
+{ "error": "JSON inválido" }
+```
+
+Rota inexistente (404) e método errado (405) também respondem `{"error": ...}`. Um
+corpo que o servidor nem consegue ler (por exemplo, um número com milhares de
+dígitos) é entrada inválida: 422, nunca 400.
 
 ### `POST /api/move`
 
@@ -113,6 +127,9 @@ Conversões na fronteira (feitas no Python, testadas em `server/test_main.py`):
 `Scores` vira objeto JSON, `Best = none` vira `null`, e a falha de `challenge`
 vira `{"solvable": false, "moves": []}`. O janus converte strings Python em
 átomos, então `direction` chega ao Prolog como `left`, `right`, `up` ou `down`.
+Listas e inteiros passam como estão. Na volta, `janus.query_once` devolve um `dict`
+com as variáveis ligadas e `"truth"` (`False` quando o objetivo falha), e um par
+Prolog `left-12.5` vira a tupla Python `("left", 12.5)`.
 
 ## Exemplos de `slide_left`
 
@@ -140,5 +157,5 @@ então ninguém precisa esperar a issue anterior para começar. Os outros endpoi
 pelas issues #11 e #10, e o Elm pode usar os JSONs deste arquivo como mock:
 
 - **Elm:** use os JSONs de exemplo deste arquivo como respostas da API (por exemplo, uma função `mock` em `Api.elm`) e troque pela API real ao integrar.
-- **Python:** `/api/move` já devolve resultados reais com o `move/4` da #3, sem nenhuma mudança no Python. A validação e os handlers de erro já existem no esqueleto; a #10 revisa e completa.
+- **Python:** `/api/move` já devolve resultados reais com o `move/4` da #3, sem nenhuma mudança no Python. A validação e os handlers de erro ficaram prontos na #10: rotas novas usam o tipo `Board` do `main.py`, e os handlers do `app` já valem para elas.
 - **Prolog:** cada predicado novo precisa estar no `:- module(game, [...])` de `prolog/game.pl`, senão os testes não o enxergam.

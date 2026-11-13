@@ -1,7 +1,9 @@
 module ApiTest exposing (suite)
 
 import Api exposing (Direction(..))
+import Dict
 import Expect
+import Http
 import Json.Decode as D
 import Json.Encode as E
 import Test exposing (Test, describe, test)
@@ -62,7 +64,26 @@ suite =
             \_ ->
                 D.decodeString Api.wasdDecoder (keyIn "BODY" "a")
                     |> Expect.equal (Ok (Just Left))
+        , describe "resposta crua (#10)"
+            [ test "200 chega com o corpo" <|
+                \_ ->
+                    Api.rawResponse (Http.GoodStatus_ (metadata 200) "{\"score\":4}")
+                        |> Expect.equal (Ok { status = 200, body = "{\"score\":4}" })
+            , test "422 também chega com o corpo, que traz o error" <|
+                \_ ->
+                    Api.rawResponse (Http.BadStatus_ (metadata 422) "{\"error\":\"JSON inválido\"}")
+                        |> Expect.equal (Ok { status = 422, body = "{\"error\":\"JSON inválido\"}" })
+            , test "sem resposta é erro de rede" <|
+                \_ ->
+                    Api.rawResponse Http.NetworkError_
+                        |> Expect.equal (Err Http.NetworkError)
+            ]
         ]
+
+
+metadata : Int -> Http.Metadata
+metadata status =
+    { url = "/api/move", statusCode = status, statusText = "", headers = Dict.empty }
 
 
 {-| Evento de teclado mínimo, como o navegador manda.
