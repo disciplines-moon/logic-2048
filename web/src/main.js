@@ -9,6 +9,8 @@ import testMainPy from "../../server/test_main.py?raw";
 import apiElm from "./Api.elm?raw";
 import gameElm from "./Game.elm?raw";
 import historyElm from "./Game/History.elm?raw";
+import viewElm from "./Game/View.elm?raw";
+import mainCss from "./styles/main.css?raw";
 import ciYml from "../../.github/workflows/ci.yml?raw";
 import rodarSh from "../../scripts/rodar.sh?raw";
 
@@ -19,6 +21,8 @@ const sources = {
   "web/src/Api.elm": apiElm,
   "web/src/Game.elm": gameElm,
   "web/src/Game/History.elm": historyElm,
+  "web/src/Game/View.elm": viewElm,
+  "web/src/styles/main.css": mainCss,
   ".github/workflows/ci.yml": ciYml,
   "scripts/rodar.sh": rodarSh,
 };

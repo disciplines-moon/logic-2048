@@ -24,7 +24,7 @@ manda o tabuleiro e recebe o resultado; nunca recalcula o movimento.
 
 1. Elm recebe a tecla e monta `{board, direction}`.
 2. `POST /api/move` leva ao Python, que valida (422 se inválido).
-3. Python chama `game:move/4` e calcula `moved`, `won`, `lost`.
+3. Python chama `game:move_trace/5` (o `move/4` mais o caminho das peças) e calcula `moved`, `won`, `lost`.
 4. Elm recebe a resposta. Se `moved`, **o Elm** sorteia a peça nova (`Random`: 2 com 90%, 4 com 10%) e atualiza o `Model`.
 5. `view` desenha o novo `Model`. Efeitos (som, confete, recorde) saem por **ports**.
 
@@ -38,7 +38,7 @@ Um arquivo por responsabilidade, para duas issues não editarem o mesmo arquivo 
 
 | Arquivo | Conteúdo | Issue |
 |---|---|---|
-| `game.pl` | módulo `game`: `slide_left`, `move`, `available_moves`, `game_won`, `game_lost`. Também **reexporta** `hint/4` e `challenge/4` | #2, #3, #4 |
+| `game.pl` | módulo `game`: `slide_left`, `move`, `available_moves`, `game_won`, `game_lost` e `move_trace` (caminho das peças). Também **reexporta** `hint/4` e `challenge/4` | #2, #3, #4, #8 (`move_trace`) |
 | `hint.pl` | módulo `hint`: expectimax | #5 |
 | `challenge.pl` | módulo `challenge`: CLP(FD) e busca | #19 |
 | `test_game.pl`, `test_hint.pl`, `test_challenge.pl` | testes plunit de cada um | cada issue |
@@ -70,7 +70,7 @@ O Python continua chamando `game:hint(...)` e `game:challenge(...)`: o `game.pl`
 |---|---|---|
 | `Game.elm` | `Model`, `Msg`, `update`, `init`, teclado, sorteio, tamanho, Novo jogo | #6 |
 | `Game/History.elm` | histórico, desfazer e replay (funções puras sobre uma lista de estados; o `Game` guarda `Snapshot`s) | #7 |
-| `Game/View.elm` | `view` do tabuleiro, placar, controles, temas, `Html.Keyed` | #8 |
+| `Game/View.elm` | `view` do tabuleiro, placar, controles, temas, `Html.Keyed` (uma chave por peça, o `id`, numa vaga fixa) | #8 |
 | `Ports.elm` + `web/src/*.js` | ports e efeitos (sons, confete, recorde) | #9 |
 | `Api.elm` | cliente HTTP, decoders, `Http.Error` tratado | #6 (move), #20 (hint, challenge, erros) |
 | `Game/Assist.elm` | dica, modo IA, desafios na interface | #20 |
@@ -81,6 +81,7 @@ Regras de módulo:
 - `Game.View` só lê o `Model`. Nada de HTTP nem `Random` na `view`.
 - A apresentação reusa `Game.View` na `Demo`, então o jogo da cena é o jogo real.
 - Quando uma issue precisar de campo novo no `Model`, adicione-o em `Game.elm` num PR pequeno e avise as issues que dependem dela.
+- Campos da tela (#8): `theme` (`Dark | Light`), `pieces` (peças com `id`, posição, entrada, fantasma, idade e vaga), `nextId` e `slowMotion`. Para guardar o tema entre sessões (#9), basta mandar `ThemeChosen` com o tema salvo; Novo jogo e troca de tamanho mantêm o tema.
 
 ## Convenções
 
@@ -95,5 +96,5 @@ Regras de módulo:
 
 | Tema | Situação |
 |---|---|
-| **Deslizar fluido das peças (#8)** | **Decidido na #3: sem `moves`.** O contrato continua devolvendo só o tabuleiro final, e a #8 entrega **aparecer** e **fundir** com `Html.Keyed`. Se o grupo quiser o deslizar depois, ele entra como predicado novo (por exemplo `move_trace/5`) e campo opcional na API, sem mudar `move/4` nem o que #4, #5, #10 e #19 já usam. |
+| **Deslizar fluido das peças (#8)** | **Resolvido na #8: com `moves`.** O `move/4` não mudou. O predicado novo `move_trace/5` usa o próprio `move/4` e devolve também o caminho de cada peça, e o `/api/move` o manda no campo `moves` (contrato). O Elm só aplica o caminho: cada peça tem um `id` estável (chave do `Html.Keyed`) numa vaga fixa da lista de nós, e mudar a linha e a coluna faz a `transition` do CSS deslizá-la. A vaga fixa evita que o Elm mova nós (mover cancela a transição), a entrada da peça nunca muda (a animação não é cortada) e a fantasma de uma fusão fica três jogadas antes de sair. Sem `moves` na resposta, as peças são refeitas do tabuleiro. |
 | **Replay determinístico (#7)** | Resolvido: o `Model` guarda em `history` o tabuleiro de antes de cada jogada, já com a peça sorteada, e o replay só mostra essa lista de novo, sem sortear nem chamar o Prolog. |
