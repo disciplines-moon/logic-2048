@@ -35,7 +35,7 @@ view inPresentation model =
         ]
         [ div [ class "topbar" ]
             [ viewScore screen.score model
-            , themeButton model.theme
+            , div [ class "toggles" ] [ muteButton inPresentation model.muted, themeButton inPresentation model.theme ]
             ]
         , viewBoard model screen.board
         , if inPresentation then
@@ -104,8 +104,26 @@ viewBoard model board =
         , if model.replay == Nothing && model.status == Game.Lost then
             gameOver
 
+          else if model.replay == Nothing && model.showWin then
+            victory (List.maximum (List.concat board) |> Maybe.withDefault 0)
+
           else
             text ""
+        ]
+
+
+{-| Vitória (#9). Quem decide que venceu é o Prolog (`won`); a tela só mostra a
+maior peça do tabuleiro. O jogo continua: dá para seguir jogando ou começar outro.
+-}
+victory : Int -> Html Game.Msg
+victory biggest =
+    div [ class "board-over board-win" ]
+        [ p [ class "over-title" ] [ text "Você venceu!" ]
+        , p [ class "over-text" ] [ text ("Você chegou a " ++ String.fromInt biggest ++ ".") ]
+        , div [ class "over-actions" ]
+            [ button [ class "primary", onClick Game.WinDismissed ] [ text "Continuar jogando" ]
+            , button [ onClick Game.NewGame ] [ text "Novo jogo" ]
+            ]
         ]
 
 
@@ -212,13 +230,61 @@ tileClasses v =
 
 viewScore : Int -> Game.Model -> Html Game.Msg
 viewScore score model =
-    p [ class "score" ]
-        [ span [ class "score-label" ] [ text "Pontos" ]
+    div [ class "scores" ]
+        [ p [ class "score" ]
+            [ span [ class "score-label" ] [ text "Pontos" ]
 
-        -- O número é um contador CSS, para o placar "contar" até o valor novo.
-        , span [ class "score-num", attribute "style" ("--n:" ++ String.fromInt score) ] []
-        , replayPosition model
+            -- O número é um contador CSS, para o placar "contar" até o valor novo.
+            , span [ class "score-num", attribute "style" ("--n:" ++ String.fromInt score) ] []
+            , replayPosition model
+            ]
+
+        -- Recorde deste tamanho (#9), salvo no navegador entre sessões.
+        , p [ class "score score-best" ]
+            [ span [ class "score-label" ] [ text ("Recorde " ++ String.fromInt model.size ++ "×" ++ String.fromInt model.size) ]
+            , span [ class "best-num" ] [ text (String.fromInt (Game.bestFor model.size model)) ]
+            ]
         ]
+
+
+{-| Som ligado ou desligado (#9). A escolha fica salva no navegador.
+-}
+muteButton : Bool -> Bool -> Html Game.Msg
+muteButton compact muted =
+    let
+        ( icon, label, hint ) =
+            if muted then
+                ( "🔇", "Sem som", "Ligar os sons" )
+
+            else
+                ( "🔊", "Som", "Desligar os sons" )
+    in
+    button
+        [ class "theme"
+        , onClick Game.MuteToggled
+        , title hint
+        , attribute "aria-label" hint
+        , attribute "aria-pressed"
+            (if muted then
+                "true"
+
+             else
+                "false"
+            )
+        ]
+        [ text (iconLabel compact icon label) ]
+
+
+{-| Na demo da apresentação o botão mostra só o ícone, para a barra caber; o nome
+completo fica no `title` e no `aria-label`.
+-}
+iconLabel : Bool -> String -> String -> String
+iconLabel compact icon label =
+    if compact then
+        icon
+
+    else
+        icon ++ " " ++ label
 
 
 themeClass : Game.Theme -> String
@@ -233,14 +299,14 @@ themeClass theme =
 
 {-| O tema é só mais um campo do `Model`: o botão manda `ThemeChosen` com o outro tema.
 -}
-themeButton : Game.Theme -> Html Game.Msg
-themeButton theme =
+themeButton : Bool -> Game.Theme -> Html Game.Msg
+themeButton compact theme =
     case theme of
         Game.Dark ->
-            button [ class "theme", onClick (Game.ThemeChosen Game.Light), title "Usar o tema claro" ] [ text "☀ Claro" ]
+            button [ class "theme", onClick (Game.ThemeChosen Game.Light), title "Usar o tema claro", attribute "aria-label" "Usar o tema claro" ] [ text (iconLabel compact "☀" "Claro") ]
 
         Game.Light ->
-            button [ class "theme", onClick (Game.ThemeChosen Game.Dark), title "Usar o tema escuro" ] [ text "☾ Escuro" ]
+            button [ class "theme", onClick (Game.ThemeChosen Game.Dark), title "Usar o tema escuro", attribute "aria-label" "Usar o tema escuro" ] [ text (iconLabel compact "☾" "Escuro") ]
 
 
 

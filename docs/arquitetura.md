@@ -26,7 +26,7 @@ manda o tabuleiro e recebe o resultado; nunca recalcula o movimento.
 2. `POST /api/move` leva ao Python, que valida (422 se inválido).
 3. Python chama `game:move_trace/5` (o `move/4` mais o caminho das peças) e calcula `moved`, `won`, `lost`.
 4. Elm recebe a resposta. Se `moved`, **o Elm** sorteia a peça nova (`Random`: 2 com 90%, 4 com 10%) e atualiza o `Model`.
-5. `view` desenha o novo `Model`. Efeitos (som, confete, recorde) saem por **ports**.
+5. `view` desenha o novo `Model`. Efeitos (som, confete, recorde) saem por **ports**: o `update` devolve a lista de efeitos da jogada como dados (`Game.Effects.Effect`), e cada um vira um `Cmd` de port. O JavaScript executa.
 
 > **É um ponto de partida, não uma lei.** Quem implementa a issue tem a palavra final sobre como fazer, desde que não quebre o `contrato.md` nem o que outras issues consomem. Mudou algo? Registre em *Desvios do planejado*, avise as issues que dependem e atualize este arquivo no mesmo PR.
 
@@ -71,7 +71,8 @@ O Python continua chamando `game:hint(...)` e `game:challenge(...)`: o `game.pl`
 | `Game.elm` | `Model`, `Msg`, `update`, `init`, teclado, sorteio, tamanho, Novo jogo | #6 |
 | `Game/History.elm` | histórico, desfazer e replay (funções puras sobre uma lista de estados; o `Game` guarda `Snapshot`s) | #7 |
 | `Game/View.elm` | `view` do tabuleiro, placar, controles, temas, `Html.Keyed` (uma chave por peça, o `id`, numa vaga fixa) | #8 |
-| `Ports.elm` + `web/src/*.js` | ports e efeitos (sons, confete, recorde) | #9 |
+| `Ports.elm` + `web/src/*.js` | ports (`playSound`, `celebrate`, `saveBest`, `saveTheme`, `saveMuted`) e efeitos em `sons.js`, `confete.js` e `memoria.js` (`localStorage`); o `main.js` liga cada port e manda as preferências salvas nas flags | #9 |
+| `Game/Effects.elm` | o tipo `Effect` (efeito como dado), `perform` (efeito vira `Cmd` de port) e o decoder das preferências das flags | #9 |
 | `Api.elm` | cliente HTTP, decoders, `Http.Error` tratado | #6 (move), #20 (hint, challenge, erros) |
 | `Game/Assist.elm` | dica, modo IA, desafios na interface | #20 |
 | `Presentation.elm`, `Cenas/*` | motor da apresentação e as cenas | todas (uma cena cada) |
@@ -81,7 +82,8 @@ Regras de módulo:
 - `Game.View` só lê o `Model`. Nada de HTTP nem `Random` na `view`.
 - A apresentação reusa `Game.View` na `Demo`, então o jogo da cena é o jogo real.
 - Quando uma issue precisar de campo novo no `Model`, adicione-o em `Game.elm` num PR pequeno e avise as issues que dependem dela.
-- Campos da tela (#8): `theme` (`Dark | Light`), `pieces` (peças com `id`, posição, entrada, fantasma, idade e vaga), `nextId` e `slowMotion`. Para guardar o tema entre sessões (#9), basta mandar `ThemeChosen` com o tema salvo; Novo jogo e troca de tamanho mantêm o tema.
+- Campos da tela (#8): `theme` (`Dark | Light`), `pieces` (peças com `id`, posição, entrada, fantasma, idade e vaga), `nextId` e `slowMotion`. Novo jogo e troca de tamanho mantêm o tema.
+- Campos das comemorações (#9): `best` (recorde por N, das flags), `muted`, `celebrated` (a partida já comemorou: o confete sai uma vez, mesmo com `won` seguindo `true`), `showWin` (tela de vitória) e `ranked` (falso nos tabuleiros prontos da apresentação, que não contam para o recorde). `Game.init` recebe as preferências salvas (recorde, tema e som), que o `main.js` lê do `localStorage` e manda nas flags.
 
 ## Convenções
 

@@ -34,14 +34,14 @@ cenas =
               , blocks =
                     [ Clear
                     , Lead "O Elm só aplica o caminho."
-                    , Code { file = "web/src/Game.elm", from = 484, to = 498, mark = [ 489, 492, 495 ] }
+                    , Code { file = "web/src/Game.elm", from = 651, to = 665, mark = [ 656, 659, 662 ] }
                     ]
               }
             , { notes = "Por que a peça anda? Pela chave: o id não muda, então é o mesmo nó do navegador com outra linha e coluna, e a transition do CSS o desliza. Cada peça também mora numa vaga fixa da lista, porque se o Elm movesse o nó, o deslize seria cancelado. E a forma como a peça entrou nunca muda, para a animação não ser cortada no meio."
               , blocks =
                     [ Clear
                     , Lead "A chave é a identidade da peça."
-                    , Code { file = "web/src/Game/View.elm", from = 144, to = 150, mark = [ 144, 149, 150 ] }
+                    , Code { file = "web/src/Game/View.elm", from = 162, to = 168, mark = [ 162, 167, 168 ] }
                     , Code { file = "web/src/styles/main.css", from = 201, to = 207, mark = [ 205, 206 ] }
                     ]
               }
@@ -50,7 +50,7 @@ cenas =
                     [ Clear
                     , Lead "O tema é só mais um campo do Model."
                     , Demo
-                    , Code { file = "web/src/Game.elm", from = 312, to = 313, mark = [ 313 ] }
+                    , Code { file = "web/src/Game.elm", from = 361, to = 362, mark = [ 362 ] }
                     ]
               }
             , { notes = "A mesma view serve de 3 a 6: o tamanho da peça é uma variável por N, e a letra acompanha o tamanho e o número de dígitos. Carregar a rampa: todas as peças, de 2 a 8192, com contraste de pelo menos 4,5 para 1 nos dois tons do degradê. A partir de 2048 a peça brilha. Depois, trocar o tamanho nos botões."
