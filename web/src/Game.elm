@@ -9,6 +9,7 @@ module Game exposing
     , Status(..)
     , Theme(..)
     , Tile
+    , bestFor
     , emptyBoard
     , emptyCells
     , init
@@ -16,6 +17,7 @@ module Game exposing
     , newTile
     , piecesBoard
     , placeTiles
+    , reactions
     , replayTicks
     , shown
     , startTiles
@@ -39,6 +41,8 @@ Não conhece a apresentação nem o roteamento, e não desenha nada (a tela é `
 
 import Api exposing (Direction(..))
 import Browser.Events
+import Dict exposing (Dict)
+import Game.Effects as Effects exposing (Effect(..), Sound(..))
 import Game.History as History exposing (History, Replay)
 import Http
 import Json.Decode as D
@@ -96,6 +100,13 @@ Os quatro últimos campos são da tela (#8). `pieces` são as peças com identid
 uma casa para outra; `nextId` é o próximo `id` livre. O caminho de cada peça vem
 do Prolog (`moves` da resposta): o Elm só o aplica, não calcula nada.
 
+Os cinco últimos campos são das comemorações (#9). `best` é o recorde de cada
+tamanho (3 a 6), lido do navegador pelas flags; `muted` desliga os sons;
+`celebrated` diz que esta partida já comemorou a vitória (o `won` do Prolog segue
+verdadeiro depois de vencer, e o confete não pode repetir); `showWin` mostra a
+tela de vitória; `ranked` é falso nos tabuleiros prontos da apresentação, que não
+contam para o recorde.
+
 -}
 type alias Model =
     { board : Board
@@ -111,6 +122,11 @@ type alias Model =
     , pieces : List Piece
     , nextId : Int
     , slowMotion : Bool
+    , best : Dict Int Int
+    , muted : Bool
+    , celebrated : Bool
+    , showWin : Bool
+    , ranked : Bool
     }
 
 
@@ -165,7 +181,8 @@ peças sorteadas pelo runtime (2 no início, 1 após cada jogada); as duas traze
 tabuleiro em que foram pedidas, para descartar respostas atrasadas. `Undo` e as
 `Replay*` são do histórico (#7); `ReplayTicked` vem do relógio (`replayTicks`).
 `LoadBoard` troca o jogo por um tabuleiro pronto (os cenários da apresentação, #4).
-`ThemeChosen` e `SlowMotionToggled` são da tela (#8).
+`ThemeChosen` e `SlowMotionToggled` são da tela (#8); `MuteToggled` e
+`WinDismissed` (continuar jogando depois de vencer) são das comemorações (#9).
 -}
 type Msg
     = Pressed Direction
@@ -184,14 +201,32 @@ type Msg
     | LoadBoard Board
     | ThemeChosen Theme
     | SlowMotionToggled
+    | MuteToggled
+    | WinDismissed
     | NoOp
 
 
-{-| Jogo novo 4×4. Começa vazio e já pede o sorteio das 2 peças iniciais.
+{-| Jogo novo 4×4. Começa vazio e já pede o sorteio das 2 peças iniciais. As
+preferências salvas (recorde, tema e som) chegam pelas flags (#9).
 -}
-init : ( Model, Cmd Msg )
-init =
-    newGame 4
+init : Effects.Prefs -> ( Model, Cmd Msg )
+init prefs =
+    let
+        ( fresh, cmd ) =
+            newGame 4
+    in
+    ( { fresh
+        | best = prefs.best
+        , muted = prefs.muted
+        , theme =
+            if prefs.theme == "light" then
+                Light
+
+            else
+                Dark
+      }
+    , cmd
+    )
 
 
 newGame : Int -> ( Model, Cmd Msg )
@@ -213,12 +248,18 @@ newGame n =
       , pieces = []
       , nextId = 0
       , slowMotion = False
+      , best = Dict.empty
+      , muted = False
+      , celebrated = False
+      , showWin = False
+      , ranked = True
       }
     , Random.generate (Spawned board) (startTiles n)
     )
 
 
-{-| Jogo novo que mantém as escolhas da tela: tema e câmera lenta.
+{-| Jogo novo que mantém as escolhas de quem joga: tema, câmera lenta, som e os
+recordes. A comemoração recomeça: é outra partida.
 -}
 restart : Int -> Model -> ( Model, Cmd Msg )
 restart n model =
@@ -226,7 +267,15 @@ restart n model =
         ( fresh, cmd ) =
             newGame n
     in
-    ( { fresh | theme = model.theme, slowMotion = model.slowMotion, nextId = model.nextId }, cmd )
+    ( { fresh
+        | theme = model.theme
+        , slowMotion = model.slowMotion
+        , nextId = model.nextId
+        , best = model.best
+        , muted = model.muted
+      }
+    , cmd
+    )
 
 
 
@@ -250,7 +299,7 @@ update msg model =
                 ( model, Cmd.none )
 
             else
-                gotMove result model
+                gotMove result model |> react result model
 
         Spawned target tiles ->
             if not model.waiting || target /= model.board then
@@ -310,10 +359,26 @@ update msg model =
             loadBoard board model
 
         ThemeChosen theme ->
-            ( { model | theme = theme }, Cmd.none )
+            ( { model | theme = theme }
+            , Effects.perform
+                (SaveTheme
+                    (if theme == Light then
+                        "light"
+
+                     else
+                        "dark"
+                    )
+                )
+            )
 
         SlowMotionToggled ->
             ( { model | slowMotion = not model.slowMotion }, Cmd.none )
+
+        MuteToggled ->
+            ( { model | muted = not model.muted }, Effects.perform (SaveMuted (not model.muted)) )
+
+        WinDismissed ->
+            ( { model | showWin = False }, Cmd.none )
 
         NoOp ->
             ( model, Cmd.none )
@@ -343,6 +408,9 @@ loadBoard board model =
             , touchStart = Nothing
             , history = History.empty
             , replay = Nothing
+            , celebrated = False
+            , showWin = False
+            , ranked = False
           }
             |> rebuild
         , Cmd.none
@@ -424,6 +492,7 @@ undo model =
                     , status = previous.status
                     , history = older
                     , error = Nothing
+                    , showWin = False
                 }
 
         Nothing ->
@@ -456,6 +525,104 @@ replayTicks model =
 
         Nothing ->
             Sub.none
+
+
+
+-- COMEMORAÇÕES (#9): o que uma jogada causa fora do Elm
+
+
+{-| Junta ao resultado de uma jogada os efeitos que ela causa (som, confete,
+recorde), já como `Cmd` de port.
+-}
+react : Result Http.Error Api.MoveResponse -> Model -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+react result before ( after, cmd ) =
+    case result of
+        Ok res ->
+            let
+                ( reacted, effects ) =
+                    reactions res before after
+            in
+            ( reacted, Cmd.batch (cmd :: List.map Effects.perform effects) )
+
+        Err _ ->
+            ( after, cmd )
+
+
+{-| Os efeitos de uma jogada, como dados. É uma função pura: recebe a resposta do
+Prolog, o jogo de antes e o de depois, e devolve o jogo e a lista de efeitos.
+
+  - Vitória: `won` vem do Prolog. Ele continua verdadeiro depois de vencer, então
+    a comemoração só acontece se a partida ainda não comemorou (`celebrated`).
+  - Derrota: o `lost` do Prolog, na primeira vez em que aparece.
+  - Fusão: a jogada fez pontos (só fusões fazem pontos).
+  - Recorde: o placar passou o recorde do tamanho, numa partida que conta.
+  - Mudo: nenhum som; o confete e o recorde continuam.
+
+-}
+reactions : Api.MoveResponse -> Model -> Model -> ( Model, List Effect )
+reactions res before after =
+    let
+        win =
+            res.won && not before.celebrated
+
+        defeat =
+            res.lost && before.status /= Lost
+
+        record =
+            after.ranked && after.score > bestFor after.size after
+
+        sound =
+            if win then
+                [ Sound Victory ]
+
+            else if defeat then
+                [ Sound Defeat ]
+
+            else if res.score > 0 then
+                [ Sound Merge ]
+
+            else if res.moved then
+                [ Sound Move ]
+
+            else
+                []
+    in
+    ( { after
+        | celebrated = after.celebrated || win
+        , showWin = after.showWin || win
+        , best =
+            if record then
+                Dict.insert after.size after.score after.best
+
+            else
+                after.best
+      }
+    , (if after.muted then
+        []
+
+       else
+        sound
+      )
+        ++ (if win then
+                [ Confetti ]
+
+            else
+                []
+           )
+        ++ (if record then
+                [ SaveBest after.size after.score ]
+
+            else
+                []
+           )
+    )
+
+
+{-| O recorde de um tamanho; 0 se ainda não há.
+-}
+bestFor : Int -> Model -> Int
+bestFor size model =
+    Dict.get size model.best |> Maybe.withDefault 0
 
 
 

@@ -5,6 +5,7 @@ import Browser.Events
 import Browser.Navigation as Nav
 import Dict exposing (Dict)
 import Game
+import Game.Effects
 import Game.View
 import Html exposing (Html, button, div, h1, text)
 import Html.Attributes exposing (class)
@@ -57,7 +58,7 @@ init flags url key =
             route url
 
         ( game, gameCmd ) =
-            Game.init
+            Game.init (prefsFrom flags)
     in
     ( { key = key
       , page = page
@@ -75,6 +76,15 @@ sourcesFrom : D.Value -> Dict String String
 sourcesFrom flags =
     D.decodeValue (D.field "sources" (D.dict D.string)) flags
         |> Result.withDefault Dict.empty
+
+
+{-| Recorde, tema e som salvos no navegador (#9): o `main.js` lê o `localStorage` e
+manda nas flags. Sem nada salvo, o jogo começa com os valores padrão.
+-}
+prefsFrom : D.Value -> Game.Effects.Prefs
+prefsFrom flags =
+    D.decodeValue (D.field "prefs" Game.Effects.prefsDecoder) flags
+        |> Result.withDefault Game.Effects.defaultPrefs
 
 
 {-| `#/apresentacao` ou `#/apresentacao/N` (N de 1 em diante). Qualquer outra coisa é o jogo.

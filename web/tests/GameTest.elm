@@ -1,11 +1,14 @@
 module GameTest exposing (suite)
 
 import Api exposing (Direction(..))
+import Dict
 import Expect
 import Fuzz
 import Game exposing (Msg(..), PieceKind(..), Status(..), Theme(..))
+import Game.Effects as Effects exposing (Effect(..), Sound(..))
 import Game.View
 import Http
+import Json.Decode as D
 import Random
 import Test exposing (Test, describe, fuzz, test)
 
@@ -16,7 +19,7 @@ started : Game.Model
 started =
     let
         ( model, _ ) =
-            Game.init
+            Game.init Effects.defaultPrefs
     in
     Game.update (Spawned model.board [ tile 0 0 2, tile 0 1 2 ]) model
         |> Tuple.first
@@ -150,7 +153,7 @@ suite =
         , describe "update"
             [ test "jogo novo começa vazio, esperando o sorteio, com score 0" <|
                 \_ ->
-                    Game.init
+                    Game.init Effects.defaultPrefs
                         |> Tuple.first
                         |> Expect.all
                             [ .board >> Expect.equal (Game.emptyBoard 4)
@@ -549,6 +552,106 @@ suite =
             , test "casa vazia" <|
                 \_ -> Game.View.tileClasses 0 |> Expect.equal [ "tile", "empty" ]
             ]
+        , describe "comemorações (#9)"
+            [ test "jogada que só desliza toca o som de mover" <|
+                \_ ->
+                    react (response movedBoard 0 True) started
+                        |> Tuple.second
+                        |> Expect.equal [ Sound Move ]
+            , test "jogada que funde (fez pontos) toca o som de fundir e bate o recorde" <|
+                \_ ->
+                    react (response movedBoard 4 True) started
+                        |> Tuple.second
+                        |> Expect.equal [ Sound Merge, SaveBest 4 4 ]
+            , test "jogada que não mexe não toca nada" <|
+                \_ ->
+                    react (response started.board 0 False) started
+                        |> Tuple.second
+                        |> Expect.equal []
+            , test "a vitória do Prolog (won) dispara som, confete e a tela de vitória" <|
+                \_ ->
+                    react (won (response movedBoard 0 True)) started
+                        |> Expect.all
+                            [ Tuple.second >> Expect.equal [ Sound Victory, Confetti ]
+                            , Tuple.first >> .showWin >> Expect.equal True
+                            , Tuple.first >> .celebrated >> Expect.equal True
+                            ]
+            , test "a comemoração acontece uma única vez por partida, mesmo com won seguindo true" <|
+                \_ ->
+                    let
+                        afterWin =
+                            Tuple.first (react (won (response movedBoard 0 True)) started)
+                    in
+                    react (won (response movedBoard 0 True)) afterWin
+                        |> Tuple.second
+                        |> Expect.equal [ Sound Move ]
+            , test "a derrota toca o som só na primeira vez" <|
+                \_ ->
+                    let
+                        lost =
+                            { board = started.board, score = 0, moved = False, won = False, lost = True, moves = [] }
+
+                        once =
+                            react lost started
+                    in
+                    [ Tuple.second once, Tuple.second (react lost (Tuple.first once)) ]
+                        |> Expect.equal [ [ Sound Defeat ], [] ]
+            , test "sem som: nenhum som, mas o confete e o recorde continuam" <|
+                \_ ->
+                    react (won (response movedBoard 8 True)) { started | muted = True }
+                        |> Tuple.second
+                        |> Expect.equal [ Confetti, SaveBest 4 8 ]
+            , test "o recorde é guardado por tamanho e só quando é batido" <|
+                \_ ->
+                    let
+                        withBest =
+                            { started | best = Dict.fromList [ ( 4, 100 ), ( 3, 7 ) ] }
+                    in
+                    [ react (response movedBoard 8 True) withBest |> Tuple.second
+                    , react (response movedBoard 8 True) { withBest | score = 96 } |> Tuple.second
+                    ]
+                        |> Expect.equal [ [ Sound Merge ], [ Sound Merge, SaveBest 4 104 ] ]
+            , test "tabuleiro pronto (cenário da apresentação) não conta para o recorde" <|
+                \_ ->
+                    step (LoadBoard [ [ 1024, 1024, 0 ], [ 0, 0, 0 ], [ 0, 0, 0 ] ]) started
+                        |> react (response [ [ 2048, 0, 0 ], [ 0, 0, 0 ], [ 0, 0, 0 ] ] 2048 True)
+                        |> Tuple.second
+                        |> Expect.equal [ Sound Merge ]
+            , test "Continuar jogando fecha a tela de vitória; Novo jogo recomeça a comemoração" <|
+                \_ ->
+                    let
+                        afterWin =
+                            Tuple.first (react (won (response movedBoard 0 True)) started)
+                    in
+                    [ step WinDismissed afterWin |> (\m -> ( m.showWin, m.celebrated ))
+                    , step NewGame afterWin |> (\m -> ( m.showWin, m.celebrated ))
+                    ]
+                        |> Expect.equal [ ( False, True ), ( False, False ) ]
+            , test "Novo jogo e trocar o tamanho mantêm os recordes e o som desligado" <|
+                \_ ->
+                    let
+                        chosen =
+                            { started | best = Dict.fromList [ ( 4, 512 ) ], muted = True }
+                    in
+                    [ step NewGame chosen, step (SizeChosen 5) chosen ]
+                        |> List.map (\m -> ( Dict.toList m.best, m.muted ))
+                        |> Expect.equal [ ( [ ( 4, 512 ) ], True ), ( [ ( 4, 512 ) ], True ) ]
+            , test "as preferências salvas entram pelas flags" <|
+                \_ ->
+                    Game.init { best = Dict.fromList [ ( 4, 2048 ) ], theme = "light", muted = True }
+                        |> Tuple.first
+                        |> (\m -> ( Dict.toList m.best, m.theme, m.muted ))
+                        |> Expect.equal ( [ ( 4, 2048 ) ], Light, True )
+            , test "o decoder das flags lê o JSON do localStorage" <|
+                \_ ->
+                    D.decodeString Effects.prefsDecoder "{\"best\":{\"4\":2048,\"6\":12},\"theme\":\"light\",\"muted\":true}"
+                        |> Result.map (\p -> ( Dict.toList p.best, p.theme, p.muted ))
+                        |> Expect.equal (Ok ( [ ( 4, 2048 ), ( 6, 12 ) ], "light", True ))
+            , test "flags vazias ou estragadas viram os valores padrão" <|
+                \_ ->
+                    [ D.decodeString Effects.prefsDecoder "{}", D.decodeString Effects.prefsDecoder "{\"best\":\"x\",\"muted\":3}" ]
+                        |> Expect.equal [ Ok Effects.defaultPrefs, Ok Effects.defaultPrefs ]
+            ]
         ]
 
 
@@ -570,3 +673,21 @@ mergedTwos =
             , lost = False
             , moves = [ move ( 0, 0 ) ( 0, 0 ) True, move ( 0, 1 ) ( 0, 0 ) True ]
             }
+
+
+{-| Uma resposta do Prolog seguida dos efeitos que ela causa (a função pura do #9).
+O `answer` passa pelo `update` inteiro, que já aplica as reações; para testar a
+função sozinha, os três campos que ela muda voltam ao valor de antes.
+-}
+react : Api.MoveResponse -> Game.Model -> ( Game.Model, List Effect )
+react res model =
+    let
+        after =
+            answer res model
+    in
+    Game.reactions res model { after | best = model.best, celebrated = model.celebrated, showWin = model.showWin }
+
+
+won : Api.MoveResponse -> Api.MoveResponse
+won res =
+    { res | won = True }
