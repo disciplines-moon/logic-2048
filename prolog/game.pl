@@ -1,6 +1,6 @@
 % Motor de regras do 2048. O tabuleiro é uma lista de N linhas (listas de N
 % inteiros, 0 = vazio), com N de 3 a 6. O Prolog é puro: não sorteia peças.
-:- module(game, [slide_left/3, move/4, available_moves/2, game_won/1, game_lost/1]).
+:- module(game, [slide_left/3, move/4, available_moves/2, game_won/1, game_lost/1, move_trace/5]).
 
 %! slide_left(+Row, -NewRow, -Points) is det.
 %  Desliza uma linha para a esquerda, fundindo pares iguais vizinhos.
@@ -128,3 +128,51 @@ available_moves(Board, Dirs) :-
 game_lost(Board) :-
     \+ ( member(Row, Board), member(0, Row) ),   % não existe casa vazia...
     \+ can_move(Board, _).                       % ...nem direção que mude algo
+
+%! move_trace(+Board, +Dir, -NewBoard, -Score, -Moves) is det.
+%  Igual ao move/4, mas também conta o caminho de cada peça (#8), para a tela
+%  deslizar as peças em vez de teletransportá-las. Moves tem um item por peça
+%  do Board, na forma [LinhaDe, ColunaDe, LinhaPara, ColunaPara, Fundiu], com
+%  linhas e colunas a partir de 0 e Fundiu = true se ela entrou numa fusão.
+%  NewBoard e Score vêm do próprio move/4: o caminho só descreve o que ele fez.
+%  Ex.: [[2,2,0],[0,0,0],[0,0,0]], left ->
+%       Moves = [[0,0,0,0,true], [0,1,0,0,true]].
+move_trace(Board, Dir, NewBoard, Score, Moves) :-
+    move(Board, Dir, NewBoard, Score),
+    positions(Board, Pos),                       % [[0-0, 0-1, ...], ...]
+    maplist(maplist(cell), Board, Pos, Cells),   % cada casa vira Valor-Linha-Coluna
+    orient(Dir, Cells, Rows),                    % a jogada vira "esquerda"
+    orient(Dir, Pos, Dests),                     % e as casas de destino também
+    maplist(trace_row, Rows, Dests, RowMoves),
+    append(RowMoves, Moves).
+
+%  orient(+Dir, ?Board, ?Rows): gira o tabuleiro para a jogada virar "esquerda",
+%  como o move_dir/4 faz. Serve para qualquer conteúdo de casa.
+orient(left, Board, Board).
+orient(right, Board, Rows) :- mirror(Board, Rows).
+orient(up, Board, Rows) :- transpose_board(Board, Rows).
+orient(down, Board, Rows) :- transpose_board(Board, Cols), mirror(Cols, Rows).
+
+%  positions(+Board, -Pos): a casa de cada posição, como R-C.
+positions(Board, Pos) :-
+    length(Board, N),
+    Last is N - 1,
+    findall(Row, ( between(0, Last, R),
+                   findall(R-C, between(0, Last, C), Row) ), Pos).
+
+cell(Value, R-C, Value-R-C).
+
+%  trace_row(+Row, +Dests, -Moves): o slide_left contado peça por peça. As peças
+%  ocupam as casas de destino na ordem; um par igual divide a mesma casa.
+trace_row(Row, Dests, Moves) :-
+    exclude(empty_cell, Row, Tiles),
+    trace_merge(Tiles, Dests, Moves).
+
+empty_cell(0-_-_).
+
+trace_merge([], _, []).
+trace_merge([X-R1-C1, X-R2-C2|T], [R-C|Dests], [[R1,C1,R,C,true], [R2,C2,R,C,true]|Ms]) :-
+    !,                                % o mesmo par que o merge/3 funde
+    trace_merge(T, Dests, Ms).
+trace_merge([_-R1-C1|T], [R-C|Dests], [[R1,C1,R,C,false]|Ms]) :-
+    trace_merge(T, Dests, Ms).

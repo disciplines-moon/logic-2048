@@ -16,7 +16,7 @@ from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
-from pydantic import AfterValidator, BaseModel, StrictInt
+from pydantic import AfterValidator, BaseModel, ConfigDict, Field, StrictInt
 from starlette.exceptions import HTTPException
 
 ROOT = Path(__file__).parent
@@ -76,12 +76,23 @@ class MoveRequest(BaseModel):
     direction: Direction
 
 
+class Move(BaseModel):
+    """O caminho de uma peça (#8): de onde saiu, onde chegou e se fundiu. "from" é
+    palavra reservada do Python: o campo se chama from_ e sai no JSON como "from"."""
+
+    model_config = ConfigDict(populate_by_name=True)
+    from_: list[int] = Field(alias="from")
+    to: list[int]
+    merged: bool
+
+
 class MoveResponse(BaseModel):
     board: list[list[int]]
     score: int
     moved: bool
     won: bool
     lost: bool
+    moves: list[Move]
 
 
 # ---------------------------------------------------------------------------
@@ -165,18 +176,24 @@ async def erro_interno(_: Request, exc: Exception):
 # Rotas. Quando a função roda, a entrada já foi validada.
 
 
+def caminho(moves: list) -> list[Move]:
+    """O caminho de cada peça (#8): [linha, coluna, linha, coluna, fundiu] vira
+    {"from", "to", "merged"}. O átomo true chega do janus como a string "true"."""
+    return [Move(from_=[r0, c0], to=[r1, c1], merged=f == "true") for r0, c0, r1, c1, f in moves]
+
+
 @app.post("/api/move")
 def move(req: MoveRequest) -> MoveResponse:
     # Ida: o janus converte cada valor Python num termo Prolog. A lista de
     # listas vira lista de listas, e a string "left" vira o átomo left.
-    r = janus.query_once("game:move(B, D, N, S)", {"B": req.board, "D": req.direction})
-    # Volta: um dict com as variáveis que o Prolog ligou (N e S) e "truth", que
+    r = janus.query_once("game:move_trace(B, D, N, S, M)", {"B": req.board, "D": req.direction})
+    # Volta: um dict com as variáveis que o Prolog ligou (N, S e M) e "truth", que
     # diz se ele provou o objetivo. Falhar com entrada válida é bug: vira 500.
     if not r["truth"]:
-        raise RuntimeError("game:move/4 falhou para este tabuleiro")
-    new, score = r["N"], r["S"]
+        raise RuntimeError("game:move_trace/5 falhou para este tabuleiro")
+    new, score, moves = r["N"], r["S"], caminho(r["M"])
     # Perguntas de sim ou não: só o "truth" interessa.
     won = janus.query_once("game:game_won(B)", {"B": new})["truth"]
     lost = janus.query_once("game:game_lost(B)", {"B": new})["truth"]
     # moved só compara os dois tabuleiros: é dado, não regra de jogo.
-    return MoveResponse(board=new, score=score, moved=new != req.board, won=won, lost=lost)
+    return MoveResponse(board=new, score=score, moved=new != req.board, won=won, lost=lost, moves=moves)

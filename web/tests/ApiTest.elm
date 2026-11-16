@@ -22,7 +22,13 @@ suite =
                 D.decodeString Api.moveDecoder
                     "{\"board\":[[4]],\"score\":4,\"moved\":true,\"won\":false,\"lost\":false}"
                     |> Expect.equal
-                        (Ok { board = [ [ 4 ] ], score = 4, moved = True, won = False, lost = False })
+                        (Ok { board = [ [ 4 ] ], score = 4, moved = True, won = False, lost = False, moves = [] })
+        , test "decodifica o caminho das peças (#8)" <|
+            \_ ->
+                D.decodeString Api.moveDecoder
+                    "{\"board\":[[4]],\"score\":4,\"moved\":true,\"won\":false,\"lost\":false,\"moves\":[{\"from\":[0,1],\"to\":[0,0],\"merged\":true}]}"
+                    |> Result.map .moves
+                    |> Expect.equal (Ok [ { from = ( 0, 1 ), to = ( 0, 0 ), merged = True } ])
         , test "seta vira direção" <|
             \_ ->
                 D.decodeString Api.keyDecoder (key "ArrowLeft" False False)

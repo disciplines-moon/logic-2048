@@ -1,4 +1,4 @@
-module Api exposing (Direction(..), MoveResponse, RawResponse, encodeMove, keyDecoder, moveDecoder, postMove, postRaw, rawResponse, undoDecoder, wasdDecoder)
+module Api exposing (Direction(..), Move, MoveResponse, RawResponse, encodeMove, keyDecoder, moveDecoder, postMove, postRaw, rawResponse, undoDecoder, wasdDecoder)
 
 import Http
 import Json.Decode as D
@@ -18,6 +18,17 @@ type alias MoveResponse =
     , moved : Bool
     , won : Bool
     , lost : Bool
+    , moves : List Move
+    }
+
+
+{-| O caminho de uma peça, calculado pelo Prolog (`move_trace/5`, #8): de onde
+saiu, onde chegou (linha, coluna) e se entrou numa fusão. A tela só lê.
+-}
+type alias Move =
+    { from : ( Int, Int )
+    , to : ( Int, Int )
+    , merged : Bool
     }
 
 
@@ -121,12 +132,29 @@ encodeMove board dir =
 
 moveDecoder : D.Decoder MoveResponse
 moveDecoder =
-    D.map5 MoveResponse
+    D.map6 MoveResponse
         (D.field "board" (D.list (D.list D.int)))
         (D.field "score" D.int)
         (D.field "moved" D.bool)
         (D.field "won" D.bool)
         (D.field "lost" D.bool)
+        -- Opcional: sem `moves`, as peças só aparecem no lugar novo.
+        (D.oneOf [ D.field "moves" (D.list moveItemDecoder), D.succeed [] ])
+
+
+moveItemDecoder : D.Decoder Move
+moveItemDecoder =
+    D.map3 Move
+        (D.field "from" cellDecoder)
+        (D.field "to" cellDecoder)
+        (D.field "merged" D.bool)
+
+
+{-| Uma casa como `[linha, coluna]`.
+-}
+cellDecoder : D.Decoder ( Int, Int )
+cellDecoder =
+    D.map2 Tuple.pair (D.index 0 D.int) (D.index 1 D.int)
 
 
 postMove : List (List Int) -> Direction -> (Result Http.Error MoveResponse -> msg) -> Cmd msg

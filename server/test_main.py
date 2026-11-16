@@ -16,7 +16,7 @@ EMPTY = [[0] * 4 for _ in range(4)]
 def test_move_devolve_formato_do_contrato():
     r = client.post("/api/move", json={"board": EMPTY, "direction": "left"})
     assert r.status_code == 200
-    assert set(r.json()) == {"board", "score", "moved", "won", "lost"}
+    assert set(r.json()) == {"board", "score", "moved", "won", "lost", "moves"}
 
 
 def test_direcao_invalida():
@@ -81,7 +81,7 @@ def mover(board, direction):
 
 
 def test_move_exemplo_do_contrato_left():
-    assert mover(CONTRATO, "left") == {
+    assert sem_caminho(mover(CONTRATO, "left")) == {
         "board": [[4, 0, 0, 0], [0, 0, 0, 0], [4, 0, 0, 0], [0, 0, 0, 0]],
         "score": 4,
         "moved": True,
@@ -140,7 +140,7 @@ def erro_cru(texto):
 
 
 def test_exemplo_da_issue_3x3_left():
-    assert mover(TRES, "left") == {
+    assert sem_caminho(mover(TRES, "left")) == {
         "board": [[4, 0, 0], [8, 0, 0], [8, 0, 0]],
         "score": 12,
         "moved": True,
@@ -242,7 +242,7 @@ def test_won_e_lost_vem_do_prolog():
     assert mover([[128, 128, 0, 0], [0] * 4, [0] * 4, [0] * 4], "left")["won"] is False
     # Cheio e sem fusão: nada se move e não há saída.
     perdido = [[2, 4, 2], [4, 2, 4], [2, 4, 2]]
-    assert mover(perdido, "left") == {
+    assert sem_caminho(mover(perdido, "left")) == {
         "board": perdido,
         "score": 0,
         "moved": False,
@@ -274,14 +274,14 @@ def test_400_lancado_por_uma_rota_vira_422_sem_perder_o_detalhe():
 
 # Primeira e última linha de cada bloco Code da cena da #10, como aparecem na tela.
 RECORTES_DA_CENA_ISSUE10 = {
-    ("server/main.py", 168, 182): ('@app.post("/api/move")', "    return MoveResponse("),
+    ("server/main.py", 185, 199): ('@app.post("/api/move")', "    return MoveResponse("),
     ("server/main.py", 70, 76): ("Board = Annotated[", "    direction: Direction"),
     ("server/main.py", 55, 64): ("def validar_tabuleiro(", "    return board"),
-    ("server/main.py", 131, 134): (
+    ("server/main.py", 142, 145): (
         "@app.exception_handler(RequestValidationError)",
         "    return JSONResponse(status_code=422",
     ),
-    ("server/main.py", 156, 161): (
+    ("server/main.py", 167, 172): (
         "@app.exception_handler(Exception)",
         "    return JSONResponse(status_code=500",
     ),
@@ -304,3 +304,44 @@ def test_recortes_da_cena_issue10_continuam_no_lugar():
         linhas = (raiz / arquivo).read_text().splitlines()
         assert linhas[de - 1].startswith(primeira), (arquivo, de)
         assert linhas[ate - 1].startswith(ultima), (arquivo, ate)
+
+
+# ---------------------------------------------------------------------------
+# moves (#8): o caminho de cada peça, vindo do move_trace/5 do Prolog.
+
+
+def sem_caminho(resposta):
+    """A resposta sem o campo moves, para os testes que só olham o resto."""
+    return {k: v for k, v in resposta.items() if k != "moves"}
+
+
+def test_moves_conta_o_caminho_de_cada_peca():
+    assert mover(TRES, "left")["moves"] == [
+        {"from": [0, 0], "to": [0, 0], "merged": True},
+        {"from": [0, 1], "to": [0, 0], "merged": True},
+        {"from": [1, 1], "to": [1, 0], "merged": True},
+        {"from": [1, 2], "to": [1, 0], "merged": True},
+        {"from": [2, 2], "to": [2, 0], "merged": False},
+    ]
+
+
+def test_moves_sem_mudanca_ninguem_anda():
+    encostado = [[2, 0, 0], [4, 0, 0], [0, 0, 0]]
+    assert mover(encostado, "left")["moves"] == [
+        {"from": [0, 0], "to": [0, 0], "merged": False},
+        {"from": [1, 0], "to": [1, 0], "merged": False},
+    ]
+
+
+def test_moves_refaz_o_tabuleiro_nas_quatro_direcoes():
+    """Somar as peças em cada destino dá o tabuleiro novo, e cada peça sai uma vez."""
+    board = [[2, 2, 4, 0], [0, 4, 4, 8], [2, 0, 2, 2], [8, 8, 0, 16]]
+    for direction in ("left", "right", "up", "down"):
+        r = mover(board, direction)
+        refeito = [[0] * 4 for _ in range(4)]
+        for m in r["moves"]:
+            (r0, c0), (r1, c1) = m["from"], m["to"]
+            refeito[r1][c1] += board[r0][c0]
+        assert refeito == r["board"], direction
+        pecas = sum(v != 0 for row in board for v in row)
+        assert len({tuple(m["from"]) for m in r["moves"]}) == pecas, direction
