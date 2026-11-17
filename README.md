@@ -118,7 +118,8 @@ Build de produção da interface: `cd web && npm run build` (saída em `web/dist
 ## Testes
 
 ```bash
-swipl -g "load_files('prolog/test_game.pl'),run_tests" -t halt   # Prolog
+swipl -g "load_files('prolog/test_game.pl'),run_tests" -t halt        # Prolog
+swipl -g "load_files('prolog/test_challenge.pl'),run_tests" -t halt   # Prolog (desafios)
 cd server && uv run pytest                                      # API
 cd web && npm run check                                          # Elm: formato, testes e build
 ```

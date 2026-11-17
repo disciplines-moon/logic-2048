@@ -22,7 +22,7 @@ Logic2048: 2048 com Prolog (regras), Python (ponte) e Elm (interface). Código e
 - São 14 issues de funcionalidade (#2 a #11, #13, #14, #19, #20), cada pessoa com 2 em sequência, e a #17 de estruturação. Dependências estão em *Relationships* e os prazos no Project (Target date).
 - Cada issue tem critérios de aceite e exemplo de entrada e saída: cumpra todos e não amplie o escopo.
 - Teste e formate antes do PR:
-  - Prolog: `swipl -g "load_files('prolog/test_game.pl'),run_tests" -t halt`
+  - Prolog: `swipl -g "load_files('prolog/test_game.pl'),run_tests" -t halt` (e o mesmo para cada `prolog/test_*.pl`, como o CI)
   - Python: `cd server && uv run pytest` (se o `janus-swi` falhar no gcc 14+, use `CFLAGS="-Wno-error=incompatible-pointer-types"`)
   - Elm: `cd web && npm run check`
 - **Quem implementa precisa saber explicar**: ao concluir, deixe no PR um resumo curto de como funciona, com foco no paradigma (veja "Para explicar na apresentação" na issue).

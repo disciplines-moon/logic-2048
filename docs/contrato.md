@@ -115,7 +115,7 @@ nova nasce**: só vale deslizar e fundir o que já está no tabuleiro.
 
 Regras do desafio:
 - Vence quando **alguma peça >= `target`** (não precisa ser igual).
-- `moves` é a **menor** sequência encontrada, com **no máximo** `max_moves` jogadas (`max_moves` entre 1 e 6, senão 422).
+- `moves` é a **menor** sequência encontrada, com **no máximo** `max_moves` jogadas (`max_moves` entre 1 e 6, senão 422). Entre sequências do mesmo tamanho, vale a primeira na ordem `left`, `right`, `up`, `down` (a mesma do `available_moves/2`).
 - Jogada que não muda o tabuleiro não conta e nunca entra em `moves`.
 - Se o tabuleiro **já** tem peça >= `target`, a resposta é `{ "solvable": true, "moves": [] }`. Os desafios de `challenges.json` começam sempre com todas as peças menores que `target`.
 - Como a soma das peças não muda sem peças novas, `target` maior que a soma não tem solução.
