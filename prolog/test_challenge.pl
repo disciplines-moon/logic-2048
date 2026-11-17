@@ -74,8 +74,8 @@ test(sem_jogada_possivel, [fail]) :-
 test(soma_basta_mas_jogadas_nao, [fail]) :-
     challenge([[2,0,0,2],[0,4,0,0],[0,0,0,0],[2,0,0,4]], 16, 4, _).
 test(peca_isolada_nao_funde, [fail]) :-
-    % soma 12 >= 8, mas 4 e 8 nunca viram 8 nem maior além do próprio 8...
-    % aqui o alvo 16 exige fundir 8 com 8, e só há um 8.
+    % A soma (12) não barra, mas 16 só sai de 8 + 8, e há um 8 só (o 4 não
+    % tem par). Nenhuma sequência chega lá: a busca esgota e falha.
     challenge([[8,0,0,0],[0,0,0,0],[0,0,0,4],[0,0,0,0]], 16, 6, _).
 test(tabuleiro_vazio, [fail]) :-
     challenge([[0,0,0],[0,0,0],[0,0,0]], 2, 6, _).
@@ -272,11 +272,11 @@ gera_e_testa(Board, Target, Max, Moves) :-
 
 codigo(C, D) :- nth1(C, [left, right, up, down], D).
 
-%  comparar: imprime a tabela da cena (inferências e tempo). Rode com:
+%  comparar: imprime a tabela da cena (inferências e tempo). Cada busca roda uma
+%  vez antes de medir, então as inferências são sempre as mesmas. Rode com:
 %  swipl -g "load_files('prolog/test_challenge.pl'),comparar" -t halt
 comparar :-
     desafio(c2, _, C2, _, _, _),
-    ignore(challenge(C2, 16, 5, _)),  % aquece: a primeira chamada do CLP(FD) custa mais
     forall(member(Nome-B-T-Max,
                   [ 'c2: alvo 16, 5 jogadas'-C2-16-5,
                     'c2: alvo 32 (soma 16)'-C2-32-6,
@@ -285,7 +285,8 @@ comparar :-
              forall(member(Rotulo-G, [ 'CLP(FD) + busca'-challenge(B, T, Max, _),
                                        'busca sem poda'-busca_pura(B, T, Max, _),
                                        'gera e testa'-gera_e_testa(B, T, Max, _) ]),
-                    ( inferencias(G, I), tempo(G, Ms),
+                    ( inferencias(G, _),      % aquece: a 1ª chamada custa mais (carga do CLP(FD))
+                      inferencias(G, I), tempo(G, Ms),
                       format("  ~w~t~18|~t~D~12| inferências ~t~1f~8| ms~n", [Rotulo, I, Ms]) )) )).
 
 tempo(Goal, Ms) :-

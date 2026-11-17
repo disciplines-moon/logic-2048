@@ -33,7 +33,7 @@ cenas =
                     , Pre "Alvo > soma  ⇒  impossível, sem simular nenhuma jogada."
                     ]
               }
-            , { notes = "Aqui entra o CLP(FD). Não escrevemos um if: declaramos uma restrição. O sum diz que Sum é a soma das casas, e o #=< diz que o alvo cabe nessa soma. Se não cabe, o predicado falha nessa linha. No exemplo da issue, a soma é 2 e o alvo é 8: falso em 239 inferências, sem tocar no move/4."
+            , { notes = "Aqui entra o CLP(FD). Não escrevemos um if: declaramos uma restrição. O sum diz que Sum é a soma das casas, e o #=< diz que o alvo cabe nessa soma. Se não cabe, o predicado falha nessa linha. No exemplo da issue, a soma é 2 e o alvo é 8: falso em poucas centenas de inferências, sem tocar no move/4. Se for rodar ao vivo, faça uma consulta antes: a primeira chamada do processo custa perto de 2 mil, porque o CLP(FD) ainda está carregando."
               , blocks =
                     [ Clear
                     , Code { file = "prolog/challenge.pl", from = 33, to = 41, mark = [ 40, 41 ] }
@@ -79,10 +79,10 @@ cenas =
                     , Pre "?- challenge(C3, 16, 4, M).\nM = [left, up, left, up].\n\n?- challenge(C3, 16, 3, M).\nfalse."
                     ]
               }
-            , { notes = "Comparação medida, em inferências, que não dependem da máquina. Busca sem poda é o mesmo backtracking sem as restrições. Gera e testa rotula a lista inteira e só depois simula. Quando a poda corta, o ganho é enorme: alvo 32 com soma 16 custa 244 inferências contra meio milhão. No misto, o crescimento poda no meio da busca e gasta menos da metade. Mas, num desafio curto como o c2, a poda quase não corta, e a diferença é pequena. O CLP(FD) resolve domínio e poda. A escolha das jogadas continua sendo busca."
+            , { notes = "Comparação medida em inferências, que não dependem da máquina. Cada busca roda uma vez antes de medir, para tirar o custo de carregar o CLP(FD). Busca sem poda é o mesmo backtracking sem as restrições. Gera e testa rotula a lista inteira e só depois simula. Quando a poda corta, o ganho é enorme: alvo 32 com soma 16 custa 244 inferências contra meio milhão. No misto, o crescimento poda no meio da busca e gasta menos da metade. Mas, num desafio curto como o c2, a poda quase não corta, e a diferença é pequena. O CLP(FD) resolve domínio e poda. A escolha das jogadas continua sendo busca."
               , blocks =
                     [ Clear
-                    , Pre "                             CLP(FD) + busca   busca sem poda   gera e testa\nc2: alvo 16, 5 jogadas               40.715           46.461        172.464\nc2: alvo 32 (soma 16)                   244          560.973      6.297.587\nmisto: alvo 64, 6 jogadas           118.715          302.945      4.452.993\n\ninferências no SWI-Prolog 10.0.2 (comparar/0 em prolog/test_challenge.pl)"
+                    , Pre "                             CLP(FD) + busca   busca sem poda   gera e testa\nc2: alvo 16, 5 jogadas               40.715           46.460        172.305\nc2: alvo 32 (soma 16)                   244          560.973      6.297.587\nmisto: alvo 64, 6 jogadas           118.715          302.945      4.452.993\n\ninferências no SWI-Prolog 10.0.2, cada busca aquecida antes (comparar/0 em prolog/test_challenge.pl)"
                     , Bullets
                         [ "CLP(FD): domínios (in, ins) e poda pela soma e pelo crescimento."
                         , "Busca: o efeito de cada jogada (move/4), com labeling e backtracking."
@@ -94,7 +94,7 @@ cenas =
                     [ Clear
                     , Lead "Alvo impossível: o Prolog responde na hora."
                     , Tabuleiros [ etapa "c2: soma 16" "" c2 ]
-                    , Pre "?- challenge(C2, 16, 5, M).\nM = [right, up, up, left].\n\n?- challenge(C2, 32, 6, M).\nfalse.        % 32 > 16: 244 inferências"
+                    , Pre "?- challenge(C2, 16, 5, M).\nM = [right, up, up, left].\n\n?- challenge(C2, 32, 6, M).\nfalse.        % 32 > 16: falha antes de qualquer jogada"
                     ]
               }
             ]
