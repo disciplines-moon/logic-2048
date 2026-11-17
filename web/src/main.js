@@ -7,6 +7,7 @@ import { lerPreferencias, salvarRecorde, salvarTema, salvarMudo } from "./memori
 // Arquivos do repositório que os slides mostram (bloco `Code`). A chave é o
 // caminho a partir da raiz; para mostrar outro arquivo, importe-o aqui.
 import gamePl from "../../prolog/game.pl?raw";
+import challengePl from "../../prolog/challenge.pl?raw";
 import mainPy from "../../server/main.py?raw";
 import testMainPy from "../../server/test_main.py?raw";
 import apiElm from "./Api.elm?raw";
@@ -24,6 +25,7 @@ import rodarSh from "../../scripts/rodar.sh?raw";
 
 const sources = {
   "prolog/game.pl": gamePl,
+  "prolog/challenge.pl": challengePl,
   "server/main.py": mainPy,
   "server/test_main.py": testMainPy,
   "web/src/Api.elm": apiElm,
