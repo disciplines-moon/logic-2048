@@ -2,7 +2,8 @@ module PresentationTest exposing (suite)
 
 import Api
 import Cenas
-import Cenas.Types exposing (Block(..), visibleBlocks)
+import Cenas.Equipe
+import Cenas.Types exposing (Block(..), sceneSecs, visibleBlocks)
 import Expect
 import Json.Decode as D
 import Presentation exposing (Msg(..))
@@ -47,9 +48,9 @@ suite =
                         { issue = 0
                         , title = ""
                         , steps =
-                            [ { notes = "", blocks = [ Paragraph "a" ] }
-                            , { notes = "", blocks = [ Paragraph "b" ] }
-                            , { notes = "", blocks = [ Clear, Paragraph "c" ] }
+                            [ { notes = "", secs = 0, blocks = [ Paragraph "a" ] }
+                            , { notes = "", secs = 0, blocks = [ Paragraph "b" ] }
+                            , { notes = "", secs = 0, blocks = [ Clear, Paragraph "c" ] }
                             ]
                         }
                 in
@@ -58,6 +59,31 @@ suite =
                     , List.map Tuple.second (visibleBlocks 2 scene)
                     ]
                     [ [ Paragraph "a", Paragraph "b" ], [ Paragraph "c" ] ]
+        , describe "tempo e falas (15 minutos, todos falam)"
+            [ test "a soma das falas cabe em 14 minutos, com folga para as trocas" <|
+                \_ -> Cenas.all |> List.map sceneSecs |> List.sum |> Expect.atMost (14 * 60)
+            , test "todo passo tem fala e tempo" <|
+                \_ ->
+                    Cenas.all
+                        |> List.concatMap .steps
+                        |> List.filter (\s -> s.secs <= 0 || String.isEmpty s.notes)
+                        |> List.length
+                        |> Expect.equal 0
+            , test "cada integrante apresenta pelo menos 1 minuto" <|
+                \_ ->
+                    Cenas.Equipe.equipe
+                        |> List.filter
+                            (\( m, _ ) ->
+                                (Cenas.all
+                                    |> List.filter (\sc -> Cenas.Equipe.apresentador sc.issue == Just m)
+                                    |> List.map sceneSecs
+                                    |> List.sum
+                                )
+                                    < 60
+                            )
+                        |> List.map (Tuple.first >> .name)
+                        |> Expect.equal []
+            ]
         , describe "demo só no passo que a mostra"
             [ test "a capa não mostra a demo (o jogo fica parado)" <|
                 \_ -> Presentation.init 0 0 |> Presentation.showsDemo |> Expect.equal False

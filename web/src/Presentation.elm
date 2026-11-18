@@ -11,7 +11,7 @@ no painel do apresentador (tecla `n`).
 import Api
 import Cenas
 import Cenas.Equipe
-import Cenas.Types exposing (Block(..), Etapa, FlowNode, Member, Pedido, Scene, Step, visibleBlocks)
+import Cenas.Types exposing (Block(..), Etapa, FlowNode, Member, Pedido, Ramo, Scene, Step, sceneSecs, visibleBlocks)
 import Dict exposing (Dict)
 import Html exposing (Html, button, div, h1, h2, kbd, li, p, pre, span, text, ul)
 import Html.Attributes exposing (attribute, class, classList, style)
@@ -305,7 +305,7 @@ view config model =
                       )
                     ]
                 , if model.showNotes then
-                    viewNotes scene.issue (List.head (List.drop model.step scene.steps))
+                    viewNotes model scene
 
                   else
                     text ""
@@ -340,27 +340,73 @@ viewBlockAt config model ( born, block ) =
         [ viewBlock config model.request block ]
 
 
-{-| A fala do passo, com a foto e o nome de quem apresenta (o dono da issue).
+{-| A fala do passo, com a foto e o nome de quem apresenta (o dono da issue), e o
+relógio do ensaio: quanto este passo leva e em que minuto a fala termina.
 -}
-viewNotes : Int -> Maybe Step -> Html msg
-viewNotes issue maybeStep =
-    div [ class "notes" ]
-        [ case Cenas.Equipe.apresentador issue of
-            Just m ->
-                -- Na mesma linha da fala, para não roubar largura do texto.
-                span [ class "speaker" ]
-                    [ span [ class "speaker-avatar" ]
-                        [ span [ class "initial" ] [ text (String.left 1 m.name) ]
-                        , Html.img [ Html.Attributes.src ("https://github.com/" ++ m.login ++ ".png?size=96"), Html.Attributes.alt "", Html.Attributes.attribute "referrerpolicy" "no-referrer" ] []
-                        ]
-                    , span [ class "speaker-name" ] [ text m.name ]
-                    ]
+viewNotes : Model -> Scene -> Html msg
+viewNotes model scene =
+    let
+        current =
+            List.head (List.drop model.step scene.steps)
 
-            Nothing ->
-                text ""
-        , Html.b [] [ text "FALA" ]
-        , text (Maybe.map .notes maybeStep |> Maybe.withDefault "")
+        secs =
+            Maybe.map .secs current |> Maybe.withDefault 0
+
+        ends =
+            elapsedBefore model + secs
+    in
+    div [ class "notes" ]
+        [ div [ class "notes-head" ]
+            [ case Cenas.Equipe.apresentador scene.issue of
+                Just m ->
+                    span [ class "speaker" ]
+                        [ span [ class "speaker-avatar" ]
+                            [ span [ class "initial" ] [ text (String.left 1 m.name) ]
+                            , Html.img [ Html.Attributes.src ("https://github.com/" ++ m.login ++ ".png?size=96"), Html.Attributes.alt "", Html.Attributes.attribute "referrerpolicy" "no-referrer" ] []
+                            ]
+                        , span [ class "speaker-name" ] [ text m.name ]
+                        ]
+
+                Nothing ->
+                    text ""
+            , span [ class "timer" ]
+                [ span [ class "timer-step" ] [ text ("⏱ " ++ String.fromInt secs ++ " s") ]
+                , span [ class "timer-total" ] [ text ("até " ++ clock ends ++ " de " ++ clock totalSecs) ]
+                ]
+            ]
+        , p [ class "notes-text" ] [ text (Maybe.map .notes current |> Maybe.withDefault "") ]
         ]
+
+
+{-| Segundos de fala antes do passo atual (todas as cenas anteriores e os passos
+anteriores desta).
+-}
+elapsedBefore : Model -> Int
+elapsedBefore model =
+    let
+        previous =
+            scenes |> List.take model.scene |> List.map (\( _, sc ) -> sceneSecs sc) |> List.sum
+
+        here =
+            scenes
+                |> List.drop model.scene
+                |> List.head
+                |> Maybe.map (\( _, sc ) -> sc.steps |> List.take model.step |> List.map .secs |> List.sum)
+                |> Maybe.withDefault 0
+    in
+    previous + here
+
+
+{-| A apresentação inteira, em segundos de fala.
+-}
+totalSecs : Int
+totalSecs =
+    scenes |> List.map (\( _, sc ) -> sceneSecs sc) |> List.sum
+
+
+clock : Int -> String
+clock secs =
+    String.fromInt (secs // 60) ++ ":" ++ String.padLeft 2 '0' (String.fromInt (modBy 60 secs))
 
 
 viewFooter : Config msg -> Model -> Scene -> Html msg
@@ -478,6 +524,15 @@ viewBlock config request block =
 
         PedidosEm url pedidos ->
             viewPedidos config request url pedidos
+
+        Ciclo { nodes, back } ->
+            viewCiclo nodes back
+
+        Converte { title, pairs } ->
+            viewConverte title pairs
+
+        Arvore { root, branches } ->
+            viewArvore root branches
 
         Clear ->
             text ""
@@ -811,6 +866,135 @@ viewFlow nodes active back =
         , div [ class "flow-detail" ] [ text detail ]
         , viewArt art
         ]
+
+
+{-| Um laço que gira sozinho: cada etapa acende na sua vez (`animation-delay`) e o
+ciclo recomeça. As classes `cyc-n3` a `cyc-n6` têm os keyframes de cada tamanho,
+porque o pedaço aceso é 1/N do ciclo.
+-}
+viewCiclo : List FlowNode -> String -> Html msg
+viewCiclo nodes back =
+    let
+        n =
+            List.length nodes
+
+        node i nd =
+            div
+                [ class "node cnode"
+                , class ("k" ++ String.fromInt (modBy 4 i))
+                , style "animation-delay" (String.fromFloat (toFloat i * cicloBeat) ++ "s")
+                , style "animation-duration" (String.fromFloat (toFloat n * cicloBeat) ++ "s")
+                ]
+                [ div [ class "node-logo" ] [ nodeLogo nd.art ]
+                , div [ class "label" ] [ text nd.label ]
+                , div [ class "sub" ] [ text nd.sub ]
+                , if nd.detail == "" then
+                    text ""
+
+                  else
+                    div [ class "cnode-detail" ] [ text nd.detail ]
+                ]
+
+        arrow i =
+            span
+                [ class "arrow carrow"
+                , style "animation-delay" (String.fromFloat (toFloat i * cicloBeat) ++ "s")
+                , style "animation-duration" (String.fromFloat (toFloat n * cicloBeat) ++ "s")
+                ]
+                [ text "→" ]
+    in
+    div [ class ("ciclo cyc-n" ++ String.fromInt (clamp 2 6 n)) ]
+        [ div [ class "flow" ]
+            (nodes
+                |> List.indexedMap
+                    (\i nd ->
+                        node i nd
+                            :: (if i < n - 1 then
+                                    [ arrow i ]
+
+                                else
+                                    []
+                               )
+                    )
+                |> List.concat
+            )
+        , if back == "" then
+            text ""
+
+          else
+            div [ class "ciclo-back" ] [ text back ]
+        ]
+
+
+{-| A árvore do expectimax, de baixo para cima: as folhas entram primeiro (a nota
+de cada tabuleiro depois do sorteio), depois a média de cada jogada sobe pela
+aresta, e por fim a raiz escolhe o máximo e o ramo vencedor acende.
+-}
+viewArvore : String -> List Ramo -> Html msg
+viewArvore root branches =
+    let
+        leaf b j ( chance, nota ) =
+            div [ classList [ ( "arv-leaf", True ), ( "lost", nota == "PERDE" ) ], style "animation-delay" (String.fromFloat (0.3 + toFloat b * 0.25 + toFloat j * 0.12) ++ "s") ]
+                [ span [ class "arv-chance" ] [ text chance ]
+                , span [ class "arv-nota" ] [ text nota ]
+                ]
+
+        branch b r =
+            div [ classList [ ( "arv-branch", True ), ( "best", r.best ) ] ]
+                [ div [ class "arv-move", style "animation-delay" (String.fromFloat (0.15 + toFloat b * 0.2) ++ "s") ] [ text r.label ]
+                , div [ class "arv-chance-node", style "animation-delay" (String.fromFloat (1.6 + toFloat b * 0.35) ++ "s") ]
+                    [ span [ class "arv-kind" ] [ text "média" ]
+                    , span [ class "arv-value" ] [ text r.value ]
+                    ]
+                , div [ class "arv-leaves" ] (List.indexedMap (leaf b) r.leaves)
+                ]
+    in
+    div [ class "arvore" ]
+        [ div [ class "arv-root" ]
+            [ span [ class "arv-kind" ] [ text "máximo" ]
+            , span [ class "arv-value" ] [ text root ]
+            ]
+        , div [ class "arv-branches" ] (List.indexedMap branch branches)
+        ]
+
+
+{-| Segundos que cada etapa do `Ciclo` (e cada linha acesa do código) fica acesa.
+-}
+cicloBeat : Float
+cicloBeat =
+    1.8
+
+
+{-| Linhas "entra → sai". Cada linha entra na sua vez: o valor da esquerda, a seta
+com um ponto que atravessa e o valor da direita. Depois, as linhas acendem uma de
+cada vez, em ciclo, como o `Ciclo`.
+-}
+viewConverte : String -> List ( String, String ) -> Html msg
+viewConverte title pairs =
+    let
+        n =
+            List.length pairs
+
+        row i ( from, to ) =
+            div
+                [ class "conv-row"
+                , style "animation-delay" (String.fromFloat (toFloat i * 0.9) ++ "s, " ++ String.fromFloat (toFloat n * 0.9 + toFloat i * cicloBeat) ++ "s")
+                , style "animation-duration" ("0.5s, " ++ String.fromFloat (toFloat n * cicloBeat) ++ "s")
+                ]
+                [ span [ class "conv-from" ] [ text from ]
+                , span [ class "conv-arrow", style "animation-delay" (String.fromFloat (toFloat i * 0.9 + 0.3) ++ "s") ] [ span [ class "conv-dot" ] [] ]
+                , span [ class "conv-to", style "animation-delay" (String.fromFloat (toFloat i * 0.9 + 0.6) ++ "s") ] [ text to ]
+                ]
+    in
+    div [ class ("converte cyc-n" ++ String.fromInt (clamp 2 6 n)) ]
+        ((if title == "" then
+            []
+
+          else
+            [ div [ class "conv-title" ] [ text title ] ]
+         )
+            ++ List.indexedMap row pairs
+        )
 
 
 {-| Botões com pedidos prontos e, depois do primeiro clique, o pedido enviado ao
@@ -1362,6 +1546,29 @@ excerpt sources file from to mark =
 
                     else
                         to
+
+                marks =
+                    mark |> List.filter (\n -> n >= start && n <= last) |> List.sort
+
+                tour =
+                    List.length marks
+
+                -- Com 2 ou mais linhas marcadas, elas acendem uma de cada vez, em
+                -- ciclo (o "tour"), depois que o trecho termina de entrar.
+                tourStyle n =
+                    case indexOf n marks of
+                        Just j ->
+                            if tour >= 2 then
+                                [ class ("tour tour-n" ++ String.fromInt (min 8 tour))
+                                , style "animation-delay" (String.fromInt (min 600 ((n - start) * 30)) ++ "ms, " ++ String.fromFloat (1.0 + toFloat j * cicloBeat) ++ "s")
+                                , style "animation-duration" ("0.4s, " ++ String.fromFloat (toFloat (min 8 tour) * cicloBeat) ++ "s")
+                                ]
+
+                            else
+                                [ style "animation-delay" (String.fromInt (min 600 ((n - start) * 30)) ++ "ms") ]
+
+                        Nothing ->
+                            [ style "animation-delay" (String.fromInt (min 600 ((n - start) * 30)) ++ "ms") ]
             in
             lines
                 |> List.indexedMap (\i l -> ( i + 1, l ))
@@ -1369,9 +1576,7 @@ excerpt sources file from to mark =
                 |> List.map
                     (\( n, l ) ->
                         div
-                            [ classList [ ( "line", True ), ( "mark", List.member n mark ) ]
-                            , style "animation-delay" (String.fromInt (min 600 ((n - start) * 30)) ++ "ms")
-                            ]
+                            (classList [ ( "line", True ), ( "mark", List.member n mark ) ] :: tourStyle n)
                             [ span [ class "no" ] [ text (String.fromInt n) ]
                             , text (l ++ " ")
                             ]
@@ -1469,3 +1674,12 @@ viewMember i m =
         , div [ class "mname" ] [ text m.name ]
         , div [ class "mlogin" ] [ text ("@" ++ m.login) ]
         ]
+
+
+indexOf : a -> List a -> Maybe Int
+indexOf x xs =
+    xs
+        |> List.indexedMap Tuple.pair
+        |> List.filter (\( _, y ) -> y == x)
+        |> List.head
+        |> Maybe.map Tuple.first

@@ -1,6 +1,6 @@
 module Cenas.Issue06 exposing (cenas)
 
-import Cenas.Types exposing (Block(..), FlowNode, Scene, Step)
+import Cenas.Types exposing (Block(..), FlowNode, Scene)
 
 
 cenas : List Scene
@@ -8,53 +8,41 @@ cenas =
     [ { issue = 6
       , title = "Elm: estado, Random e TEA"
       , steps =
-            [ cycle "Toda tela em Elm segue o mesmo ciclo, a arquitetura TEA. Começa com uma Msg: um valor que descreve o que aconteceu. Apertar A (esquerda) vira Pressed Left. Ainda não mudou nada." 0
-            , cycle "A Msg vai para o update, uma função pura: recebe a Msg e o Model antigo e devolve um Model novo. É o único lugar onde o estado muda. Não há atribuição solta pelo código." 1
-            , cycle "O Model novo é outro valor. O antigo continua intacto, porque em Elm nada é mutável. É isso que a #7 vai usar para desfazer: guardar os estados antigos." 2
-            , cycle "A view só lê o Model e desenha. Não sorteia, não fala com o servidor. Depois de desenhar, o app espera a próxima Msg e o ciclo recomeça." 3
-            , { notes = "O estado do jogo inteiro cabe nesse registro: tabuleiro, tamanho, pontos e status. Histórico e replay são da próxima cena (#7), os quatro seguintes (tema, peças com identidade, próximo id e câmera lenta) são da tela, na #8, os cinco seguintes (recordes, som, comemoração e tela de vitória) são da #9, e o último, assist, guarda a dica, a IA e os desafios da #20."
+            [ { notes = "Toda tela em Elm segue o mesmo ciclo. Uma Msg descreve o que aconteceu. O update, uma função pura, recebe a Msg e o Model antigo e devolve um Model novo: é o único lugar onde o estado muda. O antigo continua intacto. A view só lê o Model e desenha, e o ciclo recomeça."
+              , secs = 20
               , blocks =
-                    [ Clear
-                    , Code { file = "web/src/Game.elm", from = 113, to = 133, mark = [ 114, 115, 116, 117 ] }
+                    [ Lead "Msg → update → Model novo → view, e de novo."
+                    , Ciclo { nodes = tea, back = "↩  a view espera a próxima Msg, e o ciclo recomeça" }
                     ]
               }
-            , { notes = "E as Msg são tudo o que pode acontecer: tecla, resposta do servidor, peças sorteadas, novo jogo, troca de tamanho, toque na tela. Desfazer e replay também são da #7, e AssistMsg leva as mensagens da dica, da IA e dos desafios (#20)."
+            , { notes = "Quando o Prolog responde, o update soma os pontos. Se o tabuleiro mudou, ele não sorteia: devolve um pedido, Random.generate, para o runtime sortear. O resultado volta como outra Msg, Spawned. Se não mudou, nada nasce."
+              , secs = 20
               , blocks =
                     [ Clear
-                    , Code { file = "web/src/Game.elm", from = 190, to = 210, mark = [ 191, 192, 193 ] }
+                    , Code { file = "web/src/Game.elm", from = 449, to = 455, mark = [ 449, 450, 451, 455 ] }
+                    , Converte
+                        { title = "uma jogada, Msg por Msg"
+                        , pairs =
+                            [ ( "Pressed Left", "Cmd: POST /api/move   (waiting = True)" )
+                            , ( "GotMove (Ok res), res.moved", "Cmd: Random.generate (Spawned board) …" )
+                            , ( "Spawned [ peça 2 em (3, 1) ]", "Model novo: a peça nasce, waiting = False" )
+                            ]
+                        }
                     ]
               }
-            , { notes = "Apertar uma tecla não muda o tabuleiro. O update devolve um par: o Model, só marcando que está esperando, e um Cmd, que é um pedido para o runtime do Elm fazer o POST /api/move. Quem decide a jogada é o Prolog."
+            , { notes = "Por que o sorteio fica no Elm? O Prolog é puro: mesma entrada, mesma saída. Sortear muda a cada vez, então é um efeito. Um Generator não sorteia, só descreve: 2 com peso 90, 4 com peso 10. Quem executa é o runtime."
+              , secs = 15
               , blocks =
                     [ Clear
-                    , Code { file = "web/src/Game.elm", from = 291, to = 299, mark = [ 294, 299 ] }
-                    ]
-              }
-            , { notes = "Quando o Prolog responde, o update soma os pontos. Se o tabuleiro mudou, pede ao runtime um sorteio com Random.generate. Se não mudou, não sorteia nada. O resultado do sorteio volta como mais uma Msg, Spawned. Detalhe: a derrota só aparece na tecla seguinte ao tabuleiro travar. Quem sabe se ainda há jogada é o Prolog, e ele responde sobre o tabuleiro de antes do sorteio; o Elm só descobre que travou ao mandar a próxima jogada."
-              , blocks =
-                    [ Clear
-                    , Code { file = "web/src/Game.elm", from = 437, to = 455, mark = [ 444, 449, 451, 455 ] }
-                    ]
-              }
-            , { notes = "Por que o sorteio fica no Elm? O Prolog é puro: o mesmo tabuleiro sempre dá a mesma resposta. Sortear dá um resultado diferente a cada vez, então é um efeito. Um Generator não sorteia: só descreve o sorteio. 2 com peso 90, 4 com peso 10, numa casa vazia qualquer. Quem executa é o runtime."
-              , blocks =
-                    [ Clear
-                    , Code { file = "web/src/Game.elm", from = 823, to = 825, mark = [ 825 ] }
-                    , Code { file = "web/src/Game.elm", from = 836, to = 839, mark = [ 837, 838, 839 ] }
-                    , Pre "Prolog   move(Board, left, New, Score)      mesma entrada → mesma saída\nElm      Random.generate Spawned gerador    o runtime sorteia → Msg"
-                    ]
-              }
-            , { notes = "Agora ao vivo. Jogar com W, A, S, D. Cada tecla vira uma Msg, o update troca o Model e a view redesenha. Repare: a cada jogada que mexe nasce exatamente uma peça; se a jogada não mexe, nada nasce."
-              , blocks =
-                    [ Clear
-                    , Lead "Cada tecla: Msg → update → Model novo → view."
-                    , Demo
-                    , Code { file = "web/src/Game.elm", from = 449, to = 452, mark = [ 451 ] }
-                    ]
-              }
-            , { notes = "Trocar o tamanho do tabuleiro ao vivo, de 3 a 6. É o mesmo código para qualquer N: a Msg SizeChosen só cria um jogo novo com o N escolhido, e o Prolog recebe o tabuleiro do tamanho que vier."
-              , blocks =
-                    [ Code { file = "web/src/Game.elm", from = 320, to = 322, mark = [ 320, 322 ] }
+                    , Lead "O sorteio é um efeito: quem executa é o runtime."
+                    , Converte
+                        { title = "puro  ×  efeito"
+                        , pairs =
+                            [ ( "move(B, left, N, S)", "mesma entrada → mesma saída (Prolog)" )
+                            , ( "Random.weighted ( 90, 2 ) [ ( 10, 4 ) ]", "só descreve o sorteio (Generator)" )
+                            , ( "Random.generate Spawned gerador", "o runtime sorteia → Msg Spawned" )
+                            ]
+                        }
                     ]
               }
             ]
@@ -62,19 +50,12 @@ cenas =
     ]
 
 
-{-| O ciclo da arquitetura TEA. Cada passo acende uma etapa.
+{-| O ciclo da arquitetura TEA, que gira sozinho.
 -}
 tea : List FlowNode
 tea =
-    [ { label = "Msg", sub = "o que aconteceu", detail = "Apertar A vira um valor: Pressed Left. Nada mudou ainda.", art = "keyboard" }
-    , { label = "update", sub = "função pura", detail = "update : Msg -> Model -> ( Model, Cmd Msg ). Recebe a Msg e o Model antigo e devolve um Model novo.", art = "" }
-    , { label = "Model", sub = "estado imutável", detail = "Um valor novo. O Model antigo continua igual e pode ser guardado.", art = "" }
-    , { label = "view", sub = "desenha", detail = "view : Model -> Html Msg. Só lê o Model: nada de servidor nem sorteio aqui.", art = "" }
+    [ { label = "Msg", sub = "o que aconteceu", detail = "Pressed Left", art = "keyboard" }
+    , { label = "update", sub = "função pura", detail = "Msg → Model → (Model, Cmd)", art = "" }
+    , { label = "Model", sub = "estado imutável", detail = "um valor novo; o antigo fica", art = "" }
+    , { label = "view", sub = "desenha", detail = "Model → Html Msg", art = "elm" }
     ]
-
-
-cycle : String -> Int -> Step
-cycle notes active =
-    { notes = notes
-    , blocks = [ Clear, Flow { nodes = tea, active = active, back = "↩  a view espera a próxima Msg, e o ciclo recomeça" } ]
-    }

@@ -328,7 +328,7 @@ Locais: `Status` em `web/src/Game.elm:82`, `Model` em `web/src/Game.elm:113`, `M
 - [x] Decoders e encoders JSON: `web/src/Api.elm` (`moveDecoder` em `web/src/Api.elm:133`, `hintDecoder` em `web/src/Api.elm:387`, desafios e soluções); as preferências salvas no navegador entram pelas flags com decoder próprio (`Game/Effects.elm`).
 - [x] Comandos e subscriptions (efeitos controlados): o sorteio de peças é um `Random.Generator` (`newTile`, `web/src/Game.elm:830`) executado pelo runtime, que devolve `Spawned`; o relógio da IA e do replay são `Time.every` que só existem quando necessários (`Game.subscriptions`, `web/src/Game.elm:1030`); sons, confete e recorde são dados (`Game/Effects.elm`, `web/src/Game/Effects.elm:16`) que viram `Cmd` só em `perform`, saindo por ports (`web/src/Ports.elm`) para o JavaScript.
 - [x] Imutabilidade e atualização de records: o `update` sempre devolve um `Model` novo (`{ model | board = ..., waiting = False }`); o histórico é uma lista imutável em que desfazer é só pegar a cauda.
-- [x] Outro: 150 testes com `elm-test` (`web/tests/`), incluindo fuzz tests do sorteio, os casos de resposta atrasada e a máquina de estados da IA; `elm-format` aplicado e conferido pela CI.
+- [x] Outro: 153 testes com `elm-test` (`web/tests/`), incluindo fuzz tests do sorteio, os casos de resposta atrasada e a máquina de estados da IA; `elm-format` aplicado e conferido pela CI.
 
 ### 6.3 Trecho em destaque
 
@@ -428,7 +428,7 @@ casas vazias, a profundidade cai para 2 e a resposta diz a profundidade usada.
   422 com a mensagem certa para cada entrada inválida, limites da dica, redução da
   profundidade, conversões de fronteira e que todos os desafios do JSON têm
   solução.
-- **Elm, 150 testes elm-test.** `web/tests/`: sorteio (fuzz), `update` de ponta a
+- **Elm, 153 testes elm-test.** `web/tests/`: sorteio (fuzz), `update` de ponta a
   ponta com respostas simuladas do Prolog, desfazer, replay, decoders, leitura do
   422, a máquina de estados da IA, a apresentação (cenas, pedidos ao vivo, demo
   pausada fora do passo) e os recortes de código das cenas.
@@ -571,15 +571,16 @@ o quê e o plano B estão em `docs/qa.md`.
 
 | Parte | Duração | Quem apresenta |
 |-------|:-------:|----------------|
-| Contexto, arquitetura e uma jogada de ponta a ponta | 2 min | Victor Hugo Lima Schmidt |
-| Prolog: deslizar, fundir e mover em qualquer N | 2 min | Bianca Patrocínio Castro e Davi de Aguiar Vieira |
-| Prolog: fim de jogo como consulta lógica e a dica com expectimax | 2 min | Kaio Macedo Santana e Bianca Patrocínio Castro |
-| Prolog: desafios com CLP(FD) e busca | 1,5 min | Davi de Aguiar Vieira |
-| Python: a ponte, validação e tradução na fronteira | 1 min | William Bernardo da Silva |
-| Elm: estado, sorteio como efeito, desfazer e replay | 2 min | Mateus de Castro Santos |
-| Elm: tela, animações e efeitos por ports | 1,5 min | Mateus Henrique Queiroz Magalhães Sousa |
-| Elm: dica, IA e desafios ao vivo, e erros da API | 2 min | William Bernardo da Silva e Kaio Macedo Santana |
-| Limitações e aprendizados | 1 min | Victor Hugo Lima Schmidt |
+| Abertura: o projeto, a equipe e uma jogada de ponta a ponta | 1,5 min | Victor Hugo Lima Schmidt |
+| Prolog: deslizar e fundir; mover nas 4 direções | 2 min | Bianca Patrocínio Castro e Davi de Aguiar Vieira |
+| Prolog: vitória, derrota e jogadas | 1 min | Kaio Macedo Santana |
+| Prolog: dica com expectimax | 1,5 min | Bianca Patrocínio Castro |
+| Prolog: desafios com CLP(FD) | 1 min | Davi de Aguiar Vieira |
+| Python: a ponte, a validação e a dica na API | 2 min | William Bernardo da Silva e Kaio Macedo Santana |
+| Elm: TEA, sorteio como efeito, desfazer e replay | 1,5 min | Mateus de Castro Santos |
+| Elm: animações e efeitos por ports | 1,5 min | Mateus Henrique Queiroz Magalhães Sousa |
+| Elm: dica, IA e erros da API | 1 min | William Bernardo da Silva |
+| Como trabalhamos e conclusão | 1 min | Victor Hugo Lima Schmidt |
 
 ## 13. Reflexão sobre os paradigmas
 

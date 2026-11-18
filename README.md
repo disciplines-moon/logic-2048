@@ -185,7 +185,7 @@ responde `{'truth': True, 'X': 2}`.
 make test             # tudo abaixo
 make test-prolog      # plunit: prolog/test_game.pl, test_hint.pl e test_challenge.pl (164 testes)
 make test-backend     # pytest da API, chamando o Prolog de verdade (55 testes)
-make test-web         # elm-format, armadilhas conhecidas, elm-test (150 testes) e build
+make test-web         # elm-format, armadilhas conhecidas, elm-test (153 testes) e build
 make validar          # forma do RELATORIO.md, com o validador do professor
 ```
 

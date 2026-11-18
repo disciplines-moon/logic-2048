@@ -1,4 +1,4 @@
-module Cenas.Types exposing (Block(..), Etapa, FlowNode, Member, Pedido, Scene, Step, isPending, pending, visibleBlocks)
+module Cenas.Types exposing (Block(..), Etapa, FlowNode, Member, Pedido, Ramo, Scene, Step, isPending, pending, sceneSecs, visibleBlocks)
 
 {-| A apresentação é um conjunto de **cenas** (uma ou mais por issue). Cada cena
 tem **passos**: ao avançar, o próximo passo ACRESCENTA blocos na tela, no ritmo
@@ -55,6 +55,18 @@ type Block
     | PedidosEm String (List Pedido)
       -- Cena ainda não escrita. Falha a revisão final (#14).
     | Pending String
+      -- Etapas que acendem uma depois da outra, sozinhas e em ciclo, sem precisar
+      -- de um passo para cada uma (um laço: TEA, a máquina de estados da IA, a CI).
+      -- `back` é a frase de baixo, o caminho de volta.
+    | Ciclo { nodes : List FlowNode, back : String }
+      -- Conversões "entra → sai", uma linha de cada vez: o valor da esquerda
+      -- atravessa a seta e vira o da direita (por exemplo o janus traduzindo
+      -- tipos, ou uma entrada inválida virando 422). `title` vai no alto.
+    | Converte { title : String, pairs : List ( String, String ) }
+      -- Árvore do expectimax desenhada: as folhas (a nota de cada sorteio) aparecem
+      -- primeiro, depois a média de cada jogada sobe, e por fim o máximo acende o
+      -- ramo escolhido (`best`).
+    | Arvore { root : String, branches : List Ramo }
       -- Apaga tudo que apareceu antes na cena (para trocar um bloco por outro).
     | Clear
 
@@ -83,6 +95,17 @@ type alias Member =
     }
 
 
+{-| Um ramo da `Arvore`: a jogada (`label`), o valor esperado dela (`value`), se é a
+escolhida (`best`) e as folhas, cada uma com o sorteio e a nota.
+-}
+type alias Ramo =
+    { label : String
+    , value : String
+    , best : Bool
+    , leaves : List ( String, String )
+    }
+
+
 type alias FlowNode =
     { label : String
     , sub : String
@@ -91,8 +114,12 @@ type alias FlowNode =
     }
 
 
+{-| Um passo: a fala (`notes`), quantos segundos ela leva (`secs`, para caber
+nos 15 minutos) e os blocos que entram na tela.
+-}
 type alias Step =
     { notes : String
+    , secs : Int
     , blocks : List Block
     }
 
@@ -108,8 +135,15 @@ pending : Int -> String -> String -> Scene
 pending issue title hint =
     { issue = issue
     , title = title
-    , steps = [ { notes = "", blocks = [ Pending hint ] } ]
+    , steps = [ { notes = "", secs = 0, blocks = [ Pending hint ] } ]
     }
+
+
+{-| Quanto tempo a cena leva, somando os passos.
+-}
+sceneSecs : Scene -> Int
+sceneSecs scene =
+    List.sum (List.map .secs scene.steps)
 
 
 isPending : Scene -> Bool

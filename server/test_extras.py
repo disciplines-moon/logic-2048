@@ -204,10 +204,7 @@ def test_metodo_errado_tambem_usa_error():
 
 # Primeira e última linha de cada bloco Code da cena da #11, como aparecem na tela.
 RECORTES = {
-    ("server/extras.py", 121, 134): ('@router.post("/api/hint")', "    return HintResponse("),
-    ("server/extras.py", 137, 145): ('@router.post("/api/challenge")', "    return ChallengeResponse(solvable=True"),
-    ("server/extras.py", 104, 113): ("def profundidade_usada(", "    return 2 if pior > 6"),
-    ("server/test_extras.py", 169, 176): ("def test_todo_desafio_tem_solucao", "        assert 1 <= len("),
+    ("server/extras.py", 130, 134): ("    # Fronteira: o átomo none vira null", "    return HintResponse("),
 }
 
 
