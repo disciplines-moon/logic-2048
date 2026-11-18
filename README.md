@@ -183,9 +183,9 @@ responde `{'truth': True, 'X': 2}`.
 
 ```bash
 make test             # tudo abaixo
-make test-prolog      # plunit: prolog/test_game.pl, test_hint.pl e test_challenge.pl (163 testes)
-make test-backend     # pytest da API, chamando o Prolog de verdade (54 testes)
-make test-web         # elm-format, armadilhas conhecidas, elm-test (149 testes) e build
+make test-prolog      # plunit: prolog/test_game.pl, test_hint.pl e test_challenge.pl (164 testes)
+make test-backend     # pytest da API, chamando o Prolog de verdade (55 testes)
+make test-web         # elm-format, armadilhas conhecidas, elm-test (150 testes) e build
 make validar          # forma do RELATORIO.md, com o validador do professor
 ```
 

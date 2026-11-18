@@ -129,21 +129,21 @@ Python 905 (com testes), ou seja, o Python fica perto de 8,5% do total.
 | `game_lost(+Board)` | `prolog/game.pl:128` | Derrota como negação: `\+ can_move(Board, _)`, nenhuma direção muda nada |
 | `move_trace(+Board, +Dir, -NewBoard, -Score, -Moves)` | `prolog/game.pl:140` | O `move/4` mais o caminho de cada peça (origem, destino e se fundiu), para o Elm animar sem calcular nada |
 | `hint(+Board, +Depth, -Best, -Scores)` | `prolog/hint.pl:38` | A dica: o valor esperado de cada direção e a melhor delas (`none` se não há jogada) |
-| `max_value/3` e `chance_value/3` | `prolog/hint.pl:61`, `prolog/hint.pl:86` | Os dois tipos de nó do expectimax: o máximo (nossa jogada) e a média ponderada (a peça que o acaso põe) |
-| `evaluate(+Board, -Score)` | `prolog/hint.pl:132` | A heurística nas folhas: casas vazias, desordem das linhas e colunas, e bônus pela maior peça no canto |
+| `max_value/3` e `chance_value/3` | `prolog/hint.pl:64`, `prolog/hint.pl:97` | Os dois tipos de nó do expectimax: o máximo (nossa jogada) e a média ponderada (a peça que o acaso põe). Tabuleiro perdido (`game_lost/1`) vale −1.000.000, então a dica nunca prefere uma jogada com risco de derrota |
+| `evaluate(+Board, -Score)` | `prolog/hint.pl:143` | A heurística nas folhas: casas vazias, desordem das linhas e colunas, e bônus pela maior peça no canto |
 | `challenge(+Board, +Target, +MaxMoves, -Moves)` | `prolog/challenge.pl:24` | A menor sequência de jogadas, sem peças novas, que chega a uma peça maior ou igual ao alvo. Sem solução, falha |
 
 ### 5.2 Conceitos do paradigma lógico utilizados
 
-- [x] Fatos e regras como base de conhecimento: a peça de vitória de cada tamanho são fatos (`win_tile/2`, `prolog/game.pl:102`), assim como as probabilidades do sorteio (`spawn/2`, `prolog/hint.pl:102`) e a codificação das direções (`code_dir/2`, `prolog/challenge.pl:76`).
+- [x] Fatos e regras como base de conhecimento: a peça de vitória de cada tamanho são fatos (`win_tile/2`, `prolog/game.pl:102`), assim como as probabilidades do sorteio (`spawn/2`, `prolog/hint.pl:113`) e a codificação das direções (`code_dir/2`, `prolog/challenge.pl:76`).
 - [x] Unificação e casamento de padrões: a fusão é casamento de padrão na cabeça da cláusula, `merge([X,X|T], [Y|R], Points)` (`prolog/game.pl:16`); cada direção é uma cláusula de `move_dir/4` escolhida por unificação com o átomo da direção (`prolog/game.pl:44`).
 - [x] Recursão (inclusive sobre listas): `merge/3` (`prolog/game.pl:15`), a transposta de qualquer N (`transpose_board_/3`, `prolog/game.pl:79`), a árvore do expectimax como recursão mútua entre `max_value/3` e `chance_value/3`, e o `play/3` dos desafios (`prolog/challenge.pl:59`).
 - [x] Backtracking e múltiplas soluções: `move/4` com a direção livre enumera as 4 jogadas (`?- move(B, D, N, S).` dá uma resposta por direção); `can_move/2` é não determinístico; os desafios são busca por backtracking sobre as direções, e a expectimax percorre todas as casas vazias e as duas peças possíveis por `member/2`.
-- [x] `findall/3`, `bagof/3`, `setof/3` ou similares: `available_moves/2` (`prolog/game.pl:119`) e `hint/4` usam `findall/3`; a expectimax usa `aggregate_all(max(V), ...)` no nó de máximo e `aggregate_all(sum(P * V), ...)` no nó de sorteio (`prolog/hint.pl:86`).
+- [x] `findall/3`, `bagof/3`, `setof/3` ou similares: `available_moves/2` (`prolog/game.pl:119`) e `hint/4` usam `findall/3`; a expectimax usa `aggregate_all(max(V), ...)` no nó de máximo e `aggregate_all(sum(P * V), ...)` no nó de sorteio (`prolog/hint.pl:97`).
 - [x] Corte (`!`) ou negação (`\+`), e por que foram necessários: a derrota é `\+ can_move(Board, _)` (`prolog/game.pl:128`), ou seja, falhar em provar que existe jogada; o corte em `merge/3` impede que, depois de fundir um par, o backtracking tente a alternativa de não fundir (o que daria resultados errados); em `has_tile/2` o corte para na primeira peça que basta. `once/1` escolhe a primeira resposta onde só uma interessa (o desempate da dica e a menor sequência do desafio).
 - [x] Programação por restrições (CLP(FD) ou outra): nos desafios (`prolog/challenge.pl:34`). A soma das peças é invariante sem peças novas (`sum(Cells, #=, Sum), Target #=< Sum`), cada jogada no máximo dobra a maior peça (`Max * 2^Len #>= Target`), e o `labeling` sobre o tamanho da sequência faz aprofundamento iterativo, de modo que a primeira resposta é a menor.
-- [x] Predicados de ordem superior (`maplist`, `foldl`, `include` e afins): `maplist` aplica `slide_left/3` a todas as linhas (`slide_rows/3`, `prolog/game.pl:61`), monta colunas na transposta e converte códigos em direções; na dica, `aggregate_all/3` faz o máximo e a média, e `foldl/4` soma a desordem de todas as linhas e colunas (`prolog/hint.pl:152`).
-- [x] Outro: testes plunit (163 testes em `prolog/test_game.pl`, `test_hint.pl` e `test_challenge.pl`), incluindo testes das soluções dos desafios do jogo e dos valores mostrados na apresentação, e documentação com o modo de cada argumento (`+`, `-`, `?`) e o determinismo (`is det`, `is semidet`, `is nondet`).
+- [x] Predicados de ordem superior (`maplist`, `foldl`, `include` e afins): `maplist` aplica `slide_left/3` a todas as linhas (`slide_rows/3`, `prolog/game.pl:61`), monta colunas na transposta e converte códigos em direções; na dica, `aggregate_all/3` faz o máximo e a média, e `foldl/4` soma a desordem de todas as linhas e colunas (`prolog/hint.pl:163`).
+- [x] Outro: testes plunit (164 testes em `prolog/test_game.pl`, `test_hint.pl` e `test_challenge.pl`), incluindo testes das soluções dos desafios do jogo e dos valores mostrados na apresentação, e documentação com o modo de cada argumento (`+`, `-`, `?`) e o determinismo (`is det`, `is semidet`, `is nondet`).
 
 ### 5.3 Trecho em destaque
 
@@ -326,9 +326,9 @@ Locais: `Status` em `web/src/Game.elm:82`, `Model` em `web/src/Game.elm:113`, `M
 - [x] Funções de ordem superior e aplicação parcial: `List.indexedMap`, `List.foldl` e `List.filterMap` na montagem do tabuleiro e das peças; `Cmd.map AssistMsg` e `Sub.map GameMsg` ligam os módulos; mensagens parcialmente aplicadas como `GotMove model.board` e `GotHint ctx.board` levam o tabuleiro junto.
 - [x] Composição (`|>`, `>>`): por todo o código, por exemplo `Maybe.andThen History.current model.replay` e cadeias `|>` no `update` e nos testes.
 - [x] Decoders e encoders JSON: `web/src/Api.elm` (`moveDecoder` em `web/src/Api.elm:133`, `hintDecoder` em `web/src/Api.elm:387`, desafios e soluções); as preferências salvas no navegador entram pelas flags com decoder próprio (`Game/Effects.elm`).
-- [x] Comandos e subscriptions (efeitos controlados): o sorteio de peças é um `Random.Generator` (`newTile`, `web/src/Game.elm:830`) executado pelo runtime, que devolve `Spawned`; o relógio da IA e do replay são `Time.every` que só existem quando necessários (`Game.subscriptions`, `web/src/Game.elm:1020`); sons, confete e recorde são dados (`Game/Effects.elm`, `web/src/Game/Effects.elm:16`) que viram `Cmd` só em `perform`, saindo por ports (`web/src/Ports.elm`) para o JavaScript.
+- [x] Comandos e subscriptions (efeitos controlados): o sorteio de peças é um `Random.Generator` (`newTile`, `web/src/Game.elm:830`) executado pelo runtime, que devolve `Spawned`; o relógio da IA e do replay são `Time.every` que só existem quando necessários (`Game.subscriptions`, `web/src/Game.elm:1030`); sons, confete e recorde são dados (`Game/Effects.elm`, `web/src/Game/Effects.elm:16`) que viram `Cmd` só em `perform`, saindo por ports (`web/src/Ports.elm`) para o JavaScript.
 - [x] Imutabilidade e atualização de records: o `update` sempre devolve um `Model` novo (`{ model | board = ..., waiting = False }`); o histórico é uma lista imutável em que desfazer é só pegar a cauda.
-- [x] Outro: 149 testes com `elm-test` (`web/tests/`), incluindo fuzz tests do sorteio, os casos de resposta atrasada e a máquina de estados da IA; `elm-format` aplicado e conferido pela CI.
+- [x] Outro: 150 testes com `elm-test` (`web/tests/`), incluindo fuzz tests do sorteio, os casos de resposta atrasada e a máquina de estados da IA; `elm-format` aplicado e conferido pela CI.
 
 ### 6.3 Trecho em destaque
 
@@ -404,31 +404,31 @@ pares `left-12.5` vira objeto JSON e a falha do `challenge/4` vira
 | Rota / chamada | Entrada | Saída | Predicado Prolog |
 |----------------|---------|-------|------------------|
 | `POST /api/move` (`server/main.py:185`) | `{"board": N×N, "direction": "left"}` | `{"board", "score", "moved", "won", "lost", "moves"}` | `game:move_trace/5`, `game:game_won/1`, `game:game_lost/1` |
-| `POST /api/hint` (`server/extras.py:107`) | `{"board", "depth": 1 a 3}` | `{"direction": "left" ou null, "depth", "scores": {"left": 135.67}}` | `game:hint/4` |
-| `POST /api/challenge` (`server/extras.py:123`) | `{"board", "target": potência de 2, "max_moves": 1 a 6}` | `{"solvable", "moves": ["left", "up"]}` | `game:challenge/4` |
-| `GET /api/challenges` (`server/extras.py:134`) | nada | lista de desafios de `server/data/challenges.json` | nenhum (lista fixa, validada ao subir) |
+| `POST /api/hint` (`server/extras.py:121`) | `{"board", "depth": 1 a 3}` | `{"direction": "left" ou null, "depth", "scores": {"left": 135.67}}` | `game:hint/4` |
+| `POST /api/challenge` (`server/extras.py:137`) | `{"board", "target": potência de 2, "max_moves": 1 a 6}` | `{"solvable", "moves": ["left", "up"]}` | `game:challenge/4` |
+| `GET /api/challenges` (`server/extras.py:148`) | nada | lista de desafios de `server/data/challenges.json` | nenhum (lista fixa, validada ao subir) |
 
 O limite da dica também fica no Python, porque é proteção do servidor e não regra
-de jogo: profundidade máxima 3 até 4×4 e 2 a partir de 5×5, e, com mais de 6
+de jogo: profundidade máxima 3 até 4×4 e 2 a partir de 5×5, e, quando alguma jogada deixa mais de 6
 casas vazias, a profundidade cai para 2 e a resposta diz a profundidade usada.
 
 ## 8. Testes e validação
 
 **O que foi testado e como.**
 
-- **Prolog, 163 testes plunit.** `prolog/test_game.pl` (103): deslizar e fundir
+- **Prolog, 164 testes plunit.** `prolog/test_game.pl` (103): deslizar e fundir
   (exemplos da especificação, uma fusão por peça, linhas cheias), as 4 direções em
   N de 3 a 6, pontos, vitória por tamanho, derrota, jogadas disponíveis e o
-  caminho das peças. `prolog/test_hint.pl` (23): o exemplo da issue, `none` sem
+  caminho das peças. `prolog/test_hint.pl` (24): o exemplo da issue, `none` sem
   jogada, só direções válidas, determinismo, um nó de sorteio conferido à mão,
   heurística e tempo. `prolog/test_challenge.pl` (37): menor sequência, desempate,
   tabuleiro que já tem a peça, falha sem solução e os três desafios do jogo.
-- **Python, 54 testes pytest, sem mock.** `server/test_main.py` (30) e
-  `server/test_extras.py` (24) chamam o Prolog de verdade: formato das respostas,
+- **Python, 55 testes pytest, sem mock.** `server/test_main.py` (30) e
+  `server/test_extras.py` (25) chamam o Prolog de verdade: formato das respostas,
   422 com a mensagem certa para cada entrada inválida, limites da dica, redução da
   profundidade, conversões de fronteira e que todos os desafios do JSON têm
   solução.
-- **Elm, 149 testes elm-test.** `web/tests/`: sorteio (fuzz), `update` de ponta a
+- **Elm, 150 testes elm-test.** `web/tests/`: sorteio (fuzz), `update` de ponta a
   ponta com respostas simuladas do Prolog, desfazer, replay, decoders, leitura do
   422, a máquina de estados da IA, a apresentação (cenas, pedidos ao vivo, demo
   pausada fora do passo) e os recortes de código das cenas.
@@ -447,6 +447,8 @@ casas vazias, a profundidade cai para 2 e a resposta diz a profundidade usada.
 - Jogada que não muda o tabuleiro: não sorteia peça nem entra no histórico.
 - Uma fusão por peça por jogada: `[2,2,2,2]` vira `[4,4,0,0]`, não `[8,0,0,0]`.
 - Sem jogada possível: a dica responde `null`, a IA para e avisa, e o fim de jogo aparece.
+- Jogada que leva à derrota: a dica penaliza o tabuleiro perdido e escolhe outra, mesmo quando a heurística daria nota maior a ele (teste `nao_escolhe_a_derrota`, da revisão do PR #35).
+- Recorde: a partida em que a IA jogou não conta para o recorde de quem joga (teste em `web/tests/GameTest.elm`).
 - Respostas atrasadas: uma resposta de jogada, um sorteio ou uma dica pedidos para
   um tabuleiro que já não está na tela são descartados (testes em
   `web/tests/GameTest.elm`, inclusive trocar de tamanho no meio do replay).
@@ -545,7 +547,7 @@ precisa saber explicá-la (seção 10).
 | Animações da cena da #2 (o `slide_left/3` em si é da Bianca) | #2 | Claude Code | intensivo |
 | `slide_left/3` e dica com expectimax, `hint/4` | #2, #5 | [ferramenta ou nenhuma] | [faixa] |
 | `move/4` e desafios com CLP(FD), `challenge/4` | #3, #19 | [ferramenta ou nenhuma] | [faixa] |
-| Vitória, derrota e jogadas disponíveis | #4 | [ferramenta ou nenhuma] | [faixa] |
+| Vitória, derrota e jogadas disponíveis | #4 | Claude Code | intensivo |
 | Estado do jogo, sorteio, teclado e swipe; desfazer e replay | #6, #7 | [ferramenta ou nenhuma] | [faixa] |
 | Interface, temas e animações; sons, confete e recorde | #8, #9 | [ferramenta ou nenhuma] | [faixa] |
 | `/api/move` com validação e erros em JSON | #10 | [ferramenta ou nenhuma] | [faixa] |
