@@ -286,7 +286,7 @@ type Error
     | Invalid                  -- resposta fora do formato
 ```
 
-Locais: `Status` em `web/src/Game.elm:82`, `Model` em `web/src/Game.elm:113`, `Msg` em `web/src/Game.elm:190`, `Ai` em `web/src/Game/Assist.elm:66`, `Action` em `web/src/Game/Assist.elm:134` e `Error` em `web/src/Api.elm:297`.
+Locais: `Status` em `web/src/Game.elm:82`, `Model` em `web/src/Game.elm:113`, `Msg` em `web/src/Game.elm:190`, `Ai` em `web/src/Game/Assist.elm:67`, `Action` em `web/src/Game/Assist.elm:135` e `Error` em `web/src/Api.elm:297`.
 
 **As escolhas.**
 
@@ -332,7 +332,7 @@ Locais: `Status` em `web/src/Game.elm:82`, `Model` em `web/src/Game.elm:113`, `M
 
 ### 6.3 Trecho em destaque
 
-A IA que joga sozinha (`web/src/Game/Assist.elm`, `ticks` em `web/src/Game/Assist.elm:214` e a mensagem `AiTicked` em `web/src/Game/Assist.elm:276`):
+A IA que joga sozinha (`web/src/Game/Assist.elm`, `ticks` em `web/src/Game/Assist.elm:223` e a mensagem `AiTicked` em `web/src/Game/Assist.elm:289`):
 
 ```elm
 ticks : Context -> Assist -> Sub Msg
