@@ -1554,11 +1554,12 @@ excerpt sources file from to mark =
                     List.length marks
 
                 -- Com 2 ou mais linhas marcadas, elas acendem uma de cada vez, em
-                -- ciclo (o "tour"), depois que o trecho termina de entrar.
+                -- ciclo (o "tour"), depois que o trecho termina de entrar. O CSS
+                -- tem ciclos de até 8 linhas: da 9ª marca em diante, o destaque é fixo.
                 tourStyle n =
                     case indexOf n marks of
                         Just j ->
-                            if tour >= 2 then
+                            if tour >= 2 && j < 8 then
                                 [ class ("tour tour-n" ++ String.fromInt (min 8 tour))
                                 , style "animation-delay" (String.fromInt (min 600 ((n - start) * 30)) ++ "ms, " ++ String.fromFloat (1.0 + toFloat j * cicloBeat) ++ "s")
                                 , style "animation-duration" ("0.4s, " ++ String.fromFloat (toFloat (min 8 tour) * cicloBeat) ++ "s")

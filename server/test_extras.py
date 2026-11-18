@@ -204,7 +204,7 @@ def test_metodo_errado_tambem_usa_error():
 
 # Primeira e última linha de cada bloco Code da cena da #11, como aparecem na tela.
 RECORTES = {
-    ("server/extras.py", 130, 134): ("    # Fronteira: o átomo none vira null", "    return HintResponse("),
+    ("server/extras.py", 127, 131): ("    # Fronteira: o átomo none vira null", "    return HintResponse("),
 }
 
 

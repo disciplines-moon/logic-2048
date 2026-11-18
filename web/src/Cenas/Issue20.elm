@@ -22,7 +22,7 @@ cenas =
                     [ Clear
                     , Lead "Uma máquina de estados: no máximo uma requisição em voo."
                     , Ciclo { nodes = maquina, back = "vence, perde, sem jogada ou erro  →  Off, com o motivo na tela" }
-                    , Code { file = "web/src/Game/Assist.elm", from = 223, to = 226, mark = [ 225, 226 ] }
+                    , Code { file = "web/src/Game/Assist.elm", from = 222, to = 225, mark = [ 224, 225 ] }
                     ]
               }
             , { notes = "E se a API cair? Falha é um valor: o Http devolve um Result, e o nosso tipo Error tem um caso para cada problema. O compilador obriga a tratar todos, e cada um vira uma frase. O 422 traz a mensagem do servidor. O jogo não trava."

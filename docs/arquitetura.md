@@ -76,7 +76,7 @@ O Python continua chamando `game:hint(...)` e `game:challenge(...)`: o `game.pl`
 | `Game/View.elm` | `view` do tabuleiro, placar, controles, temas, `Html.Keyed` (uma chave por peça, o `id`, numa vaga fixa) | #8 |
 | `Ports.elm` + `web/src/*.js` | ports (`playSound`, `celebrate`, `saveBest`, `saveTheme`, `saveMuted`) e efeitos em `sons.js`, `confete.js` e `memoria.js` (`localStorage`); o `main.js` liga cada port e manda as preferências salvas nas flags | #9 |
 | `Game/Effects.elm` | o tipo `Effect` (efeito como dado), `perform` (efeito vira `Cmd` de port) e o decoder das preferências das flags | #9 |
-| `Api.elm` | cliente HTTP, decoders, `Http.Error` tratado | #6 (move), #20 (hint, challenge, erros) |
+| `Api.elm` | cliente HTTP, decoders e a leitura dos erros (`expectApi`) | #6 (move), #20 (hint, challenge, erros) |
 | `Game/Assist.elm` | dica, modo IA, desafios na interface: funções puras que recebem um retrato do jogo (`Context`) e devolvem o estado, os pedidos HTTP e uma ação (`Play`, `Step`, `Show`...) que o `Game` executa | #20 |
 | `Game/Icons.elm` | ícones SVG dos botões (traço na cor do texto, seguem o tema) | #20 |
 | `Presentation.elm`, `Cenas/*` | motor da apresentação e as cenas | todas (uma cena cada) |

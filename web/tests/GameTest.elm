@@ -8,7 +8,6 @@ import Game exposing (Msg(..), PieceKind(..), Status(..), Theme(..))
 import Game.Assist as Assist
 import Game.Effects as Effects exposing (Effect(..), Sound(..))
 import Game.View
-import Http
 import Json.Decode as D
 import Random
 import Test exposing (Test, describe, fuzz, test)
@@ -237,10 +236,10 @@ suite =
             , test "erro de rede mostra mensagem e libera o teclado" <|
                 \_ ->
                     { started | waiting = True }
-                        |> Game.update (GotMove started.board (Err Http.NetworkError))
+                        |> Game.update (GotMove started.board (Err Api.Network))
                         |> Tuple.first
                         |> Expect.all
-                            [ .error >> Expect.notEqual Nothing
+                            [ .error >> Expect.equal (Just (Api.errorMessage Api.Network))
                             , .waiting >> Expect.equal False
                             ]
             , test "Novo jogo zera o score e esvazia o tabuleiro do mesmo tamanho" <|

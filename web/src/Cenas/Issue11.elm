@@ -20,7 +20,7 @@ cenas =
               , blocks =
                     [ Clear
                     , Lead "O Prolog fala em átomos e falhas; o JSON, em null e booleanos."
-                    , Code { file = "server/extras.py", from = 130, to = 134, mark = [ 132, 133 ] }
+                    , Code { file = "server/extras.py", from = 127, to = 131, mark = [ 129, 130 ] }
                     , Converte
                         { title = "Prolog  →  JSON"
                         , pairs =

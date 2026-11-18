@@ -286,7 +286,7 @@ type Error
     | Invalid                  -- resposta fora do formato
 ```
 
-Locais: `Status` em `web/src/Game.elm:82`, `Model` em `web/src/Game.elm:113`, `Msg` em `web/src/Game.elm:190`, `Ai` em `web/src/Game/Assist.elm:67`, `Action` em `web/src/Game/Assist.elm:135` e `Error` em `web/src/Api.elm:297`.
+Locais: `Status` em `web/src/Game.elm:81`, `Model` em `web/src/Game.elm:112`, `Msg` em `web/src/Game.elm:189`, `Ai` em `web/src/Game/Assist.elm:66`, `Action` em `web/src/Game/Assist.elm:134` e `Error` em `web/src/Api.elm:300`.
 
 **As escolhas.**
 
@@ -313,26 +313,26 @@ Locais: `Status` em `web/src/Game.elm:82`, `Model` em `web/src/Game.elm:113`, `M
 - **`Api.Error` no lugar de `Http.Error`.** O `Http.Error` do Elm não guarda o
   corpo de um 422, onde o servidor manda a mensagem em português. O nosso tipo
   tem um caso para cada situação que importa a quem joga, e `errorMessage`
-  (`web/src/Api.elm:338`) transforma cada caso numa frase.
+  (`web/src/Api.elm:341`) transforma cada caso numa frase.
 - **O histórico é uma lista de `Snapshot`s (`Game/History.elm`), já com a peça
   sorteada.** Desfazer é tirar o topo; o replay só mostra a lista de novo, sem
   sortear nem perguntar ao Prolog, por isso a partida sai igual.
 
 ### 6.2 Conceitos do paradigma funcional utilizados
 
-- [x] Arquitetura Elm (Model, update, view): `web/src/Main.elm` é a casca (rotas `#/` e `#/apresentacao`); o jogo é `Game.elm` (`update` em `web/src/Game.elm:291`) e `Game/View.elm`; a apresentação é outro programa TEA em `Presentation.elm`, que reaproveita a mesma `view` do jogo na `Demo`.
+- [x] Arquitetura Elm (Model, update, view): `web/src/Main.elm` é a casca (rotas `#/` e `#/apresentacao`); o jogo é `Game.elm` (`update` em `web/src/Game.elm:290`) e `Game/View.elm`; a apresentação é outro programa TEA em `Presentation.elm`, que reaproveita a mesma `view` do jogo na `Demo`.
 - [x] Custom types e `case` exaustivo: `Status`, `Theme`, `PieceKind`, `Ai`, `Panel`, `Action`, `Api.Error`, `Effect`, `Sound` e o `Block` das cenas (`web/src/Cenas/Types.elm`). Todo `case` sobre eles é exaustivo, e acrescentar um caso faz o compilador apontar cada lugar a mudar.
 - [x] `Maybe` e `Result` no lugar de null e exceções: `replay`, `error`, `touchStart`, a dica guardada com o tabuleiro dela (`Maybe ( Board, Api.Hint )`), `Result Api.Error a` em todas as respostas da API, e `History.undo` devolve `Maybe` (histórico vazio não tem o que desfazer).
 - [x] Funções de ordem superior e aplicação parcial: `List.indexedMap`, `List.foldl` e `List.filterMap` na montagem do tabuleiro e das peças; `Cmd.map AssistMsg` e `Sub.map GameMsg` ligam os módulos; mensagens parcialmente aplicadas como `GotMove model.board` e `GotHint ctx.board` levam o tabuleiro junto.
 - [x] Composição (`|>`, `>>`): por todo o código, por exemplo `Maybe.andThen History.current model.replay` e cadeias `|>` no `update` e nos testes.
-- [x] Decoders e encoders JSON: `web/src/Api.elm` (`moveDecoder` em `web/src/Api.elm:133`, `hintDecoder` em `web/src/Api.elm:387`, desafios e soluções); as preferências salvas no navegador entram pelas flags com decoder próprio (`Game/Effects.elm`).
-- [x] Comandos e subscriptions (efeitos controlados): o sorteio de peças é um `Random.Generator` (`newTile`, `web/src/Game.elm:830`) executado pelo runtime, que devolve `Spawned`; o relógio da IA e do replay são `Time.every` que só existem quando necessários (`Game.subscriptions`, `web/src/Game.elm:1030`); sons, confete e recorde são dados (`Game/Effects.elm`, `web/src/Game/Effects.elm:16`) que viram `Cmd` só em `perform`, saindo por ports (`web/src/Ports.elm`) para o JavaScript.
+- [x] Decoders e encoders JSON: `web/src/Api.elm` (`moveDecoder` em `web/src/Api.elm:133`, `hintDecoder` em `web/src/Api.elm:390`, desafios e soluções); as preferências salvas no navegador entram pelas flags com decoder próprio (`Game/Effects.elm`).
+- [x] Comandos e subscriptions (efeitos controlados): o sorteio de peças é um `Random.Generator` (`newTile`, `web/src/Game.elm:837`) executado pelo runtime, que devolve `Spawned`; o relógio da IA e do replay são `Time.every` que só existem quando necessários (`Game.subscriptions`, `web/src/Game.elm:1034`); sons, confete e recorde são dados (`Game/Effects.elm`, `web/src/Game/Effects.elm:16`) que viram `Cmd` só em `perform`, saindo por ports (`web/src/Ports.elm`) para o JavaScript.
 - [x] Imutabilidade e atualização de records: o `update` sempre devolve um `Model` novo (`{ model | board = ..., waiting = False }`); o histórico é uma lista imutável em que desfazer é só pegar a cauda.
 - [x] Outro: 153 testes com `elm-test` (`web/tests/`), incluindo fuzz tests do sorteio, os casos de resposta atrasada e a máquina de estados da IA; `elm-format` aplicado e conferido pela CI.
 
 ### 6.3 Trecho em destaque
 
-A IA que joga sozinha (`web/src/Game/Assist.elm`, `ticks` em `web/src/Game/Assist.elm:223` e a mensagem `AiTicked` em `web/src/Game/Assist.elm:289`):
+A IA que joga sozinha (`web/src/Game/Assist.elm`, `ticks` em `web/src/Game/Assist.elm:222` e a mensagem `AiTicked` em `web/src/Game/Assist.elm:288`):
 
 ```elm
 ticks : Context -> Assist -> Sub Msg
@@ -404,9 +404,9 @@ pares `left-12.5` vira objeto JSON e a falha do `challenge/4` vira
 | Rota / chamada | Entrada | Saída | Predicado Prolog |
 |----------------|---------|-------|------------------|
 | `POST /api/move` (`server/main.py:185`) | `{"board": N×N, "direction": "left"}` | `{"board", "score", "moved", "won", "lost", "moves"}` | `game:move_trace/5`, `game:game_won/1`, `game:game_lost/1` |
-| `POST /api/hint` (`server/extras.py:121`) | `{"board", "depth": 1 a 3}` | `{"direction": "left" ou null, "depth", "scores": {"left": 135.67}}` | `game:hint/4` |
-| `POST /api/challenge` (`server/extras.py:137`) | `{"board", "target": potência de 2, "max_moves": 1 a 6}` | `{"solvable", "moves": ["left", "up"]}` | `game:challenge/4` |
-| `GET /api/challenges` (`server/extras.py:148`) | nada | lista de desafios de `server/data/challenges.json` | nenhum (lista fixa, validada ao subir) |
+| `POST /api/hint` (`server/extras.py:118`) | `{"board", "depth": 1 a 3}` | `{"direction": "left" ou null, "depth", "scores": {"left": 135.67}}` | `game:hint/4` |
+| `POST /api/challenge` (`server/extras.py:134`) | `{"board", "target": potência de 2, "max_moves": 1 a 6}` | `{"solvable", "moves": ["left", "up"]}` | `game:challenge/4` |
+| `GET /api/challenges` (`server/extras.py:145`) | nada | lista de desafios de `server/data/challenges.json` | nenhum (lista fixa, validada ao subir) |
 
 O limite da dica também fica no Python, porque é proteção do servidor e não regra
 de jogo: profundidade máxima 3 até 4×4 e 2 a partir de 5×5, e, quando alguma jogada deixa mais de 6
@@ -546,7 +546,7 @@ precisa saber explicá-la (seção 10).
 | Integração final, QA, testes de regressão, relatório, README e `Makefile` | #14 | Claude Code | intensivo |
 | Animações da cena da #2 (o `slide_left/3` em si é da Bianca) | #2 | Claude Code | intensivo |
 | `slide_left/3` e dica com expectimax, `hint/4` | #2, #5 | Claude Code | intensivo |
-| `move/4` e desafios com CLP(FD), `challenge/4` | #3, #19 | [ferramenta ou nenhuma] | [faixa] |
+| `move/4` e desafios com CLP(FD), `challenge/4` | #3, #19 | Claude Code | intensivo |
 | Vitória, derrota e jogadas disponíveis | #4 | Claude Code | intensivo |
 | Estado do jogo, sorteio, teclado e swipe; desfazer e replay | #6, #7 | [ferramenta ou nenhuma] | [faixa] |
 | Interface, temas e animações; sons, confete e recorde | #8, #9 | [ferramenta ou nenhuma] | [faixa] |

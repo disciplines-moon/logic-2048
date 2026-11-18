@@ -90,9 +90,6 @@ CHALLENGES = [Challenge(**c) for c in json.loads(DATA.read_text(encoding="utf-8"
 # muitas casas vazias a profundidade cai para 2.
 
 
-DIRECOES = ["left", "right", "up", "down"]
-
-
 def profundidade_maxima(n: int) -> int:
     return 3 if n <= 4 else 2
 
@@ -105,11 +102,11 @@ def profundidade_usada(board: list[list[int]], depth: int) -> int:
     """Conta as casas vazias DEPOIS de cada jogada possível, onde a busca começa
     (revisão do PR #35): uma jogada com fusões abre casas, e contar só o
     tabuleiro de entrada deixava passar profundidade 3 com 11 vazias (~15 s).
-    As jogadas vêm do move/4 do Prolog; o Python só conta zeros."""
+    As 4 jogadas vêm do move/4 do Prolog, numa consulta só; o Python só conta zeros."""
     if depth <= 2:
         return depth
-    depois = [janus.query_once("game:move(B, D, N, _)", {"B": board, "D": d})["N"] for d in DIRECOES]
-    pior = max(vazias(n) for n in [board] + depois)
+    r = janus.query_once("game:move(B, left, L, _), game:move(B, right, R, _), game:move(B, up, U, _), game:move(B, down, D, _)", {"B": board})
+    pior = max(vazias(n) for n in [board, r["L"], r["R"], r["U"], r["D"]])
     return 2 if pior > 6 else depth
 
 

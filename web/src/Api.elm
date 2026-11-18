@@ -157,12 +157,15 @@ cellDecoder =
     D.map2 Tuple.pair (D.index 0 D.int) (D.index 1 D.int)
 
 
-postMove : List (List Int) -> Direction -> (Result Http.Error MoveResponse -> msg) -> Cmd msg
+{-| Pede ao Prolog uma jogada. Lê a resposta com o `expectApi`, como a dica e os
+desafios: 502, 503 e 504 viram `Network` num lugar só.
+-}
+postMove : List (List Int) -> Direction -> (Result Error MoveResponse -> msg) -> Cmd msg
 postMove board dir toMsg =
     Http.post
         { url = "/api/move"
         , body = Http.jsonBody (encodeMove board dir)
-        , expect = Http.expectJson toMsg moveDecoder
+        , expect = expectApi toMsg moveDecoder
         }
 
 

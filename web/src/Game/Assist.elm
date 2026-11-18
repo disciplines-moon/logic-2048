@@ -41,7 +41,6 @@ jogada ou dar erro, a IA volta a `Off` sozinha.
 -}
 
 import Api exposing (Direction)
-import Http
 import Time
 
 
@@ -122,7 +121,7 @@ type Msg
     | ChallengeChosen Api.Challenge
     | GotSolution String (Result Api.Error Api.Solution)
     | StepForward
-    | GotStep Board (Result Http.Error Api.MoveResponse)
+    | GotStep Board (Result Api.Error Api.MoveResponse)
     | ChallengeRestart
     | ChallengesClosed
 
@@ -362,7 +361,7 @@ update msg ctx assist =
                                 ( { assist | active = Just { active | stepping = False, at = active.at + 1 } }, Cmd.none, Step res )
 
                             Err error ->
-                                ( { assist | active = Just { active | stepping = False }, error = Just (Api.errorMessage (fromHttp error)) }, Cmd.none, None )
+                                ( { assist | active = Just { active | stepping = False }, error = Just (Api.errorMessage error) }, Cmd.none, None )
 
                 Nothing ->
                     ( assist, Cmd.none, None )
@@ -456,27 +455,6 @@ stopReason ctx =
 
     else
         "A IA parou: a jogada deu erro."
-
-
-{-| O passo do desafio usa o `/api/move` da #6, que devolve `Http.Error`. Mesma
-leitura do `Api.apiResult`: 502, 503 e 504 são o proxy do Vite sem a API, ou seja,
-nenhuma resposta.
--}
-fromHttp : Http.Error -> Api.Error
-fromHttp error =
-    case error of
-        Http.BadStatus status ->
-            if List.member status [ 502, 503, 504 ] then
-                Api.Network
-
-            else
-                Api.Server status
-
-        Http.BadBody _ ->
-            Api.Invalid
-
-        _ ->
-            Api.Network
 
 
 {-| A próxima direção da solução, se ainda houver.

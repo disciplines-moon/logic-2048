@@ -19,7 +19,7 @@ cenas =
               , secs = 20
               , blocks =
                     [ Clear
-                    , Code { file = "web/src/Game.elm", from = 449, to = 455, mark = [ 449, 450, 451, 455 ] }
+                    , Code { file = "web/src/Game.elm", from = 456, to = 462, mark = [ 456, 457, 458, 462 ] }
                     , Converte
                         { title = "uma jogada, Msg por Msg"
                         , pairs =

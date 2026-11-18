@@ -46,7 +46,6 @@ import Dict exposing (Dict)
 import Game.Assist as Assist exposing (Assist)
 import Game.Effects as Effects exposing (Effect(..), Sound(..))
 import Game.History as History exposing (History, Replay)
-import Http
 import Json.Decode as D
 import Random exposing (Generator)
 import Time
@@ -189,7 +188,7 @@ tabuleiro em que foram pedidas, para descartar respostas atrasadas. `Undo` e as
 -}
 type Msg
     = Pressed Direction
-    | GotMove Board (Result Http.Error Api.MoveResponse)
+    | GotMove Board (Result Api.Error Api.MoveResponse)
     | Spawned Board (List Tile)
     | NewGame
     | SizeChosen Int
@@ -403,6 +402,14 @@ Tamanho fora de 3 a 6 é ignorado, como em `SizeChosen`.
 -}
 loadBoard : Board -> Model -> ( Model, Cmd Msg )
 loadBoard board model =
+    loadWith (Assist.reset model.assist) board model
+
+
+{-| O `loadBoard` com o estado do Assist que fica valendo: zerado quando quem joga
+troca o tabuleiro, ou o do desafio que acabou de abrir (`Assist.Show`).
+-}
+loadWith : Assist -> Board -> Model -> ( Model, Cmd Msg )
+loadWith kept board model =
     let
         n =
             List.length board
@@ -421,7 +428,7 @@ loadBoard board model =
             , celebrated = False
             , showWin = False
             , ranked = False
-            , assist = Assist.reset model.assist
+            , assist = kept
           }
             |> rebuild
         , Cmd.none
@@ -434,7 +441,7 @@ loadBoard board model =
 {-| O Prolog respondeu. Se o tabuleiro mudou, guarda a resposta e pede ao runtime
 que sorteie a peça nova; se não mudou, nada é sorteado.
 -}
-gotMove : Result Http.Error Api.MoveResponse -> Model -> ( Model, Cmd Msg )
+gotMove : Result Api.Error Api.MoveResponse -> Model -> ( Model, Cmd Msg )
 gotMove result model =
     case result of
         Ok res ->
@@ -454,8 +461,8 @@ gotMove result model =
             else
                 ( slide res { answered | waiting = False }, Cmd.none )
 
-        Err _ ->
-            ( { model | waiting = False, error = Just "Erro ao falar com o servidor." }, Cmd.none )
+        Err error ->
+            ( { model | waiting = False, error = Just (Api.errorMessage error) }, Cmd.none )
 
 
 statusFrom : Api.MoveResponse -> Status
@@ -545,7 +552,7 @@ replayTicks model =
 {-| Junta ao resultado de uma jogada os efeitos que ela causa (som, confete,
 recorde), já como `Cmd` de port.
 -}
-react : Result Http.Error Api.MoveResponse -> Model -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+react : Result Api.Error Api.MoveResponse -> Model -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 react result before ( after, cmd ) =
     case result of
         Ok res ->
@@ -1008,12 +1015,9 @@ assist amsg model =
             ( slide res { updated | board = res.board, score = model.score + res.score, status = statusFrom res }, assistCmd )
 
         Assist.Show board ->
-            let
-                ( loaded, loadCmd ) =
-                    loadBoard board updated
-            in
-            -- O loadBoard desliga o Assist; aqui ele continua com o desafio aberto.
-            ( { loaded | assist = next }, Cmd.batch [ assistCmd, loadCmd ] )
+            -- O Assist continua com o desafio aberto.
+            loadWith next board updated
+                |> Tuple.mapSecond (\loadCmd -> Cmd.batch [ assistCmd, loadCmd ])
 
         Assist.Restart ->
             restart model.size updated

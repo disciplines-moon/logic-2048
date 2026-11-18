@@ -19,7 +19,7 @@ cenas =
               , secs = 15
               , blocks =
                     [ Clear
-                    , Code { file = "web/src/Game.elm", from = 576, to = 583, mark = [ 577, 580, 583 ] }
+                    , Code { file = "web/src/Game.elm", from = 583, to = 590, mark = [ 584, 587, 590 ] }
                     , Converte
                         { title = "resposta do Prolog  →  efeitos"
                         , pairs =
