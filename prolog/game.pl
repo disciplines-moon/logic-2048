@@ -1,6 +1,6 @@
 % Motor de regras do 2048. O tabuleiro é uma lista de N linhas (listas de N
 % inteiros, 0 = vazio), com N de 3 a 6. O Prolog é puro: não sorteia peças.
-:- module(game, [slide_left/3, move/4, available_moves/2, game_won/1, game_lost/1, move_trace/5, challenge/4]).
+:- module(game, [slide_left/3, move/4, available_moves/2, game_won/1, game_lost/1, move_trace/5, hint/4, challenge/4]).
 
 %! slide_left(+Row, -NewRow, -Points) is det.
 %  Desliza uma linha para a esquerda, fundindo pares iguais vizinhos.
@@ -177,7 +177,9 @@ trace_merge([X-R1-C1, X-R2-C2|T], [R-C|Dests], [[R1,C1,R,C,true], [R2,C2,R,C,tru
 trace_merge([_-R1-C1|T], [R-C|Dests], [[R1,C1,R,C,false]|Ms]) :-
     trace_merge(T, Dests, Ms).
 
-% Reexporta o challenge/4 (#19), que mora em challenge.pl (CLP(FD) e busca): o
-% Python continua chamando game:challenge(...), e o contrato não muda. Fica no
-% fim do arquivo para não mudar os números de linha que as cenas mostram.
+% Reexporta o challenge/4 (#19), que mora em challenge.pl (CLP(FD) e busca), e o
+% hint/4 (#5), que mora em hint.pl (expectimax): o Python continua chamando
+% game:challenge(...) e game:hint(...), e o contrato não muda. Fica no fim do
+% arquivo para não mudar os números de linha que as cenas mostram.
 :- use_module(challenge, [challenge/4]).
+:- use_module(hint, [hint/4]).
