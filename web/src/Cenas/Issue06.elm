@@ -30,7 +30,7 @@ cenas =
                         }
                     ]
               }
-            , { notes = "Por que o sorteio fica no Elm? O Prolog é puro: mesma entrada, mesma saída. Sortear muda a cada vez, então é um efeito. Um Generator não sorteia, só descreve: 2 com peso 90, 4 com peso 10. Quem executa é o runtime."
+            , { notes = "Por que o sorteio fica no Elm? As regras em Prolog são relações: mesma entrada, mesma saída. Sortear muda a cada vez, então é um efeito. Um Generator não sorteia, só descreve: 2 com peso 90, 4 com peso 10. Quem executa é o runtime."
               , secs = 15
               , blocks =
                     [ Clear

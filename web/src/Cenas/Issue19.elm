@@ -50,6 +50,14 @@ cenas =
                     , Pre "?- challenge(C3, 16, 4, M).\nM = [left, up, left, up].\n\n?- challenge(C3, 16, 3, M).\nfalse."
                     ]
               }
+            , { notes = "Ao vivo: abra Desafios e escolha o 3×3. O Elm pede a solução ao /api/challenge e mostra as setas: left, up, left, up. Cada Próximo passo é uma jogada de verdade do move/4, sem peça nova, até sobrar um 16 só."
+              , secs = 15
+              , blocks =
+                    [ Clear
+                    , Lead "Ao vivo: Desafios, o 3×3 e Próximo passo."
+                    , DemoCom c3
+                    ]
+              }
             ]
       }
     ]

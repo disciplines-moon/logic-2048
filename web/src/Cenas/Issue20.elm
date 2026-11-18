@@ -6,7 +6,7 @@ import Cenas.Types exposing (Block(..), FlowNode, Scene)
 cenas : List Scene
 cenas =
     [ { issue = 20
-      , title = "Elm: dica, IA e desafios"
+      , title = "Elm: dica, IA e erros da API"
       , steps =
             [ { notes = "O jogo já entra no meio da partida. Ligue a Dica: o Elm manda o tabuleiro e segue a vida; a resposta chega depois, como mais uma Msg. Agora ligue a IA: ela é dica seguida de jogada, em loop, pelo mesmo caminho de uma tecla. Por isso o desfazer e a festa funcionam. Dá para mudar a velocidade e pausar."
               , secs = 20

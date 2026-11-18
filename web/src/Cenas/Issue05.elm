@@ -50,7 +50,7 @@ cenas =
                         }
                     ]
               }
-            , { notes = "Ao vivo: o tabuleiro da issue já está carregado; ligue a Dica. A seta aponta left, a mesma resposta da consulta ao Prolog, com o valor de cada direção. Jogou, a dica nova vem sozinha. A profundidade é limitada, porque cada nível multiplica o trabalho."
+            , { notes = "Ao vivo: o tabuleiro da issue já está carregado; ligue a Dica. O botão chama este hint/4 pela API: a seta aponta left, e ao lado aparece o valor de cada direção. Jogou, a dica nova vem sozinha. A profundidade é limitada, porque cada nível multiplica o trabalho."
               , secs = 15
               , blocks =
                     [ Clear

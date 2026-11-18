@@ -12,7 +12,7 @@ issue, com a demo rodando ao lado da explicação.
   tela, no ritmo da fala.
 - Cada passo tem uma **anotação do apresentador** (`notes`): o que dizer naquele
   momento, e quantos segundos ela leva (`secs`). O painel de baixo (tecla `n`)
-  mostra a fala, quem fala e o relógio do ensaio ("até 3:40 de 13:26"). Um teste
+  mostra a fala, quem fala e o relógio do ensaio ("até 3:40 de 13:41"). Um teste
   garante que a soma cabe em 14 minutos e que todos os integrantes falam.
 - Os blocos podem ser texto (`Paragraph`, `Bullets`, `Pre`), **código real do
   repositório** com números de linha e destaque (`Code`), a **demo ao vivo** com o

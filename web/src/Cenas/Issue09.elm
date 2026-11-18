@@ -8,14 +8,22 @@ cenas =
     [ { issue = 9
       , title = "Elm: ports, sons e confete"
       , steps =
-            [ { notes = "O Elm é puro: não toca som nem mexe no navegador. O update decide o efeito, que é só um valor, por exemplo Sound Merge. O valor sai por um port tipado, a única porta para fora, e o JavaScript executa: toca, solta o confete, grava o recorde."
+            [ { notes = "Ao vivo: o jogo já entra quase vencido, é só apertar A. O Prolog responde won, e vem a fanfarra e o confete. Continue jogando: a festa não repete. Mas o Elm é puro, então quem tocou o som?"
               , secs = 15
               , blocks =
-                    [ Lead "Efeito é um valor; o JavaScript executa."
+                    [ Lead "Ao vivo: aperte A, o Prolog diz won e vem a festa."
+                    , DemoCom quaseVencido
+                    ]
+              }
+            , { notes = "O Elm não toca som nem mexe no navegador. O update decide o efeito, que é só um valor, por exemplo Sound Victory. O valor sai por um port tipado, a única porta para fora, e o JavaScript executa: toca, solta o confete, grava o recorde."
+              , secs = 15
+              , blocks =
+                    [ Clear
+                    , Lead "Efeito é um valor; o JavaScript executa."
                     , Ciclo { nodes = efeito, back = "↩  na próxima visita, o que foi gravado volta ao Elm pelas flags" }
                     ]
               }
-            , { notes = "Quem decide é uma função pura, reactions. A vitória vem do Prolog, o won. Mas o won continua verdadeiro depois de vencer, então o confete só sai uma vez por partida: o campo celebrated. O recorde só conta se o placar passou o daquele tamanho."
+            , { notes = "E quem decide é uma função pura, reactions. A vitória vem do Prolog, o won. Mas o won continua verdadeiro depois de vencer, então o confete só sai uma vez por partida: o campo celebrated. O recorde só conta se o placar passou o daquele tamanho."
               , secs = 15
               , blocks =
                     [ Clear
@@ -28,14 +36,6 @@ cenas =
                             , ( "placar 2100 > recorde 2048", "[ SaveBest 4 2100 ]" )
                             ]
                         }
-                    ]
-              }
-            , { notes = "Ao vivo: o jogo já entra quase vencido, é só apertar A. O Prolog responde won, e vem a fanfarra e o confete, tudo pelos ports. Jogue de novo: a festa não repete."
-              , secs = 15
-              , blocks =
-                    [ Clear
-                    , Lead "Ao vivo: o Prolog diz won, o port faz a festa."
-                    , DemoCom quaseVencido
                     ]
               }
             ]

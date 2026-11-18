@@ -575,7 +575,7 @@ o quê e o plano B estão em `docs/qa.md`.
 | Prolog: deslizar e fundir; mover nas 4 direções | 2 min | Bianca Patrocínio Castro e Davi de Aguiar Vieira |
 | Prolog: vitória, derrota e jogadas | 1 min | Kaio Macedo Santana |
 | Prolog: dica com expectimax | 1,5 min | Bianca Patrocínio Castro |
-| Prolog: desafios com CLP(FD) | 1 min | Davi de Aguiar Vieira |
+| Prolog: desafios com CLP(FD), com um desafio ao vivo | 1,5 min | Davi de Aguiar Vieira |
 | Python: a ponte, a validação e a dica na API | 2 min | William Bernardo da Silva e Kaio Macedo Santana |
 | Elm: TEA, sorteio como efeito, desfazer e replay | 1,5 min | Mateus de Castro Santos |
 | Elm: animações e efeitos por ports | 1,5 min | Mateus Henrique Queiroz Magalhães Sousa |
