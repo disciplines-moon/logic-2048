@@ -20,8 +20,8 @@
 - **Slides da apresentação oral:** não há
 
 O projeto não partiu do template do Sudoku: o esqueleto (Elm, Python e Prolog)
-foi escrito pelo grupo do zero, no mesmo desenho de três camadas do template
-(seção 11). Não há slides porque a apresentação é uma página do próprio app, em
+foi escrito para este projeto, com Claude Code, no mesmo desenho de três camadas
+do template (seção 11). Não há slides porque a apresentação é uma página do próprio app, em
 `#/apresentacao`, com o jogo funcionando dentro das cenas (seção 12).
 
 ## 2. Resumo
@@ -494,7 +494,7 @@ apresentação (`web/src/Cenas/IssueNN.elm`), e todo PR teve um revisor designad
 
 | Integrante | Principais contribuições |
 |------------|--------------------------|
-| Victor Hugo Lima Schmidt | Estruturação do projeto (#17): esqueleto de ponta a ponta, `docs/contrato.md`, `docs/arquitetura.md`, planejamento, issues e revisores; CI, template de PR e o comando único `scripts/rodar.sh` (#13); motor da apresentação embutida no app, com o modo de demonstração ao vivo (#21); integração final, QA e apresentação (#14). Implementou também, com Claude Code, o código das issues #11 e #20 a partir dos critérios escritos nelas, na reta final, para fechar antes do prazo; os donos dessas issues são os revisores dessa implementação (PR #35). |
+| Victor Hugo Lima Schmidt | Todas as suas partes foram feitas com Claude Code, em uso intensivo (seção 11). Estruturação do projeto (#17): esqueleto de ponta a ponta, `docs/contrato.md`, `docs/arquitetura.md`, planejamento, issues e revisores; CI, template de PR e o comando único `scripts/rodar.sh` (#13); motor da apresentação embutida no app, com o modo de demonstração ao vivo (#21); integração final, QA e apresentação (#14). Implementou também o código das issues #11 e #20 a partir dos critérios escritos nelas, na reta final, para fechar antes do prazo; os donos dessas issues são os revisores dessa implementação (PR #35). |
 | Bianca Patrocínio Castro | Deslizar e fundir uma linha, `slide_left/3` (#2); dica com expectimax, `hint/4`, com a heurística e a tabela de desempenho (#5); cenas das duas issues. |
 | Davi de Aguiar Vieira | Mover nas 4 direções em qualquer N, `move/4` com espelho e transposta (#3); desafios com CLP(FD) e busca, `challenge/4`, e os três desafios do jogo (#19); cenas das duas issues. |
 | Kaio Macedo Santana | Vitória por tamanho, derrota e jogadas disponíveis, `game_won/1`, `game_lost/1` e `available_moves/2` (#4); carregar tabuleiro pronto na demo da apresentação; dono da #11 (rotas `/api/hint`, `/api/challenge` e `/api/challenges`) e revisor da implementação. |
@@ -505,8 +505,8 @@ apresentação (`web/src/Cenas/IssueNN.elm`), e todo PR teve um revisor designad
 ## 11. Fontes, código de terceiros e uso de IA
 
 **Código reaproveitado.** Nenhum código de outros grupos ou de repositórios
-públicos. O projeto não partiu do template do Sudoku: o esqueleto foi escrito pelo
-grupo (#17), seguindo o mesmo desenho de três camadas do template da disciplina
+públicos. O projeto não partiu do template do Sudoku: o esqueleto foi escrito para
+este projeto (#17), com Claude Code, seguindo o mesmo desenho de três camadas do template da disciplina
 (Elm, Python com FastAPI e `janus`, Prolog) e as ferramentas indicadas pelo
 professor. O `scripts/validar_entrega.py` é o validador do repositório
 `paradigmas-trabalho-final`, copiado sem alterações. Os sons são gerados com a Web
@@ -524,11 +524,35 @@ a ideia do expectimax para o 2048, uma abordagem conhecida para jogos com sortei
 
 **Uso de ferramentas de IA.**
 
-- **Faixa de uso no código:** auxiliar
+- **Faixa de uso no código:** intensivo
+
+Declaramos **intensivo** porque a IA escreveu a maior parte do código da
+infraestrutura (esqueleto, contrato, CI, motor da apresentação) e de três issues
+de funcionalidade e integração (#11, #20 e #14). Para ser preciso sobre o que foi
+feito com IA e o que não foi, a tabela abaixo classifica cada parte com as
+mesmas faixas. Em todas elas vale a mesma regra: nada entrou na `main` sem PR
+revisado por outra pessoa do grupo e sem a CI verde, e quem apresenta uma parte
+precisa saber explicá-la (seção 10).
+
+| Parte | Issues | Ferramenta | Faixa |
+|-------|--------|------------|-------|
+| Esqueleto de ponta a ponta, contrato, arquitetura, planejamento e `AGENTS.md` | #17, #18 | Claude Code | intensivo |
+| CI, template de PR e `scripts/rodar.sh` | #13 | Claude Code | intensivo |
+| Motor da apresentação embutida no app e modo de demonstração | #21 | Claude Code | intensivo |
+| Rotas `/api/hint`, `/api/challenge` e `/api/challenges` | #11 | Claude Code | intensivo |
+| Dica, IA que joga sozinha e desafios na interface Elm | #20 | Claude Code | intensivo |
+| Integração final, QA, testes de regressão, relatório, README e `Makefile` | #14 | Claude Code | intensivo |
+| Animações da cena da #2 (o `slide_left/3` em si é da Bianca) | #2 | Claude Code | intensivo |
+| `slide_left/3` e dica com expectimax, `hint/4` | #2, #5 | [ferramenta ou nenhuma] | [faixa] |
+| `move/4` e desafios com CLP(FD), `challenge/4` | #3, #19 | [ferramenta ou nenhuma] | [faixa] |
+| Vitória, derrota e jogadas disponíveis | #4 | [ferramenta ou nenhuma] | [faixa] |
+| Estado do jogo, sorteio, teclado e swipe; desfazer e replay | #6, #7 | [ferramenta ou nenhuma] | [faixa] |
+| Interface, temas e animações; sons, confete e recorde | #8, #9 | [ferramenta ou nenhuma] | [faixa] |
+| `/api/move` com validação e erros em JSON | #10 | [ferramenta ou nenhuma] | [faixa] |
 
 | Ferramenta | Para que foi usada | Como o grupo verificou o resultado |
 |------------|--------------------|------------------------------------|
-| Claude Code (Anthropic) | Apoio ao planejamento das issues e do contrato; geração de trechos de código revisados pelo grupo, em especial na #11 (rotas da dica e dos desafios), na #20 (dica, IA e desafios no Elm) e na #14 (QA e cenas); revisão de código e testes no navegador | Nenhum código entrou sem revisão: todo PR tem um revisor designado do grupo, além da CI; cada issue tem critérios de aceite e testes automatizados; o comportamento foi conferido à mão com o roteiro de `docs/qa.md`. As regras para o uso de agentes estão em `AGENTS.md` |
+| Claude Code (Anthropic) | Escrever o código das partes marcadas como intensivo acima, a partir dos critérios de aceite de cada issue; revisar PRs; testar o app no navegador em vários tamanhos de tela | Revisão do PR por outra pessoa do grupo (os donos da #11 e da #20 revisam a implementação delas); testes automatizados de cada parte (plunit, pytest e elm-test) rodando na CI; teste manual com o roteiro de `docs/qa.md`; as regras e os erros já cometidos pelos agentes ficam em `AGENTS.md` |
 
 ## 12. Apresentação oral
 
