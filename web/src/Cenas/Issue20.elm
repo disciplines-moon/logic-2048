@@ -1,6 +1,6 @@
 module Cenas.Issue20 exposing (cenas)
 
-import Cenas.Types exposing (Block(..), Etapa, FlowNode, Scene)
+import Cenas.Types exposing (Block(..), FlowNode, Scene)
 
 
 cenas : List Scene
@@ -8,12 +8,11 @@ cenas =
     [ { issue = 20
       , title = "Elm: dica, IA e desafios"
       , steps =
-            [ { notes = "Ligue a Dica: o Elm manda o tabuleiro e segue a vida; a resposta chega depois, como mais uma Msg. Agora ligue a IA: ela é dica seguida de jogada, em loop, pelo mesmo caminho de uma tecla. Por isso o desfazer e a festa funcionam. Dá para mudar a velocidade e pausar."
+            [ { notes = "O jogo já entra no meio da partida. Ligue a Dica: o Elm manda o tabuleiro e segue a vida; a resposta chega depois, como mais uma Msg. Agora ligue a IA: ela é dica seguida de jogada, em loop, pelo mesmo caminho de uma tecla. Por isso o desfazer e a festa funcionam. Dá para mudar a velocidade e pausar."
               , secs = 20
               , blocks =
                     [ Lead "Ao vivo: Dica e IA joga."
-                    , Demo
-                    , Cenarios cenarios
+                    , DemoCom meioDeJogo
                     ]
               }
             , { notes = "Por dentro, a IA é uma máquina de estados. O relógio, o Time.every, só existe quando ela está jogando e nada está em voo. Assim nunca há duas requisições ao mesmo tempo. Ela para sozinha ao vencer, perder ou dar erro, e diz por quê."
@@ -57,10 +56,9 @@ maquina =
     ]
 
 
-{-| Tabuleiros prontos para a dica e a IA (não contam para o recorde).
+{-| Meio de partida: a Dica tem o que escolher e a IA tem o que jogar (um
+tabuleiro carregado não conta para o recorde).
 -}
-cenarios : List Etapa
-cenarios =
-    [ { label = "duas peças", note = "", board = [ [ 2, 2, 0, 0 ], [ 0, 0, 0, 0 ], [ 0, 0, 0, 0 ], [ 0, 0, 0, 0 ] ] }
-    , { label = "meio de jogo", note = "", board = [ [ 2, 4, 8, 16 ], [ 4, 8, 16, 2 ], [ 2, 0, 0, 0 ], [ 0, 0, 0, 4 ] ] }
-    ]
+meioDeJogo : List (List Int)
+meioDeJogo =
+    [ [ 2, 4, 8, 16 ], [ 4, 8, 16, 2 ], [ 2, 0, 0, 0 ], [ 0, 0, 0, 4 ] ]

@@ -46,7 +46,7 @@ cenas =
               , blocks =
                     [ Clear
                     , Lead "Ao vivo: cada tecla chama o move/4."
-                    , Demo
+                    , DemoCom aoVivo
                     , Bullets [ "W A S D jogam.", "A peça nova é sorteada pelo Elm, não pelo Prolog." ]
                     ]
               }
@@ -98,3 +98,10 @@ transpostoEsquerda =
 cima : List (List Int)
 cima =
     [ [ 4, 8, 2, 16 ], [ 4, 0, 0, 0 ], [ 0, 0, 0, 0 ], [ 0, 0, 0, 0 ] ]
+
+
+{-| Fusões nas quatro direções, para jogar ao vivo.
+-}
+aoVivo : List (List Int)
+aoVivo =
+    [ [ 2, 0, 2, 0 ], [ 0, 4, 0, 4 ], [ 8, 0, 0, 8 ], [ 0, 2, 2, 0 ] ]

@@ -1,6 +1,6 @@
 module Cenas.Issue09 exposing (cenas)
 
-import Cenas.Types exposing (Block(..), Etapa, FlowNode, Scene)
+import Cenas.Types exposing (Block(..), FlowNode, Scene)
 
 
 cenas : List Scene
@@ -30,13 +30,12 @@ cenas =
                         }
                     ]
               }
-            , { notes = "Ao vivo: quase vencido, aperte A. O Prolog responde won, e vem a fanfarra e o confete, tudo pelos ports. Jogue de novo: a festa não repete."
+            , { notes = "Ao vivo: o jogo já entra quase vencido, é só apertar A. O Prolog responde won, e vem a fanfarra e o confete, tudo pelos ports. Jogue de novo: a festa não repete."
               , secs = 15
               , blocks =
                     [ Clear
                     , Lead "Ao vivo: o Prolog diz won, o port faz a festa."
-                    , Demo
-                    , Cenarios [ etapa "quase vencido: A" "" quaseVencido ]
+                    , DemoCom quaseVencido
                     ]
               }
             ]
@@ -53,11 +52,6 @@ efeito =
     , { label = "port", sub = "Cmd tipado", detail = "playSound \"merge\"", art = "" }
     , { label = "JavaScript", sub = "executa", detail = "sons.js, confete.js, memoria.js", art = "" }
     ]
-
-
-etapa : String -> String -> List (List Int) -> Etapa
-etapa label note board =
-    { label = label, note = note, board = board }
 
 
 {-| Com A: 1024 + 1024 = 2048, e o Prolog responde won (o mesmo cenário da #4).

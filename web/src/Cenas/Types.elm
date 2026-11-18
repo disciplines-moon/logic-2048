@@ -17,6 +17,10 @@ type Block
     | Code { file : String, from : Int, to : Int, mark : List Int }
       -- Demo ao vivo: o jogo real dentro da cena.
     | Demo
+      -- A `Demo` sozinha e no centro, que já entra no passo com este tabuleiro
+      -- (por exemplo quase vencido: é só apertar a tecla). Voltar ao passo
+      -- carrega o tabuleiro de novo.
+    | DemoCom (List (List Int))
       -- Frase grande de destaque.
     | Lead String
       -- Linha de peças animada: desliza para a esquerda e funde os pares, como o `slide_left/3`.

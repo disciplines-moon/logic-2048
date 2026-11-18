@@ -328,7 +328,7 @@ Locais: `Status` em `web/src/Game.elm:81`, `Model` em `web/src/Game.elm:112`, `M
 - [x] Decoders e encoders JSON: `web/src/Api.elm` (`moveDecoder` em `web/src/Api.elm:133`, `hintDecoder` em `web/src/Api.elm:390`, desafios e soluções); as preferências salvas no navegador entram pelas flags com decoder próprio (`Game/Effects.elm`).
 - [x] Comandos e subscriptions (efeitos controlados): o sorteio de peças é um `Random.Generator` (`newTile`, `web/src/Game.elm:837`) executado pelo runtime, que devolve `Spawned`; o relógio da IA e do replay são `Time.every` que só existem quando necessários (`Game.subscriptions`, `web/src/Game.elm:1034`); sons, confete e recorde são dados (`Game/Effects.elm`, `web/src/Game/Effects.elm:16`) que viram `Cmd` só em `perform`, saindo por ports (`web/src/Ports.elm`) para o JavaScript.
 - [x] Imutabilidade e atualização de records: o `update` sempre devolve um `Model` novo (`{ model | board = ..., waiting = False }`); o histórico é uma lista imutável em que desfazer é só pegar a cauda.
-- [x] Outro: 153 testes com `elm-test` (`web/tests/`), incluindo fuzz tests do sorteio, os casos de resposta atrasada e a máquina de estados da IA; `elm-format` aplicado e conferido pela CI.
+- [x] Outro: 156 testes com `elm-test` (`web/tests/`), incluindo fuzz tests do sorteio, os casos de resposta atrasada e a máquina de estados da IA; `elm-format` aplicado e conferido pela CI.
 
 ### 6.3 Trecho em destaque
 
@@ -428,7 +428,7 @@ casas vazias, a profundidade cai para 2 e a resposta diz a profundidade usada.
   422 com a mensagem certa para cada entrada inválida, limites da dica, redução da
   profundidade, conversões de fronteira e que todos os desafios do JSON têm
   solução.
-- **Elm, 153 testes elm-test.** `web/tests/`: sorteio (fuzz), `update` de ponta a
+- **Elm, 156 testes elm-test.** `web/tests/`: sorteio (fuzz), `update` de ponta a
   ponta com respostas simuladas do Prolog, desfazer, replay, decoders, leitura do
   422, a máquina de estados da IA, a apresentação (cenas, pedidos ao vivo, demo
   pausada fora do passo) e os recortes de código das cenas.

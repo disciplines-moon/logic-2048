@@ -21,12 +21,12 @@ cenas =
                     , Code { file = "web/src/Game/History.elm", from = 49, to = 53, mark = [ 52, 53 ] }
                     ]
               }
-            , { notes = "Ao vivo: jogue três vezes e desfaça duas com Ctrl+Z ou com o botão. Volta com a mesma peça sorteada. Depois, o Replay mostra a partida que ficou, com pausa e velocidade."
+            , { notes = "Ao vivo: jogue quatro vezes e desfaça uma com Ctrl+Z ou com o botão. Volta com a mesma peça sorteada. Depois, o Replay toca as três jogadas que ficaram, com pausa e velocidade."
               , secs = 20
               , blocks =
                     [ Clear
-                    , Lead "Jogue 3 vezes, desfaça 2 (Ctrl+Z) e abra o Replay."
-                    , Demo
+                    , Lead "Jogue 4 vezes, desfaça 1 (Ctrl+Z) e abra o Replay."
+                    , DemoCom aoVivo
                     , Bullets [ "Desfazer: tira o primeiro da lista.", "Replay: toca a lista com Time.every." ]
                     ]
               }
@@ -63,3 +63,10 @@ s2 =
 s3 : List (List Int)
 s3 =
     [ [ 0, 0, 8, 2 ], [ 2, 0, 0, 0 ], [ 0, 0, 0, 0 ], [ 0, 0, 0, 4 ] ]
+
+
+{-| Começo de partida, com histórico vazio: três jogadas, dois desfazer e o Replay.
+-}
+aoVivo : List (List Int)
+aoVivo =
+    [ [ 2, 2, 0, 0 ], [ 0, 4, 0, 0 ], [ 0, 0, 0, 0 ], [ 0, 0, 0, 2 ] ]

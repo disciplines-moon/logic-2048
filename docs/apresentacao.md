@@ -29,6 +29,13 @@ issue, com a demo rodando ao lado da explicação.
   `Converte` (linhas "entra → sai", como o janus traduzindo tipos ou uma entrada
   inválida virando 422) e `Arvore` (a árvore do expectimax, das folhas à raiz).
 - Num `Code` com 2 ou mais linhas marcadas, elas acendem uma de cada vez (o "tour").
+- `DemoCom tabuleiro` é a `Demo` que já entra no passo com aquele tabuleiro (na
+  #9, quase vencido: é só apertar A). Sem lista ao lado, o jogo fica sozinho no
+  centro. Todo passo ao vivo usa `DemoCom`: cada um começa zerado, sem a dica, a
+  IA, a câmera lenta, o desafio ou a vitória de um slide anterior. Voltar ao
+  passo, ou apertar "Novo jogo" nele, carrega o tabuleiro de novo, para repetir a
+  demonstração. A resposta de um pedido ao vivo (`Pedidos`) também some ao trocar
+  de passo.
 - `Clear` apaga o que apareceu antes, para trocar um bloco por outro no passo seguinte.
 - `Flow` desenha etapas ligadas por setas e acende uma por passo. Use `Clear` + um
   novo `Flow` com outro `active` a cada passo (veja a cena "Arquitetura" em

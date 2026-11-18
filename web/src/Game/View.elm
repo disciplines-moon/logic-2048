@@ -597,7 +597,8 @@ viewAssistLine model =
                     line "" note
 
                 Nothing ->
-                    text ""
+                    -- Com a dica ligada, o valor de cada direção (a fala da #5 mostra isso).
+                    viewScores model
 
         ( Assist.Loading, _ ) ->
             line "" "Carregando os desafios…"

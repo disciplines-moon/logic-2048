@@ -1441,3 +1441,14 @@ html { font-size: clamp(10px, min(1.02vw, 1.8vh), 34px); }
 .arv-chance { font-size: 1rem; }
 .arv-nota { font-size: 1.6rem; }
 .flow-return { margin-bottom: 0.5rem; } .flow-detail { margin-bottom: 0.6rem; }
+/* DemoCom: só o jogo, no centro (o tabuleiro já entra pronto). */
+/* Sem explicação ao lado (lista), o jogo fica sozinho no centro. */
+.pres-body:has(.demo-solo):not(:has(ul)) { grid-template-columns: 1fr; justify-items: center; }
+.pres-body:has(.demo-solo):not(:has(ul)) .block:has(.lead) { justify-self: stretch; }
+.demo .hint-scores { width: 0; min-width: 100%; margin-top: 0.4rem; font-size: 0.95rem; }
+/* Jogo sozinho no centro: os valores da dica vão numa coluna ao lado, sem
+   aumentar a altura da demo (com a dica ligada a cena rolava 64 px). */
+.demo-solo { position: relative; }
+.demo-solo .hint-scores { position: absolute; left: calc(100% + 1.2rem); top: 1rem; width: max-content; min-width: 0; margin: 0; white-space: nowrap;
+  flex-direction: column; gap: 0.35rem; font-size: 1.1rem; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 0.8rem 1rem; }
+.demo-solo .hint-scores .score-dir { font: 700 1.25rem ui-monospace, monospace; }

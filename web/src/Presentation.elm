@@ -1,4 +1,4 @@
-module Presentation exposing (Model, Msg(..), Sent, init, keyDecoder, keyToMsg, sceneCount, send, sendTo, showsDemo, update, view)
+module Presentation exposing (Model, Msg(..), Sent, demoBoard, init, keyDecoder, keyToMsg, sceneCount, send, sendTo, showsDemo, update, view)
 
 {-| Página `#/apresentacao`: a apresentação roda dentro do próprio app.
 
@@ -24,8 +24,8 @@ import Svg
 import Svg.Attributes as SA
 
 
-{-| `request` é o último pedido do bloco `Pedidos`. Ele não vem da URL, então o
-`Main` o preserva quando a URL muda.
+{-| `request` é o último pedido do bloco `Pedidos`. Ele não vem da URL: o `Main`
+o preserva quando a URL muda sem mudar o passo e o apaga quando o passo muda.
 -}
 type alias Model =
     { scene : Int
@@ -192,12 +192,36 @@ showsDemo model =
                             Demo ->
                                 True
 
+                            DemoCom _ ->
+                                True
+
                             _ ->
                                 False
                     )
 
         Nothing ->
             False
+
+
+{-| O tabuleiro que a `Demo` carrega ao entrar no passo atual (bloco `DemoCom`
+do próprio passo), se houver. O `Main` o manda para o jogo ao mudar de passo.
+-}
+demoBoard : Model -> Maybe (List (List Int))
+demoBoard model =
+    List.head (List.drop model.scene scenes)
+        |> Maybe.andThen (\( _, scene ) -> List.head (List.drop model.step scene.steps))
+        |> Maybe.map .blocks
+        |> Maybe.withDefault []
+        |> List.filterMap
+            (\block ->
+                case block of
+                    DemoCom board ->
+                        Just board
+
+                    _ ->
+                        Nothing
+            )
+        |> List.head
 
 
 {-| Manda o corpo do bloco `Pedidos` ao `POST /api/move` de verdade.
@@ -480,6 +504,9 @@ viewBlock config request block =
 
         Demo ->
             div [ class "demo" ] [ config.demo ]
+
+        DemoCom _ ->
+            div [ class "demo demo-solo" ] [ config.demo ]
 
         Team members ->
             div [ class "team" ] (List.indexedMap viewMember members)

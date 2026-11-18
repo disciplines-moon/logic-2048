@@ -50,13 +50,12 @@ cenas =
                         }
                     ]
               }
-            , { notes = "Ao vivo: carregue o tabuleiro e ligue a Dica. A seta aponta left, a mesma resposta da consulta ao Prolog, com o valor de cada direção. Jogou, a dica nova vem sozinha. A profundidade é limitada, porque cada nível multiplica o trabalho."
+            , { notes = "Ao vivo: o tabuleiro da issue já está carregado; ligue a Dica. A seta aponta left, a mesma resposta da consulta ao Prolog, com o valor de cada direção. Jogou, a dica nova vem sozinha. A profundidade é limitada, porque cada nível multiplica o trabalho."
               , secs = 15
               , blocks =
                     [ Clear
                     , Lead "Ao vivo: o botão Dica chama este hint/4."
-                    , Demo
-                    , Cenarios [ etapa "o exemplo da issue" "" exemplo ]
+                    , DemoCom exemplo
                     ]
               }
             ]

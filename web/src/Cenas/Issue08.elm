@@ -1,6 +1,6 @@
 module Cenas.Issue08 exposing (cenas)
 
-import Cenas.Types exposing (Block(..), Etapa, Scene)
+import Cenas.Types exposing (Block(..), Scene)
 
 
 cenas : List Scene
@@ -23,26 +23,25 @@ cenas =
                         }
                     ]
               }
-            , { notes = "Ao vivo: carregue as fusões, ligue a câmera lenta e aperte A. Cada peça anda até a casa nova, o par funde com um pop, e só depois a peça sorteada cresce. Na rampa, todas as peças de 2 a 8192, legíveis nos dois temas."
-              , secs = 20
+            , { notes = "Ao vivo: o tabuleiro já entra com as fusões. Ligue a câmera lenta e aperte A. Cada peça anda até a casa nova, o par funde com um pop, e só depois a peça sorteada cresce."
+              , secs = 12
               , blocks =
                     [ Clear
                     , Lead "Ao vivo: câmera lenta, aperte A."
-                    , Demo
-                    , Cenarios
-                        [ etapa "fusões: câmera lenta e A" "" fusoes
-                        , etapa "rampa de cores: 2 a 8192" "" rampa
-                        ]
+                    , DemoCom fusoes
+                    ]
+              }
+            , { notes = "A rampa: todas as peças de 2 a 8192, legíveis nos dois temas. Troque o tema no botão do sol."
+              , secs = 8
+              , blocks =
+                    [ Clear
+                    , Lead "A rampa de cores, de 2 a 8192, nos dois temas."
+                    , DemoCom rampa
                     ]
               }
             ]
       }
     ]
-
-
-etapa : String -> String -> List (List Int) -> Etapa
-etapa label note board =
-    { label = label, note = note, board = board }
 
 
 {-| Com A: os dois 2 fundem num 4, o 8 desliza até a beirada, os dois 4 da terceira

@@ -93,6 +93,20 @@ suite =
                         |> List.concatMap (\c -> List.range 0 12 |> List.map (Presentation.init c))
                         |> List.any Presentation.showsDemo
                         |> Expect.equal True
+            , test "o passo ao vivo da #9 já entra com o tabuleiro quase vencido (1024 + 1024)" <|
+                \_ ->
+                    todosOsPassos
+                        |> List.filterMap Presentation.demoBoard
+                        |> List.member [ [ 1024, 1024, 0, 0 ], [ 4, 8, 2, 0 ], [ 0, 0, 0, 0 ], [ 0, 0, 0, 0 ] ]
+                        |> Expect.equal True
+            , test "um passo com tabuleiro pronto também mostra a demo" <|
+                \_ ->
+                    todosOsPassos
+                        |> List.filter (\m -> Presentation.demoBoard m /= Nothing)
+                        |> List.all Presentation.showsDemo
+                        |> Expect.equal True
+            , test "a capa não carrega tabuleiro nenhum" <|
+                \_ -> Presentation.init 0 0 |> Presentation.demoBoard |> Expect.equal Nothing
             ]
         , describe "pedidos ao vivo (#10)"
             [ test "enviar guarda o pedido, ainda sem resposta" <|
@@ -180,3 +194,9 @@ teclado =
     , test "seta repetida não joga" <|
         \_ -> Expect.equal True (D.decodeString Api.keyDecoder (tecla "ArrowUp" False True) |> Result.toMaybe |> (==) Nothing)
     ]
+
+
+todosOsPassos : List Presentation.Model
+todosOsPassos =
+    List.range 0 (Presentation.sceneCount - 1)
+        |> List.concatMap (\c -> List.range 0 12 |> List.map (Presentation.init c))
