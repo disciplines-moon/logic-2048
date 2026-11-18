@@ -124,12 +124,20 @@ subscriptions model =
                 ]
 
         PresentationPage ->
-            -- Na apresentação as setas navegam e W, A, S, D jogam na demo.
+            -- Na apresentação as setas navegam e W, A, S, D jogam na demo. Fora de um
+            -- passo com a demo, o jogo fica parado: sem teclas e sem o relógio da IA e
+            -- do replay (voltando à demo, eles continuam de onde pararam).
             Sub.batch
-                [ Browser.Events.onKeyDown (D.map PresentationMsg Presentation.keyDecoder)
-                , Sub.map GameMsg (Game.keyMsgs False)
-                , Sub.map GameMsg (Game.subscriptions model.game)
-                ]
+                (Browser.Events.onKeyDown (D.map PresentationMsg Presentation.keyDecoder)
+                    :: (if Presentation.showsDemo model.presentation then
+                            [ Sub.map GameMsg (Game.keyMsgs False)
+                            , Sub.map GameMsg (Game.subscriptions model.game)
+                            ]
+
+                        else
+                            []
+                       )
+                )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )

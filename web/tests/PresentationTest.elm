@@ -58,6 +58,16 @@ suite =
                     , List.map Tuple.second (visibleBlocks 2 scene)
                     ]
                     [ [ Paragraph "a", Paragraph "b" ], [ Paragraph "c" ] ]
+        , describe "demo só no passo que a mostra"
+            [ test "a capa não mostra a demo (o jogo fica parado)" <|
+                \_ -> Presentation.init 0 0 |> Presentation.showsDemo |> Expect.equal False
+            , test "algum passo da apresentação mostra a demo" <|
+                \_ ->
+                    List.range 0 (Presentation.sceneCount - 1)
+                        |> List.concatMap (\c -> List.range 0 12 |> List.map (Presentation.init c))
+                        |> List.any Presentation.showsDemo
+                        |> Expect.equal True
+            ]
         , describe "pedidos ao vivo (#10)"
             [ test "enviar guarda o pedido, ainda sem resposta" <|
                 \_ ->

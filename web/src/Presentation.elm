@@ -1,4 +1,4 @@
-module Presentation exposing (Model, Msg(..), Sent, init, keyDecoder, keyToMsg, sceneCount, send, sendTo, update, view)
+module Presentation exposing (Model, Msg(..), Sent, init, keyDecoder, keyToMsg, sceneCount, send, sendTo, showsDemo, update, view)
 
 {-| Página `#/apresentacao`: a apresentação roda dentro do próprio app.
 
@@ -176,6 +176,28 @@ update msg model =
 
         _ ->
             model
+
+
+{-| O passo atual mostra a `Demo`? Fora dela, o jogo da demo fica parado: o
+`Main` só liga o relógio da IA e do replay, e as teclas W A S D, com a demo na tela.
+-}
+showsDemo : Model -> Bool
+showsDemo model =
+    case List.head (List.drop model.scene scenes) of
+        Just ( _, scene ) ->
+            visibleBlocks model.step scene
+                |> List.any
+                    (\( _, block ) ->
+                        case block of
+                            Demo ->
+                                True
+
+                            _ ->
+                                False
+                    )
+
+        Nothing ->
+            False
 
 
 {-| Manda o corpo do bloco `Pedidos` ao `POST /api/move` de verdade.
