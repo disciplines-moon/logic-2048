@@ -86,7 +86,7 @@ ele, as peças só aparecem no lugar novo.
 `up` não aparece: com as peças na linha de cima, nada se move. `depth` é
 opcional (padrão 2). O máximo é **3 para N <= 4 e 2 para N >= 5**, e valores
 maiores devolvem 422. Para a dica não travar o servidor, o Python **reduz a
-profundidade para 2** quando há mais de 6 casas vazias e devolve a profundidade
+profundidade para 2** quando alguma jogada deixa mais de 6 casas vazias (contadas depois da jogada, onde a busca começa) e devolve a profundidade
 realmente usada no campo `depth` da resposta (pedir 3 com muitas vazias devolve
 `"depth": 2`). Erros: `depth` fora de 1 a 3 dá
 `{"error": "depth: use um número de 1 a 3"}`, e acima do limite do N dá

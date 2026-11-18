@@ -29,14 +29,14 @@ cenas =
               , blocks =
                     [ Clear
                     , Lead "O Prolog fala em átomos e pares; o JSON, em null e objetos."
-                    , Code { file = "server/extras.py", from = 107, to = 120, mark = [ 113, 118, 119 ] }
+                    , Code { file = "server/extras.py", from = 121, to = 134, mark = [ 127, 132, 133 ] }
                     ]
               }
             , { notes = "No desafio, a diferença é ainda maior. Para o Prolog, não ter solução é falhar: a pergunta simplesmente não se prova. Para o JSON, é um booleano: solvable false. A ponte transforma falha em dado."
               , blocks =
                     [ Clear
                     , Lead "No Prolog, \"sem solução\" é falhar. No JSON, é false."
-                    , Code { file = "server/extras.py", from = 123, to = 131, mark = [ 129, 130, 131 ] }
+                    , Code { file = "server/extras.py", from = 137, to = 145, mark = [ 143, 144, 145 ] }
                     ]
               }
             , { notes = "Ao vivo, pedidos de verdade ao /api/hint. Duas peças: a dica é left, empatada com right, e vale a primeira na ordem. up não aparece porque não move nada. O tabuleiro travado devolve direction null. Depth 4 e 5×5 com depth 3 são 422, com a mensagem em português. E com muitas casas vazias, pedimos 3 e a resposta diz depth 2: o Python reduziu."
@@ -50,7 +50,7 @@ cenas =
               , blocks =
                     [ Clear
                     , Lead "Cada nível da dica multiplica o trabalho."
-                    , Code { file = "server/extras.py", from = 93, to = 99, mark = [ 94, 99 ] }
+                    , Code { file = "server/extras.py", from = 104, to = 113, mark = [ 104, 111, 112, 113 ] }
                     ]
               }
             , { notes = "Agora o /api/challenge. O exemplo do contrato chega a 8 em duas jogadas para a esquerda. Pedir 64 com só 8 de soma é impossível: solvable false. Já ter a peça é solvable true sem nenhuma jogada. E max_moves 9 é 422. Por último, o GET da lista de desafios que a tela de desafios usa."
@@ -65,7 +65,7 @@ cenas =
               , blocks =
                     [ Clear
                     , Lead "Testes de ponta a ponta: Prolog real, sem mock."
-                    , Code { file = "server/test_extras.py", from = 161, to = 168, mark = [ 164, 166, 167 ] }
+                    , Code { file = "server/test_extras.py", from = 169, to = 176, mark = [ 172, 174, 175 ] }
                     ]
               }
             , { notes = "Para alguém do grupo rodar isso em outra máquina, o janus-swi precisa compilar contra o SWI-Prolog. No gcc 14 ou mais novo ele falha com incompatible-pointer-types, e o README tem o comando que resolve, para Linux, macOS e WSL."

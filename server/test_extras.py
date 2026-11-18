@@ -87,6 +87,14 @@ def test_hint_com_mais_de_6_vazias_reduz_para_2():
     assert body["depth"] == 1  # só reduz: nunca aumenta
 
 
+def test_hint_conta_as_vazias_depois_da_jogada():
+    # Revisão do PR #35: 6 vazias na entrada, mas o left funde e deixa 11.
+    # Contar só a entrada mantinha a profundidade 3 (~15 s de CPU).
+    board = [[2, 2, 2, 2], [2, 2, 2, 2], [4, 4, 0, 0], [0, 0, 0, 0]]
+    body = client.post("/api/hint", json={"board": board, "depth": 3}).json()
+    assert body["depth"] == 2
+
+
 def test_hint_profundidade_precisa_ser_inteiro():
     r = client.post("/api/hint", json={"board": DUAS, "depth": "2"})
     assert r.status_code == 422
@@ -196,10 +204,10 @@ def test_metodo_errado_tambem_usa_error():
 
 # Primeira e última linha de cada bloco Code da cena da #11, como aparecem na tela.
 RECORTES = {
-    ("server/extras.py", 107, 120): ('@router.post("/api/hint")', "    return HintResponse("),
-    ("server/extras.py", 123, 131): ('@router.post("/api/challenge")', "    return ChallengeResponse(solvable=True"),
-    ("server/extras.py", 93, 99): ("def profundidade_maxima(", "    return min(depth, 2)"),
-    ("server/test_extras.py", 161, 168): ("def test_todo_desafio_tem_solucao", "        assert 1 <= len("),
+    ("server/extras.py", 121, 134): ('@router.post("/api/hint")', "    return HintResponse("),
+    ("server/extras.py", 137, 145): ('@router.post("/api/challenge")', "    return ChallengeResponse(solvable=True"),
+    ("server/extras.py", 104, 113): ("def profundidade_usada(", "    return 2 if pior > 6"),
+    ("server/test_extras.py", 169, 176): ("def test_todo_desafio_tem_solucao", "        assert 1 <= len("),
 }
 
 
