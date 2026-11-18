@@ -713,11 +713,7 @@ challengeTools model =
             , case active.solution of
                 Just (Ok sol) ->
                     if sol.solvable then
-                        div [ class "solution" ]
-                            (List.indexedMap
-                                (\i dir -> span [ classList [ ( "move", True ), ( "done", i < active.at ), ( "next", i == active.at ) ], title (dirName dir) ] [ text (arrowOf dir) ])
-                                sol.moves
-                            )
+                        solutionStrip active sol.moves
 
                     else
                         text ""
@@ -748,16 +744,6 @@ e os botões para andar um passo.
 viewChallenge : Game.Model -> Assist.Active -> List (Html Game.Msg)
 viewChallenge model active =
     let
-        steps moves =
-            div [ class "solution" ]
-                (List.indexedMap
-                    (\i dir ->
-                        span [ classList [ ( "move", True ), ( "done", i < active.at ), ( "next", i == active.at ) ], title (dirName dir) ]
-                            [ text (arrowOf dir) ]
-                    )
-                    moves
-                )
-
         send msg =
             onClick (Game.AssistMsg msg)
 
@@ -794,7 +780,7 @@ viewChallenge model active =
 
             else
                 div [ class "solution-row" ]
-                    [ steps solution.moves
+                    [ solutionStrip active solution.moves
                     , span [ class "assist-note" ] [ text progress ]
                     ]
     , div [ class "controls assist-row" ]
@@ -809,6 +795,20 @@ viewChallenge model active =
         , toolButton False Icons.Close "Sair do desafio" [ send Assist.ChallengesClosed ]
         ]
     ]
+
+
+{-| As setas da solução do desafio: as já jogadas apagadas, a da vez em destaque.
+-}
+solutionStrip : Assist.Active -> List Api.Direction -> Html Game.Msg
+solutionStrip active moves =
+    div [ class "solution" ]
+        (List.indexedMap
+            (\i dir ->
+                span [ classList [ ( "move", True ), ( "done", i < active.at ), ( "next", i == active.at ) ], title (dirName dir) ]
+                    [ text (arrowOf dir) ]
+            )
+            moves
+        )
 
 
 closeButton : Bool -> Html Game.Msg

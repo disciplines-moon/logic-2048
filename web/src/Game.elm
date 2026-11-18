@@ -296,7 +296,7 @@ update msg model =
                 ( model, Cmd.none )
 
             else
-                ( { model | waiting = True }, Api.postMove model.board dir (GotMove model.board) )
+                ( { model | waiting = True, assist = Assist.clearNotes model.assist }, Api.postMove model.board dir (GotMove model.board) )
 
         GotMove sent result ->
             if not model.waiting || sent /= model.board then
@@ -337,11 +337,11 @@ update msg model =
 
         Undo ->
             -- Com a IA jogando ou num desafio, o Ctrl+Z também fica de fora (como o botão).
-            if model.waiting || model.replay /= Nothing || Assist.driving model.assist || Assist.inChallenge model.assist then
+            if model.waiting || model.replay /= Nothing || Assist.driving model.assist then
                 ( model, Cmd.none )
 
             else
-                ( undo model, Cmd.none )
+                ( undo { model | assist = Assist.clearNotes model.assist }, Cmd.none )
 
         ReplayStarted ->
             if model.waiting || List.isEmpty model.history then

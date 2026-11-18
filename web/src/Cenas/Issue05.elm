@@ -39,7 +39,7 @@ cenas =
               , secs = 15
               , blocks =
                     [ Clear
-                    , Code { file = "prolog/hint.pl", from = 92, to = 98, mark = [ 92, 93, 94, 95, 97 ] }
+                    , Code { file = "prolog/hint.pl", from = 103, to = 109, mark = [ 103, 104, 105, 106, 108 ] }
                     , Converte
                         { title = "nó de sorteio depois do right: uma casa vazia, E = 1"
                         , pairs =

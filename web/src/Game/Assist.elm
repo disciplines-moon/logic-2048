@@ -6,6 +6,7 @@ module Game.Assist exposing
     , Context
     , Msg(..)
     , Panel(..)
+    , clearNotes
     , currentHint
     , driving
     , inChallenge
@@ -163,6 +164,14 @@ reset assist =
     { init | interval = assist.interval, hintsOn = assist.hintsOn }
 
 
+{-| Quem joga mexeu no tabuleiro (tecla ou desfazer): o aviso de por que a IA
+parou e o erro da dica valiam para o tabuleiro de antes, e saem da tela.
+-}
+clearNotes : Assist -> Assist
+clearNotes assist =
+    { assist | note = Nothing, error = Nothing }
+
+
 {-| Velocidades da IA: rótulo e intervalo entre jogadas (ms).
 -}
 speeds : List ( String, Float )
@@ -245,6 +254,10 @@ update msg ctx assist =
         HintToggled ->
             if assist.hintsOn then
                 ( { assist | hintsOn = False, hint = Nothing, note = Nothing }, Cmd.none, None )
+
+            else if assist.ai /= Off || inChallenge assist || ctx.replaying then
+                -- Como o botão (desligado nesses casos): a IA pede as próprias dicas, uma por vez.
+                ( assist, Cmd.none, None )
 
             else
                 askHint ctx { assist | hintsOn = True, error = Nothing, note = Nothing }
