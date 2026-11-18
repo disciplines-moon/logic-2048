@@ -11,7 +11,7 @@ cenas =
             [ { notes = "A view é uma função pura do Model. Recebe o Model e devolve Html, e mais nada: não guarda estado escondido, não fala com o servidor, não sorteia. O mesmo Model gera sempre a mesma tela. A classe do tema também sai do Model. Quando alguém clica, a view não muda nada: só devolve uma Msg para o update."
               , blocks =
                     [ Lead "Mesmo Model, mesma tela."
-                    , Code { file = "web/src/Game/View.elm", from = 21, to = 37, mark = [ 24, 33 ] }
+                    , Code { file = "web/src/Game/View.elm", from = 23, to = 39, mark = [ 26, 35 ] }
                     ]
               }
             , { notes = "Ao vivo. Carregar o tabuleiro de fusões, ligar a câmera lenta e apertar A. Cada peça anda da sua casa até a nova: o 8 atravessa a linha, os pares de 2 e de 4 deslizam um sobre o outro e a peça fundida dá o pop quando eles chegam. Só depois a peça sorteada cresce, porque o sorteio vem depois da resposta do Prolog. O 16, que não tem para onde ir, fica parado."
@@ -34,14 +34,14 @@ cenas =
               , blocks =
                     [ Clear
                     , Lead "O Elm só aplica o caminho."
-                    , Code { file = "web/src/Game.elm", from = 651, to = 665, mark = [ 656, 659, 662 ] }
+                    , Code { file = "web/src/Game.elm", from = 662, to = 676, mark = [ 667, 670, 673 ] }
                     ]
               }
             , { notes = "Por que a peça anda? Pela chave: o id não muda, então é o mesmo nó do navegador com outra linha e coluna, e a transition do CSS o desliza. Cada peça também mora numa vaga fixa da lista, porque se o Elm movesse o nó, o deslize seria cancelado. E a forma como a peça entrou nunca muda, para a animação não ser cortada no meio."
               , blocks =
                     [ Clear
                     , Lead "A chave é a identidade da peça."
-                    , Code { file = "web/src/Game/View.elm", from = 162, to = 168, mark = [ 162, 167, 168 ] }
+                    , Code { file = "web/src/Game/View.elm", from = 172, to = 178, mark = [ 172, 177, 178 ] }
                     , Code { file = "web/src/styles/main.css", from = 201, to = 207, mark = [ 205, 206 ] }
                     ]
               }
@@ -50,7 +50,7 @@ cenas =
                     [ Clear
                     , Lead "O tema é só mais um campo do Model."
                     , Demo
-                    , Code { file = "web/src/Game.elm", from = 361, to = 362, mark = [ 362 ] }
+                    , Code { file = "web/src/Game.elm", from = 368, to = 369, mark = [ 369 ] }
                     ]
               }
             , { notes = "A mesma view serve de 3 a 6: o tamanho da peça é uma variável por N, e a letra acompanha o tamanho e o número de dígitos. Carregar a rampa: todas as peças, de 2 a 8192, com contraste de pelo menos 4,5 para 1 nos dois tons do degradê. A partir de 2048 a peça brilha. Depois, trocar o tamanho nos botões."

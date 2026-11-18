@@ -21,6 +21,7 @@ module Game exposing
     , replayTicks
     , shown
     , startTiles
+    , subscriptions
     , swipeDirection
     , tileValue
     , update
@@ -42,6 +43,7 @@ Não conhece a apresentação nem o roteamento, e não desenha nada (a tela é `
 import Api exposing (Direction(..))
 import Browser.Events
 import Dict exposing (Dict)
+import Game.Assist as Assist exposing (Assist)
 import Game.Effects as Effects exposing (Effect(..), Sound(..))
 import Game.History as History exposing (History, Replay)
 import Http
@@ -127,6 +129,7 @@ type alias Model =
     , celebrated : Bool
     , showWin : Bool
     , ranked : Bool
+    , assist : Assist
     }
 
 
@@ -203,6 +206,7 @@ type Msg
     | SlowMotionToggled
     | MuteToggled
     | WinDismissed
+    | AssistMsg Assist.Msg
     | NoOp
 
 
@@ -253,6 +257,7 @@ newGame n =
       , celebrated = False
       , showWin = False
       , ranked = True
+      , assist = Assist.init
       }
     , Random.generate (Spawned board) (startTiles n)
     )
@@ -273,6 +278,7 @@ restart n model =
         , nextId = model.nextId
         , best = model.best
         , muted = model.muted
+        , assist = Assist.reset model.assist
       }
     , cmd
     )
@@ -286,7 +292,7 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Pressed dir ->
-            if model.waiting || model.status == Lost || model.replay /= Nothing then
+            if model.waiting || model.status == Lost || model.replay /= Nothing || Assist.driving model.assist then
                 ( model, Cmd.none )
 
             else
@@ -330,7 +336,8 @@ update msg model =
                     ( { model | touchStart = Nothing }, Cmd.none )
 
         Undo ->
-            if model.waiting || model.replay /= Nothing then
+            -- Com a IA jogando ou num desafio, o Ctrl+Z também fica de fora (como o botão).
+            if model.waiting || model.replay /= Nothing || Assist.driving model.assist || Assist.inChallenge model.assist then
                 ( model, Cmd.none )
 
             else
@@ -380,6 +387,9 @@ update msg model =
         WinDismissed ->
             ( { model | showWin = False }, Cmd.none )
 
+        AssistMsg amsg ->
+            assist amsg model
+
         NoOp ->
             ( model, Cmd.none )
 
@@ -411,6 +421,7 @@ loadBoard board model =
             , celebrated = False
             , showWin = False
             , ranked = False
+            , assist = Assist.reset model.assist
           }
             |> rebuild
         , Cmd.none
@@ -928,3 +939,87 @@ swipeDirection ( x0, y0 ) ( x1, y1 ) =
              else
                 Up
             )
+
+
+
+-- DICA, IA E DESAFIOS (#20): o Assist decide, o Game executa
+
+
+{-| O que o `Assist` vê do jogo.
+-}
+context : Model -> Assist.Context
+context model =
+    { board = model.board
+    , waiting = model.waiting
+    , won = model.status == Won
+    , lost = model.status == Lost
+    , failed = model.error /= Nothing
+    , replaying = model.replay /= Nothing
+    }
+
+
+{-| Passa a mensagem ao `Assist` e executa a ação que ele devolve. A IA joga pelo
+mesmo caminho de uma tecla (`/api/move` e sorteio de peça), então o desfazer e as
+comemorações funcionam sem nada a mais. O passo do desafio aplica a resposta do
+Prolog sem sortear peça.
+-}
+assist : Assist.Msg -> Model -> ( Model, Cmd Msg )
+assist amsg model =
+    let
+        -- Ligar ou desligar a IA começa do zero: um erro de antes não pode
+        -- pará-la no primeiro tique.
+        base =
+            case amsg of
+                Assist.AiToggled ->
+                    { model | error = Nothing }
+
+                _ ->
+                    model
+
+        ( next, cmd, action ) =
+            Assist.update amsg (context base) base.assist
+
+        updated =
+            { base | assist = next }
+
+        assistCmd =
+            Cmd.map AssistMsg cmd
+    in
+    case action of
+        Assist.None ->
+            ( updated, assistCmd )
+
+        Assist.Play dir ->
+            ( { updated | waiting = True, error = Nothing }
+            , Cmd.batch [ assistCmd, Api.postMove model.board dir (GotMove model.board) ]
+            )
+
+        Assist.Step res ->
+            ( slide res { updated | board = res.board, score = model.score + res.score, status = statusFrom res }, assistCmd )
+
+        Assist.Show board ->
+            let
+                ( loaded, loadCmd ) =
+                    loadBoard board updated
+            in
+            -- O loadBoard desliga o Assist; aqui ele continua com o desafio aberto.
+            ( { loaded | assist = next }, Cmd.batch [ assistCmd, loadCmd ] )
+
+        Assist.Restart ->
+            restart model.size updated
+
+        Assist.Settle ->
+            -- Nenhuma direção muda o tabuleiro: o Prolog responde lost e a tela mostra o fim de jogo.
+            ( { updated | waiting = True }
+            , Cmd.batch [ assistCmd, Api.postMove model.board Left (GotMove model.board) ]
+            )
+
+
+{-| O relógio do replay (#7) e o da IA (#20).
+-}
+subscriptions : Model -> Sub Msg
+subscriptions model =
+    Sub.batch
+        [ replayTicks model
+        , Sub.map AssistMsg (Assist.ticks (context model) model.assist)
+        ]

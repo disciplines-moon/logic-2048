@@ -16,6 +16,7 @@ import testExtrasPy from "../../server/test_extras.py?raw";
 import apiElm from "./Api.elm?raw";
 import gameElm from "./Game.elm?raw";
 import historyElm from "./Game/History.elm?raw";
+import assistElm from "./Game/Assist.elm?raw";
 import viewElm from "./Game/View.elm?raw";
 import effectsElm from "./Game/Effects.elm?raw";
 import portsElm from "./Ports.elm?raw";
@@ -37,6 +38,7 @@ const sources = {
   "web/src/Api.elm": apiElm,
   "web/src/Game.elm": gameElm,
   "web/src/Game/History.elm": historyElm,
+  "web/src/Game/Assist.elm": assistElm,
   "web/src/Game/View.elm": viewElm,
   "web/src/Game/Effects.elm": effectsElm,
   "web/src/Ports.elm": portsElm,

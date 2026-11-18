@@ -25,7 +25,7 @@ cenas =
             , { notes = "No jogo, o estado anterior volta inteiro: tabuleiro, pontos e status, com a peça que tinha sido sorteada. Nada é recalculado nem sorteado de novo."
               , blocks =
                     [ Clear
-                    , Code { file = "web/src/Game.elm", from = 484, to = 499, mark = [ 486, 490, 491, 492, 493 ] }
+                    , Code { file = "web/src/Game.elm", from = 495, to = 510, mark = [ 497, 501, 502, 503, 504 ] }
                     ]
               }
             , { notes = "Ao vivo: jogar 3 vezes com W, A, S, D e desfazer 2 com Ctrl+Z (Cmd+Z no Mac) ou com o botão. Volta ao estado depois da 1ª jogada, com a mesma peça sorteada. Ctrl+Z não vira jogada: as teclas de jogada ignoram Ctrl, Alt e Meta."

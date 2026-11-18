@@ -74,7 +74,8 @@ O Python continua chamando `game:hint(...)` e `game:challenge(...)`: o `game.pl`
 | `Ports.elm` + `web/src/*.js` | ports (`playSound`, `celebrate`, `saveBest`, `saveTheme`, `saveMuted`) e efeitos em `sons.js`, `confete.js` e `memoria.js` (`localStorage`); o `main.js` liga cada port e manda as preferências salvas nas flags | #9 |
 | `Game/Effects.elm` | o tipo `Effect` (efeito como dado), `perform` (efeito vira `Cmd` de port) e o decoder das preferências das flags | #9 |
 | `Api.elm` | cliente HTTP, decoders, `Http.Error` tratado | #6 (move), #20 (hint, challenge, erros) |
-| `Game/Assist.elm` | dica, modo IA, desafios na interface | #20 |
+| `Game/Assist.elm` | dica, modo IA, desafios na interface: funções puras que recebem um retrato do jogo (`Context`) e devolvem o estado, os pedidos HTTP e uma ação (`Play`, `Step`, `Show`...) que o `Game` executa | #20 |
+| `Game/Icons.elm` | ícones SVG dos botões (traço na cor do texto, seguem o tema) | #20 |
 | `Presentation.elm`, `Cenas/*` | motor da apresentação e as cenas | todas (uma cena cada) |
 
 Regras de módulo:
@@ -83,6 +84,7 @@ Regras de módulo:
 - A apresentação reusa `Game.View` na `Demo`, então o jogo da cena é o jogo real.
 - Quando uma issue precisar de campo novo no `Model`, adicione-o em `Game.elm` num PR pequeno e avise as issues que dependem dela.
 - Campos da tela (#8): `theme` (`Dark | Light`), `pieces` (peças com `id`, posição, entrada, fantasma, idade e vaga), `nextId` e `slowMotion`. Novo jogo e troca de tamanho mantêm o tema.
+- Campo da dica, IA e desafios (#20): `assist` (o estado do `Game.Assist`, num campo só). A dica liga e desliga; ligada, o `Assist` pede a dica de novo a cada tabuleiro. A IA joga pelo mesmo caminho de uma tecla (`/api/move` e sorteio); o passo do desafio aplica a resposta do Prolog **sem** sortear peça. Com a IA ligada ou um desafio aberto, as teclas de quem joga são ignoradas.
 - Campos das comemorações (#9): `best` (recorde por N, das flags), `muted`, `celebrated` (a partida já comemorou: o confete sai uma vez, mesmo com `won` seguindo `true`), `showWin` (tela de vitória) e `ranked` (falso nos tabuleiros prontos da apresentação, que não contam para o recorde). `Game.init` recebe as preferências salvas (recorde, tema e som), que o `main.js` lê do `localStorage` e manda nas flags.
 
 ## Convenções

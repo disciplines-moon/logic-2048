@@ -120,7 +120,7 @@ subscriptions model =
         GamePage ->
             Sub.batch
                 [ Sub.map GameMsg (Game.keyMsgs True)
-                , Sub.map GameMsg (Game.replayTicks model.game)
+                , Sub.map GameMsg (Game.subscriptions model.game)
                 ]
 
         PresentationPage ->
@@ -128,7 +128,7 @@ subscriptions model =
             Sub.batch
                 [ Browser.Events.onKeyDown (D.map PresentationMsg Presentation.keyDecoder)
                 , Sub.map GameMsg (Game.keyMsgs False)
-                , Sub.map GameMsg (Game.replayTicks model.game)
+                , Sub.map GameMsg (Game.subscriptions model.game)
                 ]
 
 
