@@ -80,7 +80,7 @@ ele, as peças só aparecem no lugar novo.
 ```
 ```json
 { "direction": "left", "depth": 2,
-  "scores": { "left": 12.5, "right": 12.5, "down": 9.0 } }
+  "scores": { "left": 135.67, "right": 135.67, "down": 134.73 } }
 ```
 
 `up` não aparece: com as peças na linha de cima, nada se move. `depth` é

@@ -7,9 +7,10 @@ se confere em vários quadros, não num print parado.
 
 ## 1. Instalação numa máquina limpa
 
-- [ ] Só com o README: SWI-Prolog, uv, Node, `uv sync` (com o `CFLAGS` do gcc 14+ se precisar) e `npm ci`.
+- [ ] Só com o README: SWI-Prolog, uv, Node e `make install` (ou `uv sync`, com o `CFLAGS` do gcc 14+ se precisar, e `npm ci`).
 - [ ] `uv run python -c "import janus_swi as j; print(j.query_once('X is 1+1'))"` responde `{'truth': True, 'X': 2}`.
-- [ ] Testes: cada `prolog/test_*.pl`, `cd server && uv run pytest`, `cd web && npm run check`.
+- [ ] Testes: `make test` (ou cada `prolog/test_*.pl`, `cd server && uv run pytest` e `cd web && npm run check`).
+- [ ] Relatório: `make validar` sem erros.
 
 ## 2. Jogo (`#/`)
 
@@ -72,6 +73,8 @@ Uma frase por paradigma, para fechar:
 | A dica ou a IA demorarem | Dica em profundidade 2 (o padrão); a IA em 1× ou 2× |
 | Uma demo travar | Recarregar com Ctrl+Shift+R (o endereço guarda a cena e o passo) |
 | Som não tocar | O navegador só libera som depois do primeiro clique ou tecla: clicar na demo antes |
+| O confete não aparecer | "Reduzir movimento" está ligado no sistema; o confete respeita essa preferência. Desligar antes de apresentar |
+| Uma cena mostrar código antigo | Reiniciar a API e o `npm run dev` depois de mudar `prolog/` ou `server/` |
 
 ## 6. Máquina da apresentação
 

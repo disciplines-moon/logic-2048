@@ -44,7 +44,7 @@ instalam exatamente elas.
 | Python | 3.12.13 | 3.11 | API FastAPI |
 | [uv](https://docs.astral.sh/uv/) | 0.11.25 | 0.5 | cria o ambiente Python e instala as dependências |
 | Node.js | 22.22.1 | 20 | Vite, compilador Elm e testes da interface |
-| npm | 11.18.0 | 9 | dependências da interface (não use pnpm: há só `package-lock.json`) |
+| npm | 11.18.0 | o que vem com o Node | dependências da interface (não use pnpm: há só `package-lock.json`) |
 | gcc e cabeçalhos do SWI-Prolog | gcc 15.2, `libswipl-dev` | qualquer gcc | compilar o `janus-swi` na instalação |
 | GNU Make | 4.4.1 | opcional | atalhos `make install`, `make test`... |
 | Navegador | Google Chrome 155 | qualquer navegador moderno de desktop | a interface |

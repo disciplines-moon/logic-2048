@@ -73,4 +73,6 @@ Versões instaladas ficam em `skills-lock.json`.
 
 ## Prazos
 
-Tudo pronto até 22/11. A prova de Elm é em 18/11 e as apresentações em 25/11, 27/11 e 02/12.
+Entrega (lote 1) em 18/11, 23h59: código na `main`, tag `v1.0` e `RELATORIO.md` sem erros em `make validar`. Avaliação 360 até 30/11. Apresentações em 25/11, 27/11 e 02/12.
+
+Todo uso de IA entra na seção 11 do `RELATORIO.md`, com a faixa de cada parte.
