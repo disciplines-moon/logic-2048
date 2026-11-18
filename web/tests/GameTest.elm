@@ -5,6 +5,7 @@ import Dict
 import Expect
 import Fuzz
 import Game exposing (Msg(..), PieceKind(..), Status(..), Theme(..))
+import Game.Assist as Assist
 import Game.Effects as Effects exposing (Effect(..), Sound(..))
 import Game.View
 import Http
@@ -689,6 +690,21 @@ suite =
                         |> react (response [ [ 2048, 0, 0 ], [ 0, 0, 0 ], [ 0, 0, 0 ] ] 2048 True)
                         |> Tuple.second
                         |> Expect.equal [ Sound Merge ]
+            , test "partida em que a IA jogou não conta para o recorde; Novo jogo volta a contar (revisão do PR #35)" <|
+                \_ ->
+                    let
+                        withAi =
+                            step (AssistMsg Assist.AiToggled) started
+
+                        aiOff =
+                            step (AssistMsg Assist.AiToggled) withAi
+                    in
+                    [ withAi.ranked
+                    , aiOff.ranked
+                    , aiOff |> react (response movedBoard 4 True) |> Tuple.second |> List.member (SaveBest 4 4)
+                    , (step NewGame aiOff).ranked
+                    ]
+                        |> Expect.equal [ False, False, False, True ]
             , test "Continuar jogando fecha a tela de vitória; Novo jogo recomeça a comemoração" <|
                 \_ ->
                     let

@@ -979,8 +979,18 @@ assist amsg model =
         ( next, cmd, action ) =
             Assist.update amsg (context base) base.assist
 
+        -- A partida em que a IA jogou não conta para o recorde de quem joga
+        -- (revisão do PR #35), nem se a pessoa retomar depois.
+        aiTookOver =
+            case amsg of
+                Assist.AiToggled ->
+                    Assist.driving next && not (Assist.inChallenge next)
+
+                _ ->
+                    False
+
         updated =
-            { base | assist = next }
+            { base | assist = next, ranked = base.ranked && not aiTookOver }
 
         assistCmd =
             Cmd.map AssistMsg cmd
