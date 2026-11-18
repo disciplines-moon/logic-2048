@@ -25,19 +25,19 @@ cenas =
             , { notes = "A main não tem proteção do GitHub porque o repositório é privado no plano Free. Quem protege é a CI: três jobs, um por camada, em todo PR."
               , blocks =
                     [ Clear
-                    , Code { file = ".github/workflows/ci.yml", from = 9, to = 22, mark = [ 9, 20, 21 ] }
+                    , Code { file = ".github/workflows/ci.yml", from = 9, to = 20, mark = [ 9, 13, 19 ] }
                     ]
               }
             , { notes = "O job do Elm roda o npm run check, que já junta formato, armadilhas conhecidas, testes e build. Se um teste quebra, o check fica vermelho e o PR não deve ser aprovado."
               , blocks =
                     [ Clear
-                    , Code { file = ".github/workflows/ci.yml", from = 42, to = 57, mark = [ 57 ] }
+                    , Code { file = ".github/workflows/ci.yml", from = 40, to = 55, mark = [ 51, 55 ] }
                     ]
               }
             , { notes = "Um comando sobe tudo: compila a interface e o FastAPI serve a API e a interface juntas, num processo só. Esta apresentação roda assim também."
               , blocks =
                     [ Clear
-                    , Code { file = "scripts/rodar.sh", from = 8, to = 12, mark = [ 12 ] }
+                    , Code { file = "scripts/rodar.sh", from = 9, to = 12, mark = [ 9, 12 ] }
                     ]
               }
             , { notes = "A documentação acompanha o código: contrato, arquitetura e esta apresentação, tudo no repositório."

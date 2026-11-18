@@ -40,7 +40,7 @@ cenas =
               , blocks =
                     [ Clear
                     , Code { file = "web/src/Game.elm", from = 823, to = 825, mark = [ 825 ] }
-                    , Code { file = "web/src/Game.elm", from = 835, to = 839, mark = [ 837, 838, 839 ] }
+                    , Code { file = "web/src/Game.elm", from = 836, to = 839, mark = [ 837, 838, 839 ] }
                     , Pre "Prolog   move(Board, left, New, Score)      mesma entrada → mesma saída\nElm      Random.generate Spawned gerador    o runtime sorteia → Msg"
                     ]
               }
