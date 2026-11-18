@@ -64,29 +64,42 @@ suite =
                     Presentation.init 0 0
                         |> Presentation.update (SendRequest "{}")
                         |> .request
-                        |> Expect.equal (Just { body = "{}", answer = Nothing })
+                        |> Expect.equal (Just { url = "/api/move", body = "{}", answer = Nothing })
             , test "a resposta do pedido atual aparece" <|
                 \_ ->
                     Presentation.init 0 0
                         |> Presentation.update (SendRequest "{}")
-                        |> Presentation.update (GotResponse "{}" (Ok { status = 422, body = "x" }))
+                        |> Presentation.update (GotResponse "/api/move" "{}" (Ok { status = 422, body = "x" }))
                         |> .request
-                        |> Expect.equal (Just { body = "{}", answer = Just (Ok { status = 422, body = "x" }) })
+                        |> Expect.equal (Just { url = "/api/move", body = "{}", answer = Just (Ok { status = 422, body = "x" }) })
             , test "resposta atrasada de outro pedido é descartada" <|
                 \_ ->
                     Presentation.init 0 0
                         |> Presentation.update (SendRequest "a")
                         |> Presentation.update (SendRequest "b")
-                        |> Presentation.update (GotResponse "a" (Ok { status = 200, body = "x" }))
+                        |> Presentation.update (GotResponse "/api/move" "a" (Ok { status = 200, body = "x" }))
                         |> .request
-                        |> Expect.equal (Just { body = "b", answer = Nothing })
+                        |> Expect.equal (Just { url = "/api/move", body = "b", answer = Nothing })
+            , test "resposta de outra rota, com o mesmo corpo, é descartada (#11)" <|
+                \_ ->
+                    Presentation.init 0 0
+                        |> Presentation.update (SendRequestTo "/api/challenges" "")
+                        |> Presentation.update (GotResponse "/api/hint" "" (Ok { status = 200, body = "x" }))
+                        |> .request
+                        |> Expect.equal (Just { url = "/api/challenges", body = "", answer = Nothing })
+            , test "pedido para outra rota guarda a rota (#11)" <|
+                \_ ->
+                    Presentation.init 0 0
+                        |> Presentation.update (SendRequestTo "/api/hint" "{}")
+                        |> .request
+                        |> Expect.equal (Just { url = "/api/hint", body = "{}", answer = Nothing })
             , test "navegar não apaga o pedido" <|
                 \_ ->
                     Presentation.init 0 0
                         |> Presentation.update (SendRequest "{}")
                         |> Presentation.update Next
                         |> .request
-                        |> Expect.equal (Just { body = "{}", answer = Nothing })
+                        |> Expect.equal (Just { url = "/api/move", body = "{}", answer = Nothing })
             ]
         , test "índice fora do limite é ajustado" <|
             \_ ->

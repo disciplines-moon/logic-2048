@@ -159,7 +159,12 @@ update msg model =
             , Cmd.map PresentationMsg (Presentation.send body)
             )
 
-        PresentationMsg ((Presentation.GotResponse _ _) as pmsg) ->
+        PresentationMsg ((Presentation.SendRequestTo url body) as pmsg) ->
+            ( { model | presentation = Presentation.update pmsg model.presentation }
+            , Cmd.map PresentationMsg (Presentation.sendTo url body)
+            )
+
+        PresentationMsg ((Presentation.GotResponse _ _ _) as pmsg) ->
             -- A resposta é guardada mesmo que a pessoa já tenha saído da apresentação;
             -- senão, ao voltar, o painel ficaria para sempre "esperando o servidor".
             ( { model | presentation = Presentation.update pmsg model.presentation }, Cmd.none )

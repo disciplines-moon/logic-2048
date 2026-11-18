@@ -15,7 +15,7 @@ cenas =
                     [ Clear
                     , Lead "O port é tipado: não passa qualquer coisa."
                     , Code { file = "web/src/Ports.elm", from = 14, to = 21, mark = [ 16, 21 ] }
-                    , Code { file = "web/src/main.js", from = 53, to = 57, mark = [ 53, 54 ] }
+                    , Code { file = "web/src/main.js", from = 57, to = 61, mark = [ 57, 58 ] }
                     ]
               }
             , { notes = "Quem decide os efeitos é uma função pura, reactions. A vitória vem do Prolog: o won da resposta. Mas o won continua verdadeiro depois de vencer, então o confete só sai se a partida ainda não comemorou: é o campo celebrated, guardado no Model. O mesmo para a derrota, o lost do Prolog na primeira vez. E o recorde só conta se o placar passou o recorde daquele tamanho."
@@ -40,7 +40,7 @@ cenas =
               , blocks =
                     [ Clear
                     , Lead "O estado inicial entra no Elm por flags."
-                    , Code { file = "web/src/main.js", from = 45, to = 45, mark = [ 45 ] }
+                    , Code { file = "web/src/main.js", from = 49, to = 49, mark = [ 49 ] }
                     , Code { file = "web/src/memoria.js", from = 39, to = 45, mark = [ 41, 42, 43 ] }
                     ]
               }

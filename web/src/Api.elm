@@ -1,4 +1,4 @@
-module Api exposing (Direction(..), Move, MoveResponse, RawResponse, encodeMove, keyDecoder, moveDecoder, postMove, postRaw, rawResponse, undoDecoder, wasdDecoder)
+module Api exposing (Direction(..), Move, MoveResponse, RawResponse, encodeMove, getRaw, keyDecoder, moveDecoder, postMove, postRaw, rawResponse, undoDecoder, wasdDecoder)
 
 import Http
 import Json.Decode as D
@@ -185,6 +185,13 @@ postRaw url body toMsg =
         , body = Http.stringBody "application/json" body
         , expect = Http.expectStringResponse toMsg rawResponse
         }
+
+
+{-| Como o `postRaw`, para um GET (o `GET /api/challenges` na apresentação da #11).
+-}
+getRaw : String -> (Result Http.Error RawResponse -> msg) -> Cmd msg
+getRaw url toMsg =
+    Http.get { url = url, expect = Http.expectStringResponse toMsg rawResponse }
 
 
 {-| Qualquer status com corpo é resposta (200, 422 ou 500). Só é erro quando não

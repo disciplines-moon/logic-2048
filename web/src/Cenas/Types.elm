@@ -50,6 +50,9 @@ type Block
       -- painel mostra o JSON enviado, o status HTTP e o JSON que o servidor devolveu.
       -- O `body` vai exatamente como está escrito, então pode ser inválido de propósito.
     | Pedidos (List Pedido)
+      -- O mesmo painel, para outra rota (#11): `PedidosEm "/api/hint" [...]`. Um
+      -- pedido com `body = ""` vira GET (por exemplo `GET /api/challenges`).
+    | PedidosEm String (List Pedido)
       -- Cena ainda não escrita. Falha a revisão final (#14).
     | Pending String
       -- Apaga tudo que apareceu antes na cena (para trocar um bloco por outro).

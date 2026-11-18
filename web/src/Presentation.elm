@@ -1,4 +1,4 @@
-module Presentation exposing (Model, Msg(..), Sent, init, keyDecoder, keyToMsg, sceneCount, send, update, view)
+module Presentation exposing (Model, Msg(..), Sent, init, keyDecoder, keyToMsg, sceneCount, send, sendTo, update, view)
 
 {-| Página `#/apresentacao`: a apresentação roda dentro do próprio app.
 
@@ -39,13 +39,14 @@ type alias Model =
 servidor não responde.
 -}
 type alias Sent =
-    { body : String
+    { url : String
+    , body : String
     , answer : Maybe (Result Http.Error Api.RawResponse)
     }
 
 
 {-| `SendRequest` marca o pedido como enviado; quem manda de fato é o `Main`, com
-`send`, como faz com a tela cheia. `GotResponse` traz o corpo que respondeu, para
+`send`, como faz com a tela cheia. `GotResponse` traz a rota e o corpo que responderam, para
 descartar respostas atrasadas de outro pedido.
 -}
 type Msg
@@ -60,7 +61,8 @@ type Msg
     | ToggleFullscreen
     | Exit
     | SendRequest String
-    | GotResponse String (Result Http.Error Api.RawResponse)
+    | SendRequestTo String String
+    | GotResponse String String (Result Http.Error Api.RawResponse)
     | Ignored
 
 
@@ -153,12 +155,16 @@ update msg model =
             { model | showNotes = not model.showNotes }
 
         SendRequest body ->
-            { model | request = Just { body = body, answer = Nothing } }
+            update (SendRequestTo "/api/move" body) model
 
-        GotResponse body result ->
+        SendRequestTo url body ->
+            { model | request = Just { url = url, body = body, answer = Nothing } }
+
+        GotResponse url body result ->
             case model.request of
                 Just sent ->
-                    if sent.body == body then
+                    -- Só vale a resposta do pedido atual: mesma rota e mesmo corpo.
+                    if sent.url == url && sent.body == body then
                         { model | request = Just { sent | answer = Just result } }
 
                     else
@@ -175,7 +181,18 @@ update msg model =
 -}
 send : String -> Cmd Msg
 send body =
-    Api.postRaw "/api/move" body (GotResponse body)
+    sendTo "/api/move" body
+
+
+{-| O mesmo, para outra rota (bloco `PedidosEm`). Sem corpo, é um GET.
+-}
+sendTo : String -> String -> Cmd Msg
+sendTo url body =
+    if String.isEmpty body then
+        Api.getRaw url (GotResponse url body)
+
+    else
+        Api.postRaw url body (GotResponse url body)
 
 
 keyDecoder : D.Decoder Msg
@@ -418,7 +435,10 @@ viewBlock config request block =
             viewFlow nodes active back
 
         Pedidos pedidos ->
-            viewPedidos config request pedidos
+            viewPedidos config request "/api/move" pedidos
+
+        PedidosEm url pedidos ->
+            viewPedidos config request url pedidos
 
         Clear ->
             text ""
@@ -757,22 +777,34 @@ viewFlow nodes active back =
 {-| Botões com pedidos prontos e, depois do primeiro clique, o pedido enviado ao
 lado da resposta real do servidor.
 -}
-viewPedidos : Config msg -> Maybe Sent -> List Pedido -> Html msg
-viewPedidos config request pedidos =
+viewPedidos : Config msg -> Maybe Sent -> String -> List Pedido -> Html msg
+viewPedidos config request url pedidos =
     let
         current =
-            Maybe.map .body request
+            Maybe.map (\sent -> ( sent.url, sent.body )) request
 
         pedidoButton pedido =
             button
-                [ classList [ ( "pd-button", True ), ( "on", current == Just pedido.body ) ]
-                , onClick (config.toMsg (SendRequest pedido.body))
+                [ classList [ ( "pd-button", True ), ( "on", current == Just ( url, pedido.body ) ) ]
+                , onClick (config.toMsg (SendRequestTo url pedido.body))
                 ]
                 [ text pedido.label ]
+
+        -- Um pedido feito em outra cena (outra rota) não aparece aqui.
+        here =
+            request
+                |> Maybe.andThen
+                    (\sent ->
+                        if sent.url == url then
+                            Just sent
+
+                        else
+                            Nothing
+                    )
     in
     div [ class "pd" ]
         [ div [ class "pd-buttons" ] (List.map pedidoButton pedidos)
-        , case request of
+        , case here of
             Nothing ->
                 div [ class "pd-hint" ] [ text "Clique num pedido: ele vai de verdade ao servidor." ]
 
@@ -783,14 +815,31 @@ viewPedidos config request pedidos =
                     [ class "pd-panes" ]
                     [ ( sent.body
                       , div [ class "pd-pane pd-request" ]
-                            [ div [ class "pd-head" ] [ text "POST /api/move" ]
-                            , pre [ class "pd-json" ] [ text sent.body ]
+                            [ div [ class "pd-head" ] [ text (method sent.body ++ " " ++ sent.url) ]
+                            , pre [ class "pd-json" ]
+                                [ text
+                                    (if String.isEmpty sent.body then
+                                        "(sem corpo)"
+
+                                     else
+                                        sent.body
+                                    )
+                                ]
                             ]
                       )
                     , ( "seta", div [ class "pd-arrow" ] [ text "→" ] )
                     , ( sent.body ++ answerKey sent.answer, viewAnswer sent.answer )
                     ]
         ]
+
+
+method : String -> String
+method body =
+    if String.isEmpty body then
+        "GET"
+
+    else
+        "POST"
 
 
 answerKey : Maybe (Result Http.Error Api.RawResponse) -> String
@@ -883,11 +932,17 @@ prettyJson body =
                 ++ "\n}"
 
         Err _ ->
-            if String.isEmpty body then
-                "(sem corpo)"
+            case D.decodeString (D.list D.value) body of
+                -- Uma lista (o GET /api/challenges): um item por linha.
+                Ok items ->
+                    "[\n" ++ String.join ",\n" (List.map (\v -> "  " ++ E.encode 0 v) items) ++ "\n]"
 
-            else
-                body
+                Err _ ->
+                    if String.isEmpty body then
+                        "(sem corpo)"
+
+                    else
+                        body
 
 
 plTile : String -> Int -> Int -> String -> Int -> Html msg

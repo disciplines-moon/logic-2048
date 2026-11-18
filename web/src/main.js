@@ -11,6 +11,8 @@ import challengePl from "../../prolog/challenge.pl?raw";
 import hintPl from "../../prolog/hint.pl?raw";
 import mainPy from "../../server/main.py?raw";
 import testMainPy from "../../server/test_main.py?raw";
+import extrasPy from "../../server/extras.py?raw";
+import testExtrasPy from "../../server/test_extras.py?raw";
 import apiElm from "./Api.elm?raw";
 import gameElm from "./Game.elm?raw";
 import historyElm from "./Game/History.elm?raw";
@@ -30,6 +32,8 @@ const sources = {
   "prolog/hint.pl": hintPl,
   "server/main.py": mainPy,
   "server/test_main.py": testMainPy,
+  "server/extras.py": extrasPy,
+  "server/test_extras.py": testExtrasPy,
   "web/src/Api.elm": apiElm,
   "web/src/Game.elm": gameElm,
   "web/src/Game/History.elm": historyElm,

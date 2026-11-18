@@ -111,9 +111,38 @@ sh scripts/rodar.sh          # ou: sh scripts/rodar.sh 8010 para outra porta
 
 Build de produção da interface: `cd web && npm run build` (saída em `web/dist`).
 
-> **gcc 14+:** o `janus-swi` pode falhar ao compilar com
-> `incompatible-pointer-types`. Se acontecer, rode o `uv sync` assim:
-> `CFLAGS="-Wno-error=incompatible-pointer-types -Wno-incompatible-pointer-types" uv sync`.
+### Instalando o janus-swi
+
+O `janus-swi` é a ponte entre o Python e o SWI-Prolog. O `uv sync` o compila na
+primeira vez, contra o SWI-Prolog instalado, então precisa de gcc e dos
+cabeçalhos do SWI-Prolog. Confira antes com `swipl --version` (>= 9.1.12).
+
+| Sistema | Antes do `uv sync` |
+|---|---|
+| Ubuntu/Debian | `sudo apt install swi-prolog-nox libswipl-dev build-essential python3-dev` |
+| macOS | `brew install swi-prolog` e `xcode-select --install` (compilador) |
+| Windows | use o WSL (Ubuntu) e siga a linha do Ubuntu, dentro do WSL |
+
+**gcc 14 ou mais novo** (Ubuntu 24.10+, Fedora 40+, Arch): a compilação falha com
+`error: ... [-Wincompatible-pointer-types]`. Rode o `uv sync` assim:
+
+```bash
+cd server
+CFLAGS="-Wno-error=incompatible-pointer-types -Wno-incompatible-pointer-types" uv sync
+```
+
+**`ImportError: libswipl.so...`** ou o janus quebrou depois de atualizar o
+SWI-Prolog: o pacote foi compilado contra a versão antiga. Recompile ignorando o
+cache do uv (com o `CFLAGS` acima, se o seu gcc for 14+):
+
+```bash
+cd server
+uv sync --reinstall-package janus-swi --no-binary-package janus-swi --no-cache
+```
+
+Se o `swipl` não for achado, o SWI-Prolog não está no `PATH` (no macOS, confira
+`brew --prefix swi-prolog`). Para conferir que a ponte funciona:
+`uv run python -c "import janus_swi as j; print(j.query_once('X is 1+1'))"`.
 
 ## Testes
 
