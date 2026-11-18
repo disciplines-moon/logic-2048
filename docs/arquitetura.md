@@ -54,13 +54,16 @@ O Python continua chamando `game:hint(...)` e `game:challenge(...)`: o `game.pl`
 | `data/challenges.json` | lista fixa de desafios | #11 |
 | `test_main.py`, `test_extras.py` | testes pytest | cada issue |
 
-### Scripts e automação (`scripts/`, `.github/`)
+### Scripts, automação e entrega (`scripts/`, `.github/`, raiz)
 
 | Arquivo | Conteúdo | Issue |
 |---|---|---|
 | `scripts/rodar.sh` | compila a interface e sobe o servidor FastAPI num comando só | #13 |
 | `.github/workflows/ci.yml` | CI com jobs de teste para Prolog, Python e Elm | #13 |
 | `.github/pull_request_template.md` | template com checklist para PRs | #13 |
+| `scripts/validar_entrega.py` | validador do relatório, copiado do repositório da disciplina sem alterações (`make validar`) | #14 |
+| `Makefile` | atalhos: `make install`, `make dev`, `make rodar`, `make test` e `make validar` | #14 |
+| `RELATORIO.md` | relatório de entrega, no modelo da disciplina; capturas em `docs/captura*.png` | #14 |
 
 ### Elm (`web/src/`)
 
