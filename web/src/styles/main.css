@@ -1477,3 +1477,20 @@ html { font-size: clamp(10px, min(1.02vw, 1.8vh), 34px); }
 .arv-leaf.lost .arv-chance, .arv-leaf.lost .arv-nota { color: #fff; }
 .arv-leaf.lost { animation: arv-pop 0.45s ease both, arv-danger 1.6s ease-in-out 2s infinite; }
 @keyframes arv-danger { 0%, 100% { box-shadow: none; } 50% { box-shadow: 0 0 18px 4px rgba(192, 57, 43, 0.6); } }
+/* Árvore maior: ocupa o espaço do passo. */
+.arvore { margin-top: 0.8rem; }
+.arv-branches { padding-top: 2.4rem; width: min(100%, 70rem); }
+.arv-branch { gap: 0.8rem; padding-top: 1.2rem; }
+.arv-branch::before { top: -1.2rem; }
+.arv-branch::after { top: -1.2rem; height: 2.4rem; }
+.arv-branches::before { height: 1.2rem; }
+.arv-value { font-size: 2rem; }
+.arv-kind { font-size: 0.85rem; }
+.arv-root { padding: 0.6rem 1.8rem; }
+.arv-move { font-size: 1.6rem; padding: 0.45rem 1.1rem; }
+.arv-chance-node { padding: 0.5rem 1.5rem; }
+.arv-leaves { gap: 0.9rem; }
+.arv-leaf { padding: 0.6rem 1rem; }
+.arv-chance { font-size: 1rem; }
+.arv-nota { font-size: 1.6rem; }
+.flow-return { margin-bottom: 0.5rem; } .flow-detail { margin-bottom: 0.6rem; }
