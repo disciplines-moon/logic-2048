@@ -4,13 +4,13 @@
 
 | Nome completo | Matrícula | Turma (14h/16h) | Usuário GitHub |
 |---------------|-----------|-----------------|----------------|
-| Victor Hugo Lima Schmidt | [000000] | [14h ou 16h] | @moonshinerd |
-| Bianca Patrocínio Castro | [000000] | [14h ou 16h] | @BiancaPatrocinio7 |
-| Davi de Aguiar Vieira | [000000] | [14h ou 16h] | @davi-aguiar-vieira |
-| Kaio Macedo Santana | [000000] | [14h ou 16h] | @bigkaio |
-| Mateus de Castro Santos | [000000] | [14h ou 16h] | @mat054 |
-| Mateus Henrique Queiroz Magalhães Sousa | [000000] | [14h ou 16h] | @Mateushqms |
-| William Bernardo da Silva | [000000] | [14h ou 16h] | @WillxBernardo |
+| Victor Hugo Lima Schmidt | 222021924 | 16h | @moonshinerd |
+| Bianca Patrocínio Castro | 221008801 | 16h | @BiancaPatrocinio7 |
+| Davi de Aguiar Vieira | 222006641 | 16h | @davi-aguiar-vieira |
+| Kaio Macedo Santana | 222006893 | 16h | @bigkaio |
+| Mateus de Castro Santos | 222015195 | 16h | @mat054 |
+| Mateus Henrique Queiroz Magalhães Sousa | 222025950 | 16h | @Mateushqms |
+| William Bernardo da Silva | 222021933 | 16h | @WillxBernardo |
 
 - **Nome do projeto:** Logic2048
 - **Nome do grupo:** [nome do grupo]
