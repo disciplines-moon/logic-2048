@@ -5,6 +5,7 @@ import Browser.Events
 import Browser.Navigation as Nav
 import Dict exposing (Dict)
 import Game
+import Game.Assist as Assist
 import Game.Effects
 import Game.View
 import Html exposing (Html, button, div, h1, text)
@@ -251,9 +252,9 @@ update msg model =
 
 {-| Chegou a um passo novo da apresentação. O painel de pedidos começa vazio e,
 se o passo tem `DemoCom`, o jogo da demo
-carrega aquele tabuleiro e começa limpo, sem a dica nem a câmera lenta que
-ficaram ligadas num slide anterior (o `LoadBoard` desliga a IA e o desafio, mas
-guarda as duas).
+carrega aquele tabuleiro e começa limpo, sem a dica, a câmera lenta ou a
+velocidade da IA de um slide anterior (o `LoadBoard` desliga a IA e o desafio,
+mas guarda essas três).
 -}
 enterStep : Model -> Cmd Msg -> ( Model, Cmd Msg )
 enterStep arrived cmd =
@@ -276,7 +277,7 @@ enterStep arrived cmd =
                     current.assist
 
                 ( game, gameCmd ) =
-                    Game.update (Game.LoadBoard board) { current | slowMotion = False, assist = { assist | hintsOn = False, hint = Nothing } }
+                    Game.update (Game.LoadBoard board) { current | slowMotion = False, assist = { assist | hintsOn = False, hint = Nothing, interval = Assist.init.interval } }
             in
             ( { model | game = game }, Cmd.batch [ cmd, Cmd.map GameMsg gameCmd ] )
 
