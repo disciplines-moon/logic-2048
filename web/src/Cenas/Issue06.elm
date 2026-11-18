@@ -33,14 +33,14 @@ cenas =
             , { notes = "Quando o Prolog responde, o update soma os pontos. Se o tabuleiro mudou, pede ao runtime um sorteio com Random.generate. Se não mudou, não sorteia nada. O resultado do sorteio volta como mais uma Msg, Spawned. Detalhe: a derrota só aparece na tecla seguinte ao tabuleiro travar. Quem sabe se ainda há jogada é o Prolog, e ele responde sobre o tabuleiro de antes do sorteio; o Elm só descobre que travou ao mandar a próxima jogada."
               , blocks =
                     [ Clear
-                    , Code { file = "web/src/Game.elm", from = 436, to = 454, mark = [ 443, 448, 450, 454 ] }
+                    , Code { file = "web/src/Game.elm", from = 437, to = 455, mark = [ 444, 449, 451, 455 ] }
                     ]
               }
             , { notes = "Por que o sorteio fica no Elm? O Prolog é puro: o mesmo tabuleiro sempre dá a mesma resposta. Sortear dá um resultado diferente a cada vez, então é um efeito. Um Generator não sorteia: só descreve o sorteio. 2 com peso 90, 4 com peso 10, numa casa vazia qualquer. Quem executa é o runtime."
               , blocks =
                     [ Clear
-                    , Code { file = "web/src/Game.elm", from = 822, to = 824, mark = [ 824 ] }
-                    , Code { file = "web/src/Game.elm", from = 829, to = 838, mark = [ 837 ] }
+                    , Code { file = "web/src/Game.elm", from = 823, to = 825, mark = [ 825 ] }
+                    , Code { file = "web/src/Game.elm", from = 835, to = 839, mark = [ 837, 838, 839 ] }
                     , Pre "Prolog   move(Board, left, New, Score)      mesma entrada → mesma saída\nElm      Random.generate Spawned gerador    o runtime sorteia → Msg"
                     ]
               }
@@ -49,7 +49,7 @@ cenas =
                     [ Clear
                     , Lead "Cada tecla: Msg → update → Model novo → view."
                     , Demo
-                    , Code { file = "web/src/Game.elm", from = 448, to = 454, mark = [ 450 ] }
+                    , Code { file = "web/src/Game.elm", from = 449, to = 452, mark = [ 451 ] }
                     ]
               }
             , { notes = "Trocar o tamanho do tabuleiro ao vivo, de 3 a 6. É o mesmo código para qualquer N: a Msg SizeChosen só cria um jogo novo com o N escolhido, e o Prolog recebe o tabuleiro do tamanho que vier."

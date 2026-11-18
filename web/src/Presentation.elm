@@ -10,6 +10,7 @@ no painel do apresentador (tecla `n`).
 
 import Api
 import Cenas
+import Cenas.Equipe
 import Cenas.Types exposing (Block(..), Etapa, FlowNode, Member, Pedido, Scene, Step, visibleBlocks)
 import Dict exposing (Dict)
 import Html exposing (Html, button, div, h1, h2, kbd, li, p, pre, span, text, ul)
@@ -282,7 +283,7 @@ view config model =
                       )
                     ]
                 , if model.showNotes then
-                    viewNotes (List.head (List.drop model.step scene.steps))
+                    viewNotes scene.issue (List.head (List.drop model.step scene.steps))
 
                   else
                     text ""
@@ -317,10 +318,25 @@ viewBlockAt config model ( born, block ) =
         [ viewBlock config model.request block ]
 
 
-viewNotes : Maybe Step -> Html msg
-viewNotes maybeStep =
+{-| A fala do passo, com a foto e o nome de quem apresenta (o dono da issue).
+-}
+viewNotes : Int -> Maybe Step -> Html msg
+viewNotes issue maybeStep =
     div [ class "notes" ]
-        [ Html.b [] [ text "FALA" ]
+        [ case Cenas.Equipe.apresentador issue of
+            Just m ->
+                -- Na mesma linha da fala, para não roubar largura do texto.
+                span [ class "speaker" ]
+                    [ span [ class "speaker-avatar" ]
+                        [ span [ class "initial" ] [ text (String.left 1 m.name) ]
+                        , Html.img [ Html.Attributes.src ("https://github.com/" ++ m.login ++ ".png?size=96"), Html.Attributes.alt "", Html.Attributes.attribute "referrerpolicy" "no-referrer" ] []
+                        ]
+                    , span [ class "speaker-name" ] [ text m.name ]
+                    ]
+
+            Nothing ->
+                text ""
+        , Html.b [] [ text "FALA" ]
         , text (Maybe.map .notes maybeStep |> Maybe.withDefault "")
         ]
 
@@ -391,7 +407,8 @@ viewBlock config request block =
             pre [ class "pre" ] [ text s ]
 
         Code { file, from, to, mark } ->
-            div [ class "code" ] (excerpt config.sources file from to mark)
+            -- Trecho longo (mais de 18 linhas) usa letra menor, para a cena caber sem rolar.
+            div [ class "code", classList [ ( "long", to - from + 1 > 18 ) ] ] (excerpt config.sources file from to mark)
 
         Demo ->
             div [ class "demo" ] [ config.demo ]

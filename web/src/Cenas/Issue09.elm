@@ -15,14 +15,14 @@ cenas =
                     [ Clear
                     , Lead "O port é tipado: não passa qualquer coisa."
                     , Code { file = "web/src/Ports.elm", from = 14, to = 21, mark = [ 16, 21 ] }
-                    , Code { file = "web/src/main.js", from = 59, to = 63, mark = [ 59, 60 ] }
+                    , Code { file = "web/src/main.js", from = 63, to = 67, mark = [ 63, 64 ] }
                     ]
               }
             , { notes = "Quem decide os efeitos é uma função pura, reactions. A vitória vem do Prolog: o won da resposta. Mas o won continua verdadeiro depois de vencer, então o confete só sai se a partida ainda não comemorou: é o campo celebrated, guardado no Model. O mesmo para a derrota, o lost do Prolog na primeira vez. E o recorde só conta se o placar passou o recorde daquele tamanho."
               , blocks =
                     [ Clear
                     , Lead "Confete quando o Prolog diz won, uma vez por partida."
-                    , Code { file = "web/src/Game.elm", from = 572, to = 586, mark = [ 576, 579, 582 ] }
+                    , Code { file = "web/src/Game.elm", from = 573, to = 587, mark = [ 577, 580, 583 ] }
                     ]
               }
             , { notes = "Ao vivo. Fusões, A: cada fusão manda uma mensagem ao port de som. Quase vencido, A: o Prolog responde won e vem a festa (fanfarra, confete, fogos e chuva de peças 2048), tudo em JavaScript a partir de dois ports. Continuar jogando e outra tecla: o won segue true, mas a festa não repete."
@@ -40,7 +40,7 @@ cenas =
               , blocks =
                     [ Clear
                     , Lead "O estado inicial entra no Elm por flags."
-                    , Code { file = "web/src/main.js", from = 51, to = 51, mark = [ 51 ] }
+                    , Code { file = "web/src/main.js", from = 53, to = 55, mark = [ 55 ] }
                     , Code { file = "web/src/memoria.js", from = 39, to = 45, mark = [ 41, 42, 43 ] }
                     ]
               }
@@ -49,7 +49,7 @@ cenas =
                     [ Clear
                     , Lead "Silenciar é decidir no Elm, lembrar no navegador."
                     , Demo
-                    , Code { file = "web/src/Game.elm", from = 383, to = 384, mark = [ 384 ] }
+                    , Code { file = "web/src/Game.elm", from = 384, to = 385, mark = [ 385 ] }
                     ]
               }
             ]

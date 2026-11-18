@@ -17,8 +17,10 @@ fi
 
 base=$(git rev-parse --verify -q main 2>/dev/null || git rev-parse --verify -q origin/main 2>/dev/null)
 if [ -n "$base" ]; then
-  if git log "$base"..HEAD --format=%B 2>/dev/null | grep -iq 'co-authored-by'; then
-    echo "ERRO: commit com Co-Authored-By neste branch (proibido pelo AGENTS.md)."
+  # Coautoria de pessoas do grupo vale; atribuição a IA não (AGENTS.md, regra 1).
+  if git log "$base"..HEAD --format=%B 2>/dev/null | grep -i 'co-authored-by' \
+      | grep -iqE 'claude|anthropic|openai|gpt|copilot|gemini|codex|devin|cursor|aider|\[bot\]'; then
+    echo "ERRO: commit com Co-Authored-By de IA neste branch (proibido pelo AGENTS.md)."
     erro=1
   fi
 fi

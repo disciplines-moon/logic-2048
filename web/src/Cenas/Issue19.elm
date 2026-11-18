@@ -13,10 +13,8 @@ cenas =
                     [ Lead "Um quebra-cabeça: chegar ao alvo em até N jogadas, sem peças novas."
                     , Tabuleiros [ etapa "c1: alvo 16, até 3 jogadas" "" c1 ]
                     , Bullets
-                        [ "Vence com alguma peça >= alvo."
-                        , "Resposta: a menor sequência de jogadas."
-                        , "Jogada que não muda o tabuleiro não conta."
-                        , "Sem solução: o predicado falha."
+                        [ "Vence com alguma peça >= alvo; a resposta é a menor sequência de jogadas."
+                        , "Jogada que não muda o tabuleiro não conta; sem solução, o predicado falha."
                         ]
                     ]
               }

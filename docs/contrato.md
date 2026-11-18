@@ -87,7 +87,10 @@ ele, as peças só aparecem no lugar novo.
 opcional (padrão 2). O máximo é **3 para N <= 4 e 2 para N >= 5**, e valores
 maiores devolvem 422. Para a dica não travar o servidor, o Python **reduz a
 profundidade para 2** quando há mais de 6 casas vazias e devolve a profundidade
-realmente usada no campo `depth` da resposta. `direction` é `null` se
+realmente usada no campo `depth` da resposta (pedir 3 com muitas vazias devolve
+`"depth": 2`). Erros: `depth` fora de 1 a 3 dá
+`{"error": "depth: use um número de 1 a 3"}`, e acima do limite do N dá
+`{"error": "depth: no tabuleiro 5x5 o máximo é 2"}`. `direction` é `null` se
 não há jogada. Direções sem movimento válido ficam fora de `scores`. Empate: vale
 a primeira na ordem `left`, `right`, `up`, `down`.
 
@@ -110,7 +113,10 @@ Lista fixa em `server/data/challenges.json`:
 { "solvable": true, "moves": ["left", "left"] }
 ```
 
-Sem solução: `{ "solvable": false, "moves": [] }`. Nos desafios **nenhuma peça
+Sem solução: `{ "solvable": false, "moves": [] }`. Os três campos são
+obrigatórios. `target` é uma potência de 2 a partir de 2 (senão 422:
+`"target: use uma potência de 2 a partir de 2"`) e `max_moves` vai de 1 a 6
+(`"max_moves: use um número de 1 a 6"`). Nos desafios **nenhuma peça
 nova nasce**: só vale deslizar e fundir o que já está no tabuleiro.
 
 Regras do desafio:
@@ -135,7 +141,7 @@ hint(+Board, +Depth, -Best, -Scores)       % Scores = [left-V1, right-V2, ...]; 
 challenge(+Board, +Target, +MaxMoves, -Moves)   % falha se não houver solução
 ```
 
-Conversões na fronteira (feitas no Python, testadas em `server/test_main.py`):
+Conversões na fronteira (feitas no Python, em `server/extras.py`, testadas em `server/test_extras.py`):
 `Scores` vira objeto JSON, `Best = none` vira `null`, e a falha de `challenge`
 vira `{"solvable": false, "moves": []}`. O janus converte strings Python em
 átomos, então `direction` chega ao Prolog como `left`, `right`, `up` ou `down`.

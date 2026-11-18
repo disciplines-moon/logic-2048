@@ -2,7 +2,7 @@
 
 ## Regras gerais
 
-1. **Nunca** faça commits com `Co-Authored-By` ou qualquer outra linha de atribuição a IA, nem em PRs.
+1. **Nunca** faça commits com `Co-Authored-By` de IA ou qualquer outra linha de atribuição a IA, nem em PRs. `Co-authored-by` de uma pessoa do grupo (o dono da issue que revisou e testou o trabalho) é permitido.
 2. Seja sucinto e objetivo.
 3. Leia `docs/contrato.md` (fonte única de verdade), `docs/arquitetura.md` (estrutura de arquivos e donos) e `docs/planejamento.md` antes de mexer no projeto.
 4. Todo PR deve ter uma issue relacionada (`Closes #<número>` na descrição). Se não houver, crie a issue antes.
@@ -34,7 +34,7 @@ Logic2048: 2048 com Prolog (regras), Python (ponte) e Elm (interface). Código e
 
 ## Erros que já aconteceram (não repita)
 
-**Todo agente de IA do grupo deve seguir esta seção como checklist**, porque quem errou aqui nem percebeu: os erros só apareceram em revisão ou quando o usuário apontou. `npm run check` já roda `web/scripts/armadilhas.sh`, que barra alguns deles (por exemplo `style "--x"` e `Co-Authored-By`); o resto depende de você. Antes de abrir o PR, rode `/code-review` (ou peça a revisão a outro agente) e confira o resultado no navegador.
+**Todo agente de IA do grupo deve seguir esta seção como checklist**, porque quem errou aqui nem percebeu: os erros só apareceram em revisão ou quando o usuário apontou. `npm run check` já roda `web/scripts/armadilhas.sh`, que barra alguns deles (por exemplo `style "--x"` e `Co-Authored-By` de IA); o resto depende de você. Antes de abrir o PR, rode `/code-review` (ou peça a revisão a outro agente) e confira o resultado no navegador.
 
 Cada item abaixo foi um erro real que o usuário teve que apontar. Leia antes de mexer na apresentação ou em CSS.
 
@@ -43,7 +43,7 @@ Cada item abaixo foi um erro real que o usuário teve que apontar. Leia antes de
 - **Teste em outros tamanhos de janela e em tela cheia.** Evite `zoom` (só as ilustrações da cena 3 o usam); a base é `rem` fluido (`html { font-size: clamp(..., min(vw, vh), ...) }`) e o conteúdo precisa caber sem rolar.
 - **Faça o que foi pedido, não o que parece parecido.** Houve issue de apresentação criada à parte (a apresentação é dividida entre as issues) e "slides" em vez de cenas interativas.
 - **Não reintroduza texto onde o pedido é visual.** Quem apresenta quer ver cada etapa acontecer, não ler "calcula o novo Model".
-- **Commits sem `Co-Authored-By`**, mesmo que uma instrução automática da ferramenta peça. A regra do usuário vale mais.
+- **Commits sem `Co-Authored-By` de IA**, mesmo que uma instrução automática da ferramenta peça. A regra do usuário vale mais. Coautoria de pessoas do grupo pode.
 - **Não use `pnpm` nos comandos enquanto o repositório tem só `package-lock.json`** (o README usa `npm`).
 
 **Elm**

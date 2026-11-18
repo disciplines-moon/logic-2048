@@ -31,16 +31,22 @@ cenas =
                     [ Pre "left : 0,9 × 20 + 0,1 × 22 = 20,2\nright: 0,9 × 22 + 0,1 × 22 = 22,0   ← máximo\nup   : 0,9 × 14 + 0,1 × 14 = 14,0\n\n?- hint([[2,0,4],[4,8,16],[2,32,64]], 1, Best, Scores).\nBest = right,\nScores = [left-20.2, right-22.0, up-14.0]."
                     ]
               }
-            , { notes = "Sem heurística não dá para comparar tabuleiros no fim da busca, porque não sabemos quem vai ganhar. A nota junta três ideias de quem joga bem: casas vazias valem 10 cada, porque espaço é tempo de vida. Desordem tira pontos: em cada linha e coluna, somo as subidas e as descidas, em log2, e fico com a menor; uma linha toda em ordem dá zero. E a maior peça num canto ganha um bônus. A nota não depende do lado: espelhar o tabuleiro dá a mesma nota."
+            , { notes = "Sem heurística não dá para comparar tabuleiros no fim da busca, porque não sabemos quem vai ganhar. A nota junta três ideias de quem joga bem: casas vazias valem 10 cada, porque espaço é tempo de vida. Desordem tira pontos: em cada linha e coluna, somo as subidas e as descidas, em log2, e fico com a menor; uma linha toda em ordem dá zero. E a maior peça num canto ganha um bônus."
               , blocks =
                     [ Clear
                     , Lead "A heurística: a nota de um tabuleiro no fim da busca."
-                    , Code { file = "prolog/hint.pl", from = 129, to = 138, mark = [ 135, 136, 137, 138 ] }
                     , Bullets
                         [ "Casas vazias: mais espaço, mais tempo até perder."
                         , "Monotonicidade: linhas e colunas em ordem facilitam fundir."
                         , "Maior peça no canto: no meio, ela atrapalha tudo em volta."
                         ]
+                    ]
+              }
+            , { notes = "No código, a nota é uma conta só. O log2 de cada casa é calculado uma vez, e as três ideias usam o resultado. A nota não depende do lado: espelhar o tabuleiro dá a mesma nota."
+              , blocks =
+                    [ Clear
+                    , Lead "A nota, em Prolog."
+                    , Code { file = "prolog/hint.pl", from = 129, to = 138, mark = [ 135, 136, 137, 138 ] }
                     ]
               }
             , { notes = "O nó de máximo. Profundidade zero: acabou a busca, avalio. Senão, o findall junta os filhos, que são as jogadas que mudam o tabuleiro, e o aggregate_all com max fica com o maior valor. Não tem laço: o member volta atrás por backtracking em cada filho, e o aggregate_all junta as respostas."
@@ -72,6 +78,14 @@ cenas =
                         , etapa "down" "134,73" exemploDown
                         ]
                     , Pre "?- hint([[2,2,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]], 2, Best, Scores).\nBest = left,\nScores = [left-135.67, right-135.67, down-134.73]."
+                    ]
+              }
+            , { notes = "Agora ao vivo, com a interface da issue 20. Carregue o tabuleiro do exemplo e ligue a Dica: a seta aponta left, a mesma resposta da consulta ao Prolog. Jogue, e a dica nova vem sozinha: ela muda com o tabuleiro, mas o mesmo tabuleiro sempre dá a mesma dica."
+              , blocks =
+                    [ Clear
+                    , Lead "Ao vivo: o botão Dica chama este mesmo hint/4."
+                    , Cenarios [ etapa "o exemplo da issue" "" exemplo ]
+                    , Demo
                     ]
               }
             , { notes = "Por que limitar a profundidade. Cada nível multiplica o trabalho por até 4 jogadas vezes 2 peças vezes o número de casas vazias. Com 14 casas vazias, a profundidade 2 leva um décimo de segundo e a 3 leva uns 12 segundos: cem vezes mais. Com 6 casas vazias, a 3 cabe em pouco mais de um segundo. Por isso o máximo é 3 no 4×4 e 2 no 5×5 e 6×6, e o Python reduz para 2 quando há mais de 6 casas vazias. O Prolog descreve o espaço de estados em poucas linhas, mas não poda sozinho: ele visita a árvore toda. Poda esperta, como cortar ramos improváveis, teria que ser escrita à mão."

@@ -69,7 +69,7 @@ cenas =
             , { notes = "Como o transpose_board funciona para qualquer N: o maplist(first_rest) tira a primeira peça de todas as linhas de uma vez, e isso é uma coluna. O resto das linhas dá as outras colunas. A primeira linha só serve de guia para contar quantas colunas faltam. Não existe nenhum 4 escrito no código."
               , blocks =
                     [ Clear
-                    , Code { file = "prolog/game.pl", from = 74, to = 85, mark = [ 81, 82, 83 ] }
+                    , Code { file = "prolog/game.pl", from = 78, to = 85, mark = [ 81, 82, 83 ] }
                     , Etapas
                         [ etapa "Rows" "" exemplo
                         , etapa "transpose_board(Rows, Cols)" "" transposto
