@@ -26,9 +26,9 @@ cenas =
                     , Pre arvoreTexto
                     ]
               }
-            , { notes = "As contas. O left vale 0,9 vezes 20 mais 0,1 vezes 22, que dá 20,2. O right dá 22 com qualquer peça. O up dá 14. O nó de máximo fica com o right. Repare que o left perde por causa da média: ele só é bom se nascer um 4, que é raro. Isso o Prolog responde de verdade, e o teste cena_issue05 confere estes números."
+            , { notes = "As contas. Com o left, se nascer um 2 (90% de chance) o tabuleiro fica sem jogada: é derrota, e derrota vale uma penalidade enorme, menos um milhão. Com o up, a derrota vem se nascer um 4 (10%). O right nunca perde e vale 22. O nó de máximo fica com o right: a média pesa o risco de perder. Isso o Prolog responde de verdade, e o teste cena_issue05 confere estes números."
               , blocks =
-                    [ Pre "left : 0,9 × 20 + 0,1 × 22 = 20,2\nright: 0,9 × 22 + 0,1 × 22 = 22,0   ← máximo\nup   : 0,9 × 14 + 0,1 × 14 = 14,0\n\n?- hint([[2,0,4],[4,8,16],[2,32,64]], 1, Best, Scores).\nBest = right,\nScores = [left-20.2, right-22.0, up-14.0]."
+                    [ Pre "left : 0,9 × (−1.000.000) + 0,1 × 22 = −899.997,8   (perde com o 2)\nright: 0,9 × 22 + 0,1 × 22 = 22,0                  ← máximo\nup   : 0,9 × 14 + 0,1 × (−1.000.000) = −99.987,4    (perde com o 4)\n\n?- hint([[2,0,4],[4,8,16],[2,32,64]], 1, Best, Scores).\nBest = right,\nScores = [left- -899997.8, right-22.0, up- -99987.4]."
                     ]
               }
             , { notes = "Sem heurística não dá para comparar tabuleiros no fim da busca, porque não sabemos quem vai ganhar. A nota junta três ideias de quem joga bem: casas vazias valem 10 cada, porque espaço é tempo de vida. Desordem tira pontos: em cada linha e coluna, somo as subidas e as descidas, em log2, e fico com a menor; uma linha toda em ordem dá zero. E a maior peça num canto ganha um bônus."
@@ -115,10 +115,10 @@ arvoreTexto =
         [ "                    MÁXIMO = 22  →  dica: right"
         , "        ┌──────────────────┼──────────────────┐"
         , "      left               right                up"
-        , "  SORTEIO 20,2       SORTEIO 22,0        SORTEIO 14,0"
+        , " SORTEIO −899.997,8  SORTEIO 22,0      SORTEIO −99.987,4"
         , "   ┌────┴────┐        ┌────┴────┐         ┌────┴────┐"
         , " 2 (90%)  4 (10%)   2 (90%)  4 (10%)    2 (90%)  4 (10%)"
-        , " nota 20  nota 22   nota 22  nota 22    nota 14  nota 14"
+        , "  PERDE   nota 22   nota 22  nota 22    nota 14   PERDE"
         ]
 
 

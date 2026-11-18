@@ -94,11 +94,13 @@ test(todos_os_tamanhos) :-
 % O nó de sorteio: média sobre todas as casas vazias, peça 2 (90%) e 4 (10%).
 :- begin_tests(hint_sorteio).
 
-% Uma casa vazia: 0,9 × nota(com 2) + 0,1 × nota(com 4).
+% Uma casa vazia: 0,9 × valor(com 2) + 0,1 × valor(com 4). Com o 2, este
+% tabuleiro (o left da árvore da cena) fica sem jogada: vale a penalidade.
 test(uma_casa_vazia) :-
-    B = [[2,4,0],[4,8,16],[2,32,64]],          % o right da árvore da cena
+    B = [[2,4,0],[4,8,16],[2,32,64]],
     hint:chance_value(B, 1, V),
-    evaluate([[2,4,2],[4,8,16],[2,32,64]], V2),
+    assertion(game_lost([[2,4,2],[4,8,16],[2,32,64]])),
+    hint:lost_penalty(V2),
     evaluate([[2,4,4],[4,8,16],[2,32,64]], V4),
     abs(V - (0.9 * V2 + 0.1 * V4)) < 1e-9.
 
@@ -178,16 +180,28 @@ test(n4_profundidade_3_com_6_vazias) :-
 % mão: se o hint/4 mudar, este teste avisa que a cena precisa mudar junto.
 :- begin_tests(hint_cena).
 
+%  Revisão do PR #35: depois de up, a única casa vazia recebe a peça nova e o
+%  tabuleiro fica sem jogada (derrota certa). A dica não pode escolher up, mesmo com
+%  a heurística dando nota maior ao tabuleiro perdido.
+test(nao_escolhe_a_derrota) :-
+    B = [[2,0,8,4],[4,16,4,2],[64,2,64,8],[16,8,32,16]],
+    hint(B, 1, Best, Scores),
+    assertion(Best == left),
+    memberchk(up-Up, Scores),
+    assertion(Up =< -1000000).
+
 test(cena_issue05) :-
     arvore(B),
     move(B, left, [[2,4,0],[4,8,16],[2,32,64]], _),
     move(B, right, [[0,2,4],[4,8,16],[2,32,64]], _),
     move(B, up, [[2,8,4],[4,32,16],[2,0,64]], _),
-    hint(B, 1, right, [left-20.2, right-22.0, up-14.0]),
+    hint(B, 1, right, [left- -899997.8, right-22.0, up- -99987.4]),
+    game_lost([[2,4,2],[4,8,16],[2,32,64]]),        % left + 2: perde
+    evaluate([[2,4,4],[4,8,16],[2,32,64]], 22),
     evaluate([[2,2,4],[4,8,16],[2,32,64]], 22),
     evaluate([[4,2,4],[4,8,16],[2,32,64]], 22),
     evaluate([[2,8,4],[4,32,16],[2,2,64]], 14),
-    evaluate([[2,8,4],[4,32,16],[2,4,64]], 14),
+    game_lost([[2,8,4],[4,32,16],[2,4,64]]),        % up + 4: perde
     ex(Ex),
     move(Ex, left, [[4,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]], _),
     move(Ex, right, [[0,0,0,4],[0,0,0,0],[0,0,0,0],[0,0,0,0]], _),

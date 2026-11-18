@@ -9,7 +9,7 @@
 % Nada aqui é aleatório: o mesmo tabuleiro dá sempre a mesma dica.
 :- module(hint, [hint/4, evaluate/2]).
 
-:- use_module(game, [move/4, available_moves/2]).
+:- use_module(game, [move/4, available_moves/2, game_lost/1]).
 
 % Compila as contas (is/2, >/2) direto, sem chamar predicado: a heurística
 % roda dezenas de milhares de vezes por dica.
@@ -21,7 +21,7 @@
 %  available_moves/2, na ordem left, right, up, down, e V arredondado a 2 casas.
 %  Depth é quantas jogadas nossas a busca olha à frente: de 1 a 3 (padrão 2, que
 %  o Python aplica). O máximo por N (3 se N <= 4, 2 se N >= 5) e a redução para
-%  2 com mais de 6 casas vazias são feitos no Python (docs/contrato.md).
+%  2 quando alguma jogada deixa mais de 6 casas vazias são feitos no Python (docs/contrato.md).
 %  Empate: vale a primeira na ordem left, right, up, down.
 %  Ex.: hint([[2,2,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]], 2, B, S) -> B = left
 %       (left e right empatam: os tabuleiros são o espelho um do outro).
@@ -34,7 +34,7 @@
 %    profundidade 3: (4 × 2E)³                    (4 × 28)³          ≈ 1,4 milhão
 %  (E cai 1 a cada peça nova, então a conta exata é um pouco menor.) Com E <= 6,
 %  a profundidade 3 fica em no máximo (4 × 12)³ ≈ 110 mil folhas: por isso o
-%  Python reduz para 2 quando há mais de 6 casas vazias.
+%  Python reduz para 2 quando alguma jogada deixa mais de 6 casas vazias.
 hint(Board, Depth, Best, Scores) :-
     must_be(list, Board),             % entradas: precisam vir prontas
     must_be(between(1, 3), Depth),
@@ -57,19 +57,30 @@ best(Scores, Best) :-
     once(( member(Best-V, Scores), V =:= Max )).
 
 %  max_value(+Board, +Depth, -V): nó de MÁXIMO, a nossa vez de jogar.
-%  Sem profundidade sobrando, ou sem jogada possível, avalia o tabuleiro.
+%  Sem profundidade sobrando, avalia o tabuleiro. Tabuleiro perdido (o game_lost/1
+%  da #4, ou nenhuma jogada possível) vale a penalidade: a heurística sozinha não
+%  basta, porque o bônus do canto pode deixar um tabuleiro perdido com nota maior
+%  que um vivo.
 max_value(Board, 0, V) :-
     !,
-    evaluate(Board, V).
+    (   game_lost(Board)
+    ->  lost_penalty(V)
+    ;   evaluate(Board, V)
+    ).
 max_value(Board, Depth, V) :-
     findall(Next, child(Board, Next), Children),
     (   Children == []
-    ->  evaluate(Board, V)            % perdeu: a nota já sai baixa (0 casas vazias)
+    ->  lost_penalty(V)               % perdeu: nenhuma jogada muda o tabuleiro
     ;   aggregate_all(max(V1),        % o melhor entre os filhos (backtracking no member)
                       ( member(Next, Children),
                         chance_value(Next, Depth, V1) ),
                       V)
     ).
+
+%  lost_penalty(-V): o valor de um tabuleiro perdido, muito abaixo de qualquer
+%  nota de um tabuleiro vivo. Entra na média do sorteio pesado pela chance, então
+%  uma jogada com risco de perder vale menos que uma sem risco.
+lost_penalty(-1000000).
 
 %  child(+Board, -Next): uma jogada que muda o tabuleiro. É o can_move/2 do
 %  available_moves/2 (#4), mas guardando o tabuleiro novo: assim cada direção
