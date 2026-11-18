@@ -436,6 +436,78 @@ suite =
                         |> Game.shown
                         |> .status
                         |> Expect.equal Playing
+            , describe "trocar o tamanho no meio do replay (bug relatado no PR #35)"
+                (let
+                    -- Replay tocando de uma partida 4×4 e, no meio, troca para 6×6.
+                    trocado =
+                        three |> step ReplayStarted |> step ReplayTicked |> step (SizeChosen 6)
+
+                    seis =
+                        [ tile 4 1 2, tile 2 2 4 ]
+
+                    -- O runtime sorteia as duas peças do 6×6.
+                    comecado =
+                        step (Spawned trocado.board seis) trocado
+
+                    pecas m =
+                        List.filter (not << .ghost) m.pieces
+                 in
+                 [ test "o replay fecha e o histórico da partida passada some" <|
+                    \_ ->
+                        Expect.all
+                            [ .replay >> Expect.equal Nothing
+                            , .history >> Expect.equal []
+                            , .size >> Expect.equal 6
+                            , .board >> List.length >> Expect.equal 6
+                            ]
+                            trocado
+                 , test "um tique atrasado do relógio do replay não mexe no 6×6" <|
+                    \_ -> comecado |> step ReplayTicked |> Expect.equal comecado
+                 , test "o sorteio atrasado da partida passada é descartado" <|
+                    \_ ->
+                        comecado
+                            |> step (Spawned three.board [ tile 0 0 2 ])
+                            |> Expect.equal comecado
+                 , test "a resposta atrasada de uma jogada da partida passada é descartada" <|
+                    \_ ->
+                        { comecado | waiting = True }
+                            |> step (GotMove three.board (Ok (response movedBoard 4 True)))
+                            |> .board
+                            |> Expect.equal comecado.board
+                 , test "o 6×6 começa com duas peças, cada uma numa casa" <|
+                    \_ ->
+                        Expect.all
+                            [ pecas >> List.length >> Expect.equal 2
+                            , pecas >> List.map (\pc -> ( pc.row, pc.col )) >> List.sort >> Expect.equal [ ( 2, 2 ), ( 4, 1 ) ]
+                            , \m -> Game.shown m |> .board |> nonZero |> List.sort |> Expect.equal [ 2, 4 ]
+                            ]
+                            comecado
+                 , test "um replay novo no 6×6 só mostra jogadas do 6×6" <|
+                    \_ ->
+                        comecado
+                            |> play
+                                (List.repeat 6 (List.repeat 6 0)
+                                    |> List.indexedMap
+                                        (\r row ->
+                                            if r == 4 then
+                                                [ 2, 0, 0, 0, 0, 0 ]
+
+                                            else if r == 2 then
+                                                [ 4, 0, 0, 0, 0, 0 ]
+
+                                            else
+                                                row
+                                        )
+                                )
+                                0
+                                (tile 0 5 2)
+                            |> step ReplayStarted
+                            |> Game.shown
+                            |> .board
+                            |> List.length
+                            |> Expect.equal 6
+                 ]
+                )
             , test "sem jogadas não há replay" <|
                 \_ -> step ReplayStarted started |> .replay |> Expect.equal Nothing
             ]
