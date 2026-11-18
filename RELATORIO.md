@@ -13,7 +13,7 @@
 | William Bernardo da Silva | 222021933 | 16h | @WillxBernardo |
 
 - **Nome do projeto:** Logic2048
-- **Nome do grupo:** [nome do grupo]
+- **Nome do grupo:** Backtrackers
 - **Repositório:** https://github.com/disciplines-moon/logic-2048
 - **Commit ou tag entregue:** `v1.0`
 - **Ponto de partida:** outro jogo conhecido
