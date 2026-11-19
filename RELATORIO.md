@@ -549,7 +549,7 @@ precisa saber explicá-la (seção 10).
 | `move/4` e desafios com CLP(FD), `challenge/4` | #3, #19 | Claude Code | intensivo |
 | Vitória, derrota e jogadas disponíveis | #4 | Claude Code | intensivo |
 | Estado do jogo, sorteio, teclado e swipe; desfazer e replay | #6, #7 | [ferramenta ou nenhuma] | [faixa] |
-| Interface, temas e animações; sons, confete e recorde | #8, #9 | [ferramenta ou nenhuma] | [faixa] |
+| Interface, temas e animações; sons, confete e recorde | #8, #9 | Claude Code | intensivo |
 | `/api/move` com validação e erros em JSON | #10 | Claude Code | intensivo |
 
 | Ferramenta | Para que foi usada | Como o grupo verificou o resultado |
