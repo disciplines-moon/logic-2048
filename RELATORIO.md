@@ -548,7 +548,7 @@ precisa saber explicá-la (seção 10).
 | `slide_left/3` e dica com expectimax, `hint/4` | #2, #5 | Claude Code | intensivo |
 | `move/4` e desafios com CLP(FD), `challenge/4` | #3, #19 | Claude Code | intensivo |
 | Vitória, derrota e jogadas disponíveis | #4 | Claude Code | intensivo |
-| Estado do jogo, sorteio, teclado e swipe; desfazer e replay | #6, #7 | [ferramenta ou nenhuma] | [faixa] |
+| Estado do jogo, sorteio, teclado e swipe; desfazer e replay | #6, #7 | Claude Code | intensivo |
 | Interface, temas e animações; sons, confete e recorde | #8, #9 | Claude Code | intensivo |
 | `/api/move` com validação e erros em JSON | #10 | Claude Code | intensivo |
 
