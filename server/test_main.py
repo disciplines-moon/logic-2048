@@ -273,23 +273,9 @@ def test_400_lancado_por_uma_rota_vira_422_sem_perder_o_detalhe():
 
 
 # Primeira e última linha de cada bloco Code da cena da #10, como aparecem na tela.
-RECORTES_DA_CENA_ISSUE10 = {
-    ("server/main.py", 185, 199): ('@app.post("/api/move")', "    return MoveResponse("),
-    ("server/main.py", 70, 76): ("Board = Annotated[", "    direction: Direction"),
-    ("server/main.py", 55, 64): ("def validar_tabuleiro(", "    return board"),
-    ("server/main.py", 142, 145): (
-        "@app.exception_handler(RequestValidationError)",
-        "    return JSONResponse(status_code=422",
-    ),
-    ("server/main.py", 167, 172): (
-        "@app.exception_handler(Exception)",
-        "    return JSONResponse(status_code=500",
-    ),
-    ("server/test_main.py", 210, 224): (
-        "def jogada_com_prolog_quebrado(",
-        "    assert (r.status_code, r.json()) == (500",
-    ),
-}
+# A cena compacta mostra o janus e a validação como animação (Converte), sem
+# trechos de código; se um Code voltar à cena, ele entra aqui.
+RECORTES_DA_CENA_ISSUE10: dict[tuple[str, int, int], tuple[str, str]] = {}
 
 
 def test_recortes_da_cena_issue10_continuam_no_lugar():

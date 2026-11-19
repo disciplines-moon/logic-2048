@@ -1,4 +1,4 @@
-module Api exposing (Direction(..), Move, MoveResponse, RawResponse, encodeMove, keyDecoder, moveDecoder, postMove, postRaw, rawResponse, undoDecoder, wasdDecoder)
+module Api exposing (Challenge, Direction(..), Error(..), Hint, Move, MoveResponse, RawResponse, Solution, apiResult, challengeDecoder, directionFromString, directionToString, encodeMove, errorMessage, expectApi, getChallenges, getRaw, hintDecoder, keyDecoder, moveDecoder, postChallenge, postHint, postMove, postRaw, rawResponse, solutionDecoder, undoDecoder, wasdDecoder)
 
 import Http
 import Json.Decode as D
@@ -157,12 +157,15 @@ cellDecoder =
     D.map2 Tuple.pair (D.index 0 D.int) (D.index 1 D.int)
 
 
-postMove : List (List Int) -> Direction -> (Result Http.Error MoveResponse -> msg) -> Cmd msg
+{-| Pede ao Prolog uma jogada. Lê a resposta com o `expectApi`, como a dica e os
+desafios: 502, 503 e 504 viram `Network` num lugar só.
+-}
+postMove : List (List Int) -> Direction -> (Result Error MoveResponse -> msg) -> Cmd msg
 postMove board dir toMsg =
     Http.post
         { url = "/api/move"
         , body = Http.jsonBody (encodeMove board dir)
-        , expect = Http.expectJson toMsg moveDecoder
+        , expect = expectApi toMsg moveDecoder
         }
 
 
@@ -185,6 +188,13 @@ postRaw url body toMsg =
         , body = Http.stringBody "application/json" body
         , expect = Http.expectStringResponse toMsg rawResponse
         }
+
+
+{-| Como o `postRaw`, para um GET (o `GET /api/challenges` na apresentação da #11).
+-}
+getRaw : String -> (Result Http.Error RawResponse -> msg) -> Cmd msg
+getRaw url toMsg =
+    Http.get { url = url, expect = Http.expectStringResponse toMsg rawResponse }
 
 
 {-| Qualquer status com corpo é resposta (200, 422 ou 500). Só é erro quando não
@@ -243,3 +253,203 @@ inTextField : D.Decoder Bool
 inTextField =
     D.maybe (D.at [ "target", "tagName" ] D.string)
         |> D.map (\tag -> List.member tag [ Just "INPUT", Just "TEXTAREA", Just "SELECT" ])
+
+
+
+-- DICA E DESAFIOS (#20): hint, challenge e challenges, com erros legíveis
+
+
+{-| A resposta de `POST /api/hint`. `direction` é `Nothing` quando não há jogada
+(o `null` do JSON, que veio do `none` do Prolog).
+-}
+type alias Hint =
+    { direction : Maybe Direction
+    , depth : Int
+    , scores : List ( Direction, Float )
+    }
+
+
+{-| Um desafio da lista fixa (`GET /api/challenges`).
+-}
+type alias Challenge =
+    { id : String
+    , title : String
+    , board : List (List Int)
+    , target : Int
+    , maxMoves : Int
+    }
+
+
+{-| A resposta de `POST /api/challenge`: a menor sequência que chega ao alvo.
+-}
+type alias Solution =
+    { solvable : Bool
+    , moves : List Direction
+    }
+
+
+{-| Tudo o que pode dar errado ao falar com a API. É um tipo, então quem chama é
+obrigado pelo compilador a tratar cada caso.
+
+  - `Network`: nenhuma resposta (servidor fora, rede, tempo esgotado).
+  - `Rejected`: 422, com a mensagem do `{"error": ...}` (em português).
+  - `Server`: 500 ou outro status de erro.
+  - `Invalid`: chegou 200, mas o corpo não tem o formato do contrato.
+
+-}
+type Error
+    = Network
+    | Rejected String
+    | Server Int
+    | Invalid
+
+
+{-| Lê a resposta crua (status e corpo) e decide. O `Http.expectJson` descartaria o
+corpo do 422 (`BadStatus 422`); com o `expectStringResponse` dá para ler o
+`{"error": ...}` e mostrar a mensagem do servidor (veja `docs/contrato.md`).
+-}
+expectApi : (Result Error a -> msg) -> D.Decoder a -> Http.Expect msg
+expectApi toMsg decoder =
+    Http.expectStringResponse toMsg (apiResult decoder)
+
+
+{-| Decide o que uma resposta crua quer dizer. Com a API parada, o proxy do Vite
+responde 502 sem corpo: para quem joga, é o mesmo que nenhuma resposta.
+-}
+apiResult : D.Decoder a -> Http.Response String -> Result Error a
+apiResult decoder response =
+    case response of
+        Http.GoodStatus_ _ body ->
+            D.decodeString decoder body |> Result.mapError (\_ -> Invalid)
+
+        Http.BadStatus_ meta body ->
+            if meta.statusCode == 422 then
+                Err (Rejected (D.decodeString (D.field "error" D.string) body |> Result.withDefault "pedido inválido"))
+
+            else if List.member meta.statusCode [ 502, 503, 504 ] then
+                Err Network
+
+            else
+                Err (Server meta.statusCode)
+
+        _ ->
+            Err Network
+
+
+{-| A frase que a tela mostra para cada erro.
+-}
+errorMessage : Error -> String
+errorMessage error =
+    case error of
+        Network ->
+            "Sem resposta do servidor. A API está rodando?"
+
+        Rejected message ->
+            "O servidor recusou o pedido: " ++ message
+
+        Server status ->
+            "Erro no servidor (" ++ String.fromInt status ++ "). Tente de novo."
+
+        Invalid ->
+            "Resposta inválida do servidor."
+
+
+directionFromString : String -> Maybe Direction
+directionFromString s =
+    case s of
+        "left" ->
+            Just Left
+
+        "right" ->
+            Just Right
+
+        "up" ->
+            Just Up
+
+        "down" ->
+            Just Down
+
+        _ ->
+            Nothing
+
+
+directionDecoder : D.Decoder Direction
+directionDecoder =
+    D.string
+        |> D.andThen
+            (\s ->
+                case directionFromString s of
+                    Just dir ->
+                        D.succeed dir
+
+                    Nothing ->
+                        D.fail ("direção desconhecida: " ++ s)
+            )
+
+
+hintDecoder : D.Decoder Hint
+hintDecoder =
+    D.map3 Hint
+        (D.field "direction" (D.nullable directionDecoder))
+        (D.field "depth" D.int)
+        (D.field "scores" (D.keyValuePairs D.float)
+            |> D.andThen
+                (\pairs ->
+                    -- Na ordem do contrato (left, right, up, down), não na do objeto JSON.
+                    List.filterMap (\dir -> List.filter (\( k, _ ) -> k == directionToString dir) pairs |> List.head |> Maybe.map (\( _, v ) -> ( dir, v ))) [ Left, Right, Up, Down ]
+                        |> (\scores ->
+                                if List.length scores == List.length pairs then
+                                    D.succeed scores
+
+                                else
+                                    D.fail "direção desconhecida em scores"
+                           )
+                )
+        )
+
+
+challengeDecoder : D.Decoder Challenge
+challengeDecoder =
+    D.map5 Challenge
+        (D.field "id" D.string)
+        (D.field "title" D.string)
+        (D.field "board" (D.list (D.list D.int)))
+        (D.field "target" D.int)
+        (D.field "max_moves" D.int)
+
+
+solutionDecoder : D.Decoder Solution
+solutionDecoder =
+    D.map2 Solution
+        (D.field "solvable" D.bool)
+        (D.field "moves" (D.list directionDecoder))
+
+
+postHint : List (List Int) -> (Result Error Hint -> msg) -> Cmd msg
+postHint board toMsg =
+    Http.post
+        { url = "/api/hint"
+        , body = Http.jsonBody (E.object [ ( "board", E.list (E.list E.int) board ) ])
+        , expect = expectApi toMsg hintDecoder
+        }
+
+
+getChallenges : (Result Error (List Challenge) -> msg) -> Cmd msg
+getChallenges toMsg =
+    Http.get { url = "/api/challenges", expect = expectApi toMsg (D.list challengeDecoder) }
+
+
+postChallenge : Challenge -> (Result Error Solution -> msg) -> Cmd msg
+postChallenge challenge toMsg =
+    Http.post
+        { url = "/api/challenge"
+        , body =
+            Http.jsonBody
+                (E.object
+                    [ ( "board", E.list (E.list E.int) challenge.board )
+                    , ( "target", E.int challenge.target )
+                    , ( "max_moves", E.int challenge.maxMoves )
+                    ]
+                )
+        , expect = expectApi toMsg solutionDecoder
+        }

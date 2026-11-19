@@ -2,7 +2,8 @@ module PresentationTest exposing (suite)
 
 import Api
 import Cenas
-import Cenas.Types exposing (Block(..), visibleBlocks)
+import Cenas.Equipe
+import Cenas.Types exposing (Block(..), sceneSecs, visibleBlocks)
 import Expect
 import Json.Decode as D
 import Presentation exposing (Msg(..))
@@ -47,9 +48,9 @@ suite =
                         { issue = 0
                         , title = ""
                         , steps =
-                            [ { notes = "", blocks = [ Paragraph "a" ] }
-                            , { notes = "", blocks = [ Paragraph "b" ] }
-                            , { notes = "", blocks = [ Clear, Paragraph "c" ] }
+                            [ { notes = "", secs = 0, blocks = [ Paragraph "a" ] }
+                            , { notes = "", secs = 0, blocks = [ Paragraph "b" ] }
+                            , { notes = "", secs = 0, blocks = [ Clear, Paragraph "c" ] }
                             ]
                         }
                 in
@@ -58,35 +59,97 @@ suite =
                     , List.map Tuple.second (visibleBlocks 2 scene)
                     ]
                     [ [ Paragraph "a", Paragraph "b" ], [ Paragraph "c" ] ]
+        , describe "tempo e falas (15 minutos, todos falam)"
+            [ test "a soma das falas cabe em 14 minutos, com folga para as trocas" <|
+                \_ -> Cenas.all |> List.map sceneSecs |> List.sum |> Expect.atMost (14 * 60)
+            , test "todo passo tem fala e tempo" <|
+                \_ ->
+                    Cenas.all
+                        |> List.concatMap .steps
+                        |> List.filter (\s -> s.secs <= 0 || String.isEmpty s.notes)
+                        |> List.length
+                        |> Expect.equal 0
+            , test "cada integrante apresenta pelo menos 1 minuto" <|
+                \_ ->
+                    Cenas.Equipe.equipe
+                        |> List.filter
+                            (\( m, _ ) ->
+                                (Cenas.all
+                                    |> List.filter (\sc -> Cenas.Equipe.apresentador sc.issue == Just m)
+                                    |> List.map sceneSecs
+                                    |> List.sum
+                                )
+                                    < 60
+                            )
+                        |> List.map (Tuple.first >> .name)
+                        |> Expect.equal []
+            ]
+        , describe "demo só no passo que a mostra"
+            [ test "a capa não mostra a demo (o jogo fica parado)" <|
+                \_ -> Presentation.init 0 0 |> Presentation.showsDemo |> Expect.equal False
+            , test "algum passo da apresentação mostra a demo" <|
+                \_ ->
+                    List.range 0 (Presentation.sceneCount - 1)
+                        |> List.concatMap (\c -> List.range 0 12 |> List.map (Presentation.init c))
+                        |> List.any Presentation.showsDemo
+                        |> Expect.equal True
+            , test "o passo ao vivo da #9 já entra com o tabuleiro quase vencido (1024 + 1024)" <|
+                \_ ->
+                    todosOsPassos
+                        |> List.filterMap Presentation.demoBoard
+                        |> List.member [ [ 1024, 1024, 0, 0 ], [ 4, 8, 2, 0 ], [ 0, 0, 0, 0 ], [ 0, 0, 0, 0 ] ]
+                        |> Expect.equal True
+            , test "um passo com tabuleiro pronto também mostra a demo" <|
+                \_ ->
+                    todosOsPassos
+                        |> List.filter (\m -> Presentation.demoBoard m /= Nothing)
+                        |> List.all Presentation.showsDemo
+                        |> Expect.equal True
+            , test "a capa não carrega tabuleiro nenhum" <|
+                \_ -> Presentation.init 0 0 |> Presentation.demoBoard |> Expect.equal Nothing
+            ]
         , describe "pedidos ao vivo (#10)"
             [ test "enviar guarda o pedido, ainda sem resposta" <|
                 \_ ->
                     Presentation.init 0 0
                         |> Presentation.update (SendRequest "{}")
                         |> .request
-                        |> Expect.equal (Just { body = "{}", answer = Nothing })
+                        |> Expect.equal (Just { url = "/api/move", body = "{}", answer = Nothing })
             , test "a resposta do pedido atual aparece" <|
                 \_ ->
                     Presentation.init 0 0
                         |> Presentation.update (SendRequest "{}")
-                        |> Presentation.update (GotResponse "{}" (Ok { status = 422, body = "x" }))
+                        |> Presentation.update (GotResponse "/api/move" "{}" (Ok { status = 422, body = "x" }))
                         |> .request
-                        |> Expect.equal (Just { body = "{}", answer = Just (Ok { status = 422, body = "x" }) })
+                        |> Expect.equal (Just { url = "/api/move", body = "{}", answer = Just (Ok { status = 422, body = "x" }) })
             , test "resposta atrasada de outro pedido é descartada" <|
                 \_ ->
                     Presentation.init 0 0
                         |> Presentation.update (SendRequest "a")
                         |> Presentation.update (SendRequest "b")
-                        |> Presentation.update (GotResponse "a" (Ok { status = 200, body = "x" }))
+                        |> Presentation.update (GotResponse "/api/move" "a" (Ok { status = 200, body = "x" }))
                         |> .request
-                        |> Expect.equal (Just { body = "b", answer = Nothing })
+                        |> Expect.equal (Just { url = "/api/move", body = "b", answer = Nothing })
+            , test "resposta de outra rota, com o mesmo corpo, é descartada (#11)" <|
+                \_ ->
+                    Presentation.init 0 0
+                        |> Presentation.update (SendRequestTo "/api/challenges" "")
+                        |> Presentation.update (GotResponse "/api/hint" "" (Ok { status = 200, body = "x" }))
+                        |> .request
+                        |> Expect.equal (Just { url = "/api/challenges", body = "", answer = Nothing })
+            , test "pedido para outra rota guarda a rota (#11)" <|
+                \_ ->
+                    Presentation.init 0 0
+                        |> Presentation.update (SendRequestTo "/api/hint" "{}")
+                        |> .request
+                        |> Expect.equal (Just { url = "/api/hint", body = "{}", answer = Nothing })
             , test "navegar não apaga o pedido" <|
                 \_ ->
                     Presentation.init 0 0
                         |> Presentation.update (SendRequest "{}")
                         |> Presentation.update Next
                         |> .request
-                        |> Expect.equal (Just { body = "{}", answer = Nothing })
+                        |> Expect.equal (Just { url = "/api/move", body = "{}", answer = Nothing })
             ]
         , test "índice fora do limite é ajustado" <|
             \_ ->
@@ -131,3 +194,9 @@ teclado =
     , test "seta repetida não joga" <|
         \_ -> Expect.equal True (D.decodeString Api.keyDecoder (tecla "ArrowUp" False True) |> Result.toMaybe |> (==) Nothing)
     ]
+
+
+todosOsPassos : List Presentation.Model
+todosOsPassos =
+    List.range 0 (Presentation.sceneCount - 1)
+        |> List.concatMap (\c -> List.range 0 12 |> List.map (Presentation.init c))

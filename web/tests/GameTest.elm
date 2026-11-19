@@ -5,9 +5,9 @@ import Dict
 import Expect
 import Fuzz
 import Game exposing (Msg(..), PieceKind(..), Status(..), Theme(..))
+import Game.Assist as Assist
 import Game.Effects as Effects exposing (Effect(..), Sound(..))
 import Game.View
-import Http
 import Json.Decode as D
 import Random
 import Test exposing (Test, describe, fuzz, test)
@@ -236,10 +236,10 @@ suite =
             , test "erro de rede mostra mensagem e libera o teclado" <|
                 \_ ->
                     { started | waiting = True }
-                        |> Game.update (GotMove started.board (Err Http.NetworkError))
+                        |> Game.update (GotMove started.board (Err Api.Network))
                         |> Tuple.first
                         |> Expect.all
-                            [ .error >> Expect.notEqual Nothing
+                            [ .error >> Expect.equal (Just (Api.errorMessage Api.Network))
                             , .waiting >> Expect.equal False
                             ]
             , test "Novo jogo zera o score e esvazia o tabuleiro do mesmo tamanho" <|
@@ -436,6 +436,78 @@ suite =
                         |> Game.shown
                         |> .status
                         |> Expect.equal Playing
+            , describe "trocar o tamanho no meio do replay (bug relatado no PR #35)"
+                (let
+                    -- Replay tocando de uma partida 4×4 e, no meio, troca para 6×6.
+                    trocado =
+                        three |> step ReplayStarted |> step ReplayTicked |> step (SizeChosen 6)
+
+                    seis =
+                        [ tile 4 1 2, tile 2 2 4 ]
+
+                    -- O runtime sorteia as duas peças do 6×6.
+                    comecado =
+                        step (Spawned trocado.board seis) trocado
+
+                    pecas m =
+                        List.filter (not << .ghost) m.pieces
+                 in
+                 [ test "o replay fecha e o histórico da partida passada some" <|
+                    \_ ->
+                        Expect.all
+                            [ .replay >> Expect.equal Nothing
+                            , .history >> Expect.equal []
+                            , .size >> Expect.equal 6
+                            , .board >> List.length >> Expect.equal 6
+                            ]
+                            trocado
+                 , test "um tique atrasado do relógio do replay não mexe no 6×6" <|
+                    \_ -> comecado |> step ReplayTicked |> Expect.equal comecado
+                 , test "o sorteio atrasado da partida passada é descartado" <|
+                    \_ ->
+                        comecado
+                            |> step (Spawned three.board [ tile 0 0 2 ])
+                            |> Expect.equal comecado
+                 , test "a resposta atrasada de uma jogada da partida passada é descartada" <|
+                    \_ ->
+                        { comecado | waiting = True }
+                            |> step (GotMove three.board (Ok (response movedBoard 4 True)))
+                            |> .board
+                            |> Expect.equal comecado.board
+                 , test "o 6×6 começa com duas peças, cada uma numa casa" <|
+                    \_ ->
+                        Expect.all
+                            [ pecas >> List.length >> Expect.equal 2
+                            , pecas >> List.map (\pc -> ( pc.row, pc.col )) >> List.sort >> Expect.equal [ ( 2, 2 ), ( 4, 1 ) ]
+                            , \m -> Game.shown m |> .board |> nonZero |> List.sort |> Expect.equal [ 2, 4 ]
+                            ]
+                            comecado
+                 , test "um replay novo no 6×6 só mostra jogadas do 6×6" <|
+                    \_ ->
+                        comecado
+                            |> play
+                                (List.repeat 6 (List.repeat 6 0)
+                                    |> List.indexedMap
+                                        (\r row ->
+                                            if r == 4 then
+                                                [ 2, 0, 0, 0, 0, 0 ]
+
+                                            else if r == 2 then
+                                                [ 4, 0, 0, 0, 0, 0 ]
+
+                                            else
+                                                row
+                                        )
+                                )
+                                0
+                                (tile 0 5 2)
+                            |> step ReplayStarted
+                            |> Game.shown
+                            |> .board
+                            |> List.length
+                            |> Expect.equal 6
+                 ]
+                )
             , test "sem jogadas não há replay" <|
                 \_ -> step ReplayStarted started |> .replay |> Expect.equal Nothing
             ]
@@ -617,6 +689,21 @@ suite =
                         |> react (response [ [ 2048, 0, 0 ], [ 0, 0, 0 ], [ 0, 0, 0 ] ] 2048 True)
                         |> Tuple.second
                         |> Expect.equal [ Sound Merge ]
+            , test "partida em que a IA jogou não conta para o recorde; Novo jogo volta a contar (revisão do PR #35)" <|
+                \_ ->
+                    let
+                        withAi =
+                            step (AssistMsg Assist.AiToggled) started
+
+                        aiOff =
+                            step (AssistMsg Assist.AiToggled) withAi
+                    in
+                    [ withAi.ranked
+                    , aiOff.ranked
+                    , aiOff |> react (response movedBoard 4 True) |> Tuple.second |> List.member (SaveBest 4 4)
+                    , (step NewGame aiOff).ranked
+                    ]
+                        |> Expect.equal [ False, False, False, True ]
             , test "Continuar jogando fecha a tela de vitória; Novo jogo recomeça a comemoração" <|
                 \_ ->
                     let

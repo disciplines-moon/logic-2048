@@ -8,11 +8,15 @@ import { lerPreferencias, salvarRecorde, salvarTema, salvarMudo } from "./memori
 // caminho a partir da raiz; para mostrar outro arquivo, importe-o aqui.
 import gamePl from "../../prolog/game.pl?raw";
 import challengePl from "../../prolog/challenge.pl?raw";
+import hintPl from "../../prolog/hint.pl?raw";
 import mainPy from "../../server/main.py?raw";
 import testMainPy from "../../server/test_main.py?raw";
+import extrasPy from "../../server/extras.py?raw";
+import testExtrasPy from "../../server/test_extras.py?raw";
 import apiElm from "./Api.elm?raw";
 import gameElm from "./Game.elm?raw";
 import historyElm from "./Game/History.elm?raw";
+import assistElm from "./Game/Assist.elm?raw";
 import viewElm from "./Game/View.elm?raw";
 import effectsElm from "./Game/Effects.elm?raw";
 import portsElm from "./Ports.elm?raw";
@@ -26,11 +30,15 @@ import rodarSh from "../../scripts/rodar.sh?raw";
 const sources = {
   "prolog/game.pl": gamePl,
   "prolog/challenge.pl": challengePl,
+  "prolog/hint.pl": hintPl,
   "server/main.py": mainPy,
   "server/test_main.py": testMainPy,
+  "server/extras.py": extrasPy,
+  "server/test_extras.py": testExtrasPy,
   "web/src/Api.elm": apiElm,
   "web/src/Game.elm": gameElm,
   "web/src/Game/History.elm": historyElm,
+  "web/src/Game/Assist.elm": assistElm,
   "web/src/Game/View.elm": viewElm,
   "web/src/Game/Effects.elm": effectsElm,
   "web/src/Ports.elm": portsElm,

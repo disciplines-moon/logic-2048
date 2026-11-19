@@ -5,6 +5,7 @@ import Browser.Events
 import Browser.Navigation as Nav
 import Dict exposing (Dict)
 import Game
+import Game.Assist as Assist
 import Game.Effects
 import Game.View
 import Html exposing (Html, button, div, h1, text)
@@ -59,15 +60,21 @@ init flags url key =
 
         ( game, gameCmd ) =
             Game.init (prefsFrom flags)
+
+        model =
+            { key = key
+            , page = page
+            , presentation = presentation
+            , sources = sourcesFrom flags
+            , game = game
+            }
     in
-    ( { key = key
-      , page = page
-      , presentation = presentation
-      , sources = sourcesFrom flags
-      , game = game
-      }
-    , Cmd.map GameMsg gameCmd
-    )
+    -- Abriu direto num passo com `DemoCom` (link ou F5): o tabuleiro já entra pronto.
+    if page == PresentationPage then
+        enterStep model (Cmd.map GameMsg gameCmd)
+
+    else
+        ( model, Cmd.map GameMsg gameCmd )
 
 
 {-| Arquivos do repositório (`?raw` do Vite) usados nos slides com `Code`.
@@ -120,16 +127,24 @@ subscriptions model =
         GamePage ->
             Sub.batch
                 [ Sub.map GameMsg (Game.keyMsgs True)
-                , Sub.map GameMsg (Game.replayTicks model.game)
+                , Sub.map GameMsg (Game.subscriptions model.game)
                 ]
 
         PresentationPage ->
-            -- Na apresentação as setas navegam e W, A, S, D jogam na demo.
+            -- Na apresentação as setas navegam e W, A, S, D jogam na demo. Fora de um
+            -- passo com a demo, o jogo fica parado: sem teclas e sem o relógio da IA e
+            -- do replay (voltando à demo, eles continuam de onde pararam).
             Sub.batch
-                [ Browser.Events.onKeyDown (D.map PresentationMsg Presentation.keyDecoder)
-                , Sub.map GameMsg (Game.keyMsgs False)
-                , Sub.map GameMsg (Game.replayTicks model.game)
-                ]
+                (Browser.Events.onKeyDown (D.map PresentationMsg Presentation.keyDecoder)
+                    :: (if Presentation.showsDemo model.presentation then
+                            [ Sub.map GameMsg (Game.keyMsgs False)
+                            , Sub.map GameMsg (Game.subscriptions model.game)
+                            ]
+
+                        else
+                            []
+                       )
+                )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -137,8 +152,18 @@ update msg model =
     case msg of
         GameMsg gmsg ->
             let
+                -- Num passo com `DemoCom`, "Novo jogo" volta ao tabuleiro do passo
+                -- (por exemplo quase vencido), para repetir a demonstração.
+                actual =
+                    case ( gmsg, model.page, Presentation.demoBoard model.presentation ) of
+                        ( Game.NewGame, PresentationPage, Just board ) ->
+                            Game.LoadBoard board
+
+                        _ ->
+                            gmsg
+
                 ( game, cmd ) =
-                    Game.update gmsg model.game
+                    Game.update actual model.game
             in
             ( { model | game = game }, Cmd.map GameMsg cmd )
 
@@ -159,7 +184,12 @@ update msg model =
             , Cmd.map PresentationMsg (Presentation.send body)
             )
 
-        PresentationMsg ((Presentation.GotResponse _ _) as pmsg) ->
+        PresentationMsg ((Presentation.SendRequestTo url body) as pmsg) ->
+            ( { model | presentation = Presentation.update pmsg model.presentation }
+            , Cmd.map PresentationMsg (Presentation.sendTo url body)
+            )
+
+        PresentationMsg ((Presentation.GotResponse _ _ _) as pmsg) ->
             -- A resposta é guardada mesmo que a pessoa já tenha saído da apresentação;
             -- senão, ao voltar, o painel ficaria para sempre "esperando o servidor".
             ( { model | presentation = Presentation.update pmsg model.presentation }, Cmd.none )
@@ -175,14 +205,11 @@ update msg model =
             if model.page /= PresentationPage then
                 ( model, Cmd.none )
 
-            else
-                ( { model | presentation = next }
-                , if moved then
-                    Nav.replaceUrl model.key (presentationUrl next)
+            else if moved then
+                enterStep { model | presentation = next } (Nav.replaceUrl model.key (presentationUrl next))
 
-                  else
-                    Cmd.none
-                )
+            else
+                ( { model | presentation = next }, Cmd.none )
 
         UrlRequested (Browser.Internal url) ->
             ( model, Nav.pushUrl model.key (Url.toString url) )
@@ -196,20 +223,66 @@ update msg model =
                     route url
             in
             -- A URL só guarda cena e passo: o resto do estado da apresentação passa adiante.
-            ( { model
-                | page = page
-                , presentation =
-                    { presentation
-                        | showNotes = model.presentation.showNotes
-                        , forward = model.presentation.forward
-                        , request = model.presentation.request
+            let
+                arrived =
+                    { model
+                        | page = page
+                        , presentation =
+                            { presentation
+                                | showNotes = model.presentation.showNotes
+                                , forward = model.presentation.forward
+                                , request = model.presentation.request
+                            }
                     }
-              }
-            , Cmd.none
-            )
+
+                -- Entrou por link, recarregou ou digitou a URL. Pelas setas, o passo já
+                -- mudou no PresentationMsg e o replaceUrl chega aqui sem mudança.
+                entered =
+                    page == PresentationPage && (model.page /= page || ( presentation.scene, presentation.step ) /= ( model.presentation.scene, model.presentation.step ))
+            in
+            if entered then
+                enterStep arrived Cmd.none
+
+            else
+                ( arrived, Cmd.none )
 
         Ignored ->
             ( model, Cmd.none )
+
+
+{-| Chegou a um passo novo da apresentação. O painel de pedidos começa vazio e,
+se o passo tem `DemoCom`, o jogo da demo
+carrega aquele tabuleiro e começa limpo, sem a dica, a câmera lenta ou a
+velocidade da IA de um slide anterior (o `LoadBoard` desliga a IA e o desafio,
+mas guarda essas três).
+-}
+enterStep : Model -> Cmd Msg -> ( Model, Cmd Msg )
+enterStep arrived cmd =
+    let
+        -- Cada passo começa zerado: a resposta de um pedido ao vivo (#11) não
+        -- reaparece ao voltar ao slide.
+        presentation =
+            arrived.presentation
+
+        model =
+            { arrived | presentation = { presentation | request = Nothing } }
+    in
+    case Presentation.demoBoard model.presentation of
+        Just board ->
+            let
+                current =
+                    model.game
+
+                assist =
+                    current.assist
+
+                ( game, gameCmd ) =
+                    Game.update (Game.LoadBoard board) { current | slowMotion = False, assist = { assist | hintsOn = False, hint = Nothing, interval = Assist.init.interval } }
+            in
+            ( { model | game = game }, Cmd.batch [ cmd, Cmd.map GameMsg gameCmd ] )
+
+        Nothing ->
+            ( model, cmd )
 
 
 view : Model -> Browser.Document Msg

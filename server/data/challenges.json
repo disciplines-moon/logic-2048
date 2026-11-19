@@ -1,0 +1,23 @@
+[
+  {
+    "id": "c1",
+    "title": "Chegue a 16 em 3 jogadas",
+    "board": [[2, 2, 4, 8], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]],
+    "target": 16,
+    "max_moves": 3
+  },
+  {
+    "id": "c2",
+    "title": "Junte tudo num 16 em até 5 jogadas",
+    "board": [[4, 0, 2, 0], [0, 0, 0, 2], [2, 0, 0, 0], [0, 4, 0, 2]],
+    "target": 16,
+    "max_moves": 5
+  },
+  {
+    "id": "c3",
+    "title": "3×3: chegue a 16 em até 4 jogadas",
+    "board": [[2, 4, 0], [0, 2, 0], [4, 0, 4]],
+    "target": 16,
+    "max_moves": 4
+  }
+]

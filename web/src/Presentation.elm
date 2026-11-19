@@ -1,4 +1,4 @@
-module Presentation exposing (Model, Msg(..), Sent, init, keyDecoder, keyToMsg, sceneCount, send, update, view)
+module Presentation exposing (Model, Msg(..), Sent, demoBoard, init, keyDecoder, keyToMsg, sceneCount, send, sendTo, showsDemo, update, view)
 
 {-| Página `#/apresentacao`: a apresentação roda dentro do próprio app.
 
@@ -10,7 +10,8 @@ no painel do apresentador (tecla `n`).
 
 import Api
 import Cenas
-import Cenas.Types exposing (Block(..), Etapa, FlowNode, Member, Pedido, Scene, Step, visibleBlocks)
+import Cenas.Equipe
+import Cenas.Types exposing (Block(..), Etapa, FlowNode, Member, Pedido, Ramo, Scene, Step, sceneSecs, visibleBlocks)
 import Dict exposing (Dict)
 import Html exposing (Html, button, div, h1, h2, kbd, li, p, pre, span, text, ul)
 import Html.Attributes exposing (attribute, class, classList, style)
@@ -23,8 +24,8 @@ import Svg
 import Svg.Attributes as SA
 
 
-{-| `request` é o último pedido do bloco `Pedidos`. Ele não vem da URL, então o
-`Main` o preserva quando a URL muda.
+{-| `request` é o último pedido do bloco `Pedidos`. Ele não vem da URL: o `Main`
+o preserva quando a URL muda sem mudar o passo e o apaga quando o passo muda.
 -}
 type alias Model =
     { scene : Int
@@ -39,13 +40,14 @@ type alias Model =
 servidor não responde.
 -}
 type alias Sent =
-    { body : String
+    { url : String
+    , body : String
     , answer : Maybe (Result Http.Error Api.RawResponse)
     }
 
 
 {-| `SendRequest` marca o pedido como enviado; quem manda de fato é o `Main`, com
-`send`, como faz com a tela cheia. `GotResponse` traz o corpo que respondeu, para
+`send`, como faz com a tela cheia. `GotResponse` traz a rota e o corpo que responderam, para
 descartar respostas atrasadas de outro pedido.
 -}
 type Msg
@@ -60,7 +62,8 @@ type Msg
     | ToggleFullscreen
     | Exit
     | SendRequest String
-    | GotResponse String (Result Http.Error Api.RawResponse)
+    | SendRequestTo String String
+    | GotResponse String String (Result Http.Error Api.RawResponse)
     | Ignored
 
 
@@ -153,12 +156,16 @@ update msg model =
             { model | showNotes = not model.showNotes }
 
         SendRequest body ->
-            { model | request = Just { body = body, answer = Nothing } }
+            update (SendRequestTo "/api/move" body) model
 
-        GotResponse body result ->
+        SendRequestTo url body ->
+            { model | request = Just { url = url, body = body, answer = Nothing } }
+
+        GotResponse url body result ->
             case model.request of
                 Just sent ->
-                    if sent.body == body then
+                    -- Só vale a resposta do pedido atual: mesma rota e mesmo corpo.
+                    if sent.url == url && sent.body == body then
                         { model | request = Just { sent | answer = Just result } }
 
                     else
@@ -171,11 +178,68 @@ update msg model =
             model
 
 
+{-| O passo atual mostra a `Demo`? Fora dela, o jogo da demo fica parado: o
+`Main` só liga o relógio da IA e do replay, e as teclas W A S D, com a demo na tela.
+-}
+showsDemo : Model -> Bool
+showsDemo model =
+    case List.head (List.drop model.scene scenes) of
+        Just ( _, scene ) ->
+            visibleBlocks model.step scene
+                |> List.any
+                    (\( _, block ) ->
+                        case block of
+                            Demo ->
+                                True
+
+                            DemoCom _ ->
+                                True
+
+                            _ ->
+                                False
+                    )
+
+        Nothing ->
+            False
+
+
+{-| O tabuleiro que a `Demo` carrega ao entrar no passo atual (bloco `DemoCom`
+do próprio passo), se houver. O `Main` o manda para o jogo ao mudar de passo.
+-}
+demoBoard : Model -> Maybe (List (List Int))
+demoBoard model =
+    List.head (List.drop model.scene scenes)
+        |> Maybe.andThen (\( _, scene ) -> List.head (List.drop model.step scene.steps))
+        |> Maybe.map .blocks
+        |> Maybe.withDefault []
+        |> List.filterMap
+            (\block ->
+                case block of
+                    DemoCom board ->
+                        Just board
+
+                    _ ->
+                        Nothing
+            )
+        |> List.head
+
+
 {-| Manda o corpo do bloco `Pedidos` ao `POST /api/move` de verdade.
 -}
 send : String -> Cmd Msg
 send body =
-    Api.postRaw "/api/move" body (GotResponse body)
+    sendTo "/api/move" body
+
+
+{-| O mesmo, para outra rota (bloco `PedidosEm`). Sem corpo, é um GET.
+-}
+sendTo : String -> String -> Cmd Msg
+sendTo url body =
+    if String.isEmpty body then
+        Api.getRaw url (GotResponse url body)
+
+    else
+        Api.postRaw url body (GotResponse url body)
 
 
 keyDecoder : D.Decoder Msg
@@ -265,7 +329,7 @@ view config model =
                       )
                     ]
                 , if model.showNotes then
-                    viewNotes (List.head (List.drop model.step scene.steps))
+                    viewNotes model scene
 
                   else
                     text ""
@@ -300,12 +364,73 @@ viewBlockAt config model ( born, block ) =
         [ viewBlock config model.request block ]
 
 
-viewNotes : Maybe Step -> Html msg
-viewNotes maybeStep =
+{-| A fala do passo, com a foto e o nome de quem apresenta (o dono da issue), e o
+relógio do ensaio: quanto este passo leva e em que minuto a fala termina.
+-}
+viewNotes : Model -> Scene -> Html msg
+viewNotes model scene =
+    let
+        current =
+            List.head (List.drop model.step scene.steps)
+
+        secs =
+            Maybe.map .secs current |> Maybe.withDefault 0
+
+        ends =
+            elapsedBefore model + secs
+    in
     div [ class "notes" ]
-        [ Html.b [] [ text "FALA" ]
-        , text (Maybe.map .notes maybeStep |> Maybe.withDefault "")
+        [ div [ class "notes-head" ]
+            [ case Cenas.Equipe.apresentador scene.issue of
+                Just m ->
+                    span [ class "speaker" ]
+                        [ span [ class "speaker-avatar" ]
+                            [ span [ class "initial" ] [ text (String.left 1 m.name) ]
+                            , Html.img [ Html.Attributes.src ("https://github.com/" ++ m.login ++ ".png?size=96"), Html.Attributes.alt "", Html.Attributes.attribute "referrerpolicy" "no-referrer" ] []
+                            ]
+                        , span [ class "speaker-name" ] [ text m.name ]
+                        ]
+
+                Nothing ->
+                    text ""
+            , span [ class "timer" ]
+                [ span [ class "timer-step" ] [ text ("⏱ " ++ String.fromInt secs ++ " s") ]
+                , span [ class "timer-total" ] [ text ("até " ++ clock ends ++ " de " ++ clock totalSecs) ]
+                ]
+            ]
+        , p [ class "notes-text" ] [ text (Maybe.map .notes current |> Maybe.withDefault "") ]
         ]
+
+
+{-| Segundos de fala antes do passo atual (todas as cenas anteriores e os passos
+anteriores desta).
+-}
+elapsedBefore : Model -> Int
+elapsedBefore model =
+    let
+        previous =
+            scenes |> List.take model.scene |> List.map (\( _, sc ) -> sceneSecs sc) |> List.sum
+
+        here =
+            scenes
+                |> List.drop model.scene
+                |> List.head
+                |> Maybe.map (\( _, sc ) -> sc.steps |> List.take model.step |> List.map .secs |> List.sum)
+                |> Maybe.withDefault 0
+    in
+    previous + here
+
+
+{-| A apresentação inteira, em segundos de fala.
+-}
+totalSecs : Int
+totalSecs =
+    scenes |> List.map (\( _, sc ) -> sceneSecs sc) |> List.sum
+
+
+clock : Int -> String
+clock secs =
+    String.fromInt (secs // 60) ++ ":" ++ String.padLeft 2 '0' (String.fromInt (modBy 60 secs))
 
 
 viewFooter : Config msg -> Model -> Scene -> Html msg
@@ -374,10 +499,14 @@ viewBlock config request block =
             pre [ class "pre" ] [ text s ]
 
         Code { file, from, to, mark } ->
-            div [ class "code" ] (excerpt config.sources file from to mark)
+            -- Trecho longo (mais de 18 linhas) usa letra menor, para a cena caber sem rolar.
+            div [ class "code", classList [ ( "long", to - from + 1 > 18 ) ] ] (excerpt config.sources file from to mark)
 
         Demo ->
             div [ class "demo" ] [ config.demo ]
+
+        DemoCom _ ->
+            div [ class "demo demo-solo" ] [ config.demo ]
 
         Team members ->
             div [ class "team" ] (List.indexedMap viewMember members)
@@ -418,7 +547,19 @@ viewBlock config request block =
             viewFlow nodes active back
 
         Pedidos pedidos ->
-            viewPedidos config request pedidos
+            viewPedidos config request "/api/move" pedidos
+
+        PedidosEm url pedidos ->
+            viewPedidos config request url pedidos
+
+        Ciclo { nodes, back } ->
+            viewCiclo nodes back
+
+        Converte { title, pairs } ->
+            viewConverte title pairs
+
+        Arvore { root, branches } ->
+            viewArvore root branches
 
         Clear ->
             text ""
@@ -754,25 +895,166 @@ viewFlow nodes active back =
         ]
 
 
+{-| Um laço que gira sozinho: cada etapa acende na sua vez (`animation-delay`) e o
+ciclo recomeça. As classes `cyc-n3` a `cyc-n6` têm os keyframes de cada tamanho,
+porque o pedaço aceso é 1/N do ciclo.
+-}
+viewCiclo : List FlowNode -> String -> Html msg
+viewCiclo nodes back =
+    let
+        n =
+            List.length nodes
+
+        node i nd =
+            div
+                [ class "node cnode"
+                , class ("k" ++ String.fromInt (modBy 4 i))
+                , style "animation-delay" (String.fromFloat (toFloat i * cicloBeat) ++ "s")
+                , style "animation-duration" (String.fromFloat (toFloat n * cicloBeat) ++ "s")
+                ]
+                [ div [ class "node-logo" ] [ nodeLogo nd.art ]
+                , div [ class "label" ] [ text nd.label ]
+                , div [ class "sub" ] [ text nd.sub ]
+                , if nd.detail == "" then
+                    text ""
+
+                  else
+                    div [ class "cnode-detail" ] [ text nd.detail ]
+                ]
+
+        arrow i =
+            span
+                [ class "arrow carrow"
+                , style "animation-delay" (String.fromFloat (toFloat i * cicloBeat) ++ "s")
+                , style "animation-duration" (String.fromFloat (toFloat n * cicloBeat) ++ "s")
+                ]
+                [ text "→" ]
+    in
+    div [ class ("ciclo cyc-n" ++ String.fromInt (clamp 2 6 n)) ]
+        [ div [ class "flow" ]
+            (nodes
+                |> List.indexedMap
+                    (\i nd ->
+                        node i nd
+                            :: (if i < n - 1 then
+                                    [ arrow i ]
+
+                                else
+                                    []
+                               )
+                    )
+                |> List.concat
+            )
+        , if back == "" then
+            text ""
+
+          else
+            div [ class "ciclo-back" ] [ text back ]
+        ]
+
+
+{-| A árvore do expectimax, de baixo para cima: as folhas entram primeiro (a nota
+de cada tabuleiro depois do sorteio), depois a média de cada jogada sobe pela
+aresta, e por fim a raiz escolhe o máximo e o ramo vencedor acende.
+-}
+viewArvore : String -> List Ramo -> Html msg
+viewArvore root branches =
+    let
+        leaf b j ( chance, nota ) =
+            div [ classList [ ( "arv-leaf", True ), ( "lost", nota == "PERDE" ) ], style "animation-delay" (String.fromFloat (0.3 + toFloat b * 0.25 + toFloat j * 0.12) ++ "s") ]
+                [ span [ class "arv-chance" ] [ text chance ]
+                , span [ class "arv-nota" ] [ text nota ]
+                ]
+
+        branch b r =
+            div [ classList [ ( "arv-branch", True ), ( "best", r.best ) ] ]
+                [ div [ class "arv-move", style "animation-delay" (String.fromFloat (0.15 + toFloat b * 0.2) ++ "s") ] [ text r.label ]
+                , div [ class "arv-chance-node", style "animation-delay" (String.fromFloat (1.6 + toFloat b * 0.35) ++ "s") ]
+                    [ span [ class "arv-kind" ] [ text "média" ]
+                    , span [ class "arv-value" ] [ text r.value ]
+                    ]
+                , div [ class "arv-leaves" ] (List.indexedMap (leaf b) r.leaves)
+                ]
+    in
+    div [ class "arvore" ]
+        [ div [ class "arv-root" ]
+            [ span [ class "arv-kind" ] [ text "máximo" ]
+            , span [ class "arv-value" ] [ text root ]
+            ]
+        , div [ class "arv-branches" ] (List.indexedMap branch branches)
+        ]
+
+
+{-| Segundos que cada etapa do `Ciclo` (e cada linha acesa do código) fica acesa.
+-}
+cicloBeat : Float
+cicloBeat =
+    1.8
+
+
+{-| Linhas "entra → sai". Cada linha entra na sua vez: o valor da esquerda, a seta
+com um ponto que atravessa e o valor da direita. Depois, as linhas acendem uma de
+cada vez, em ciclo, como o `Ciclo`.
+-}
+viewConverte : String -> List ( String, String ) -> Html msg
+viewConverte title pairs =
+    let
+        n =
+            List.length pairs
+
+        row i ( from, to ) =
+            div
+                [ class "conv-row"
+                , style "animation-delay" (String.fromFloat (toFloat i * 0.9) ++ "s, " ++ String.fromFloat (toFloat n * 0.9 + toFloat i * cicloBeat) ++ "s")
+                , style "animation-duration" ("0.5s, " ++ String.fromFloat (toFloat n * cicloBeat) ++ "s")
+                ]
+                [ span [ class "conv-from" ] [ text from ]
+                , span [ class "conv-arrow", style "animation-delay" (String.fromFloat (toFloat i * 0.9 + 0.3) ++ "s") ] [ span [ class "conv-dot" ] [] ]
+                , span [ class "conv-to", style "animation-delay" (String.fromFloat (toFloat i * 0.9 + 0.6) ++ "s") ] [ text to ]
+                ]
+    in
+    div [ class ("converte cyc-n" ++ String.fromInt (clamp 2 6 n)) ]
+        ((if title == "" then
+            []
+
+          else
+            [ div [ class "conv-title" ] [ text title ] ]
+         )
+            ++ List.indexedMap row pairs
+        )
+
+
 {-| Botões com pedidos prontos e, depois do primeiro clique, o pedido enviado ao
 lado da resposta real do servidor.
 -}
-viewPedidos : Config msg -> Maybe Sent -> List Pedido -> Html msg
-viewPedidos config request pedidos =
+viewPedidos : Config msg -> Maybe Sent -> String -> List Pedido -> Html msg
+viewPedidos config request url pedidos =
     let
         current =
-            Maybe.map .body request
+            Maybe.map (\sent -> ( sent.url, sent.body )) request
 
         pedidoButton pedido =
             button
-                [ classList [ ( "pd-button", True ), ( "on", current == Just pedido.body ) ]
-                , onClick (config.toMsg (SendRequest pedido.body))
+                [ classList [ ( "pd-button", True ), ( "on", current == Just ( url, pedido.body ) ) ]
+                , onClick (config.toMsg (SendRequestTo url pedido.body))
                 ]
                 [ text pedido.label ]
+
+        -- Um pedido feito em outra cena (outra rota) não aparece aqui.
+        here =
+            request
+                |> Maybe.andThen
+                    (\sent ->
+                        if sent.url == url then
+                            Just sent
+
+                        else
+                            Nothing
+                    )
     in
     div [ class "pd" ]
         [ div [ class "pd-buttons" ] (List.map pedidoButton pedidos)
-        , case request of
+        , case here of
             Nothing ->
                 div [ class "pd-hint" ] [ text "Clique num pedido: ele vai de verdade ao servidor." ]
 
@@ -783,14 +1065,31 @@ viewPedidos config request pedidos =
                     [ class "pd-panes" ]
                     [ ( sent.body
                       , div [ class "pd-pane pd-request" ]
-                            [ div [ class "pd-head" ] [ text "POST /api/move" ]
-                            , pre [ class "pd-json" ] [ text sent.body ]
+                            [ div [ class "pd-head" ] [ text (method sent.body ++ " " ++ sent.url) ]
+                            , pre [ class "pd-json" ]
+                                [ text
+                                    (if String.isEmpty sent.body then
+                                        "(sem corpo)"
+
+                                     else
+                                        sent.body
+                                    )
+                                ]
                             ]
                       )
                     , ( "seta", div [ class "pd-arrow" ] [ text "→" ] )
                     , ( sent.body ++ answerKey sent.answer, viewAnswer sent.answer )
                     ]
         ]
+
+
+method : String -> String
+method body =
+    if String.isEmpty body then
+        "GET"
+
+    else
+        "POST"
 
 
 answerKey : Maybe (Result Http.Error Api.RawResponse) -> String
@@ -883,11 +1182,17 @@ prettyJson body =
                 ++ "\n}"
 
         Err _ ->
-            if String.isEmpty body then
-                "(sem corpo)"
+            case D.decodeString (D.list D.value) body of
+                -- Uma lista (o GET /api/challenges): um item por linha.
+                Ok items ->
+                    "[\n" ++ String.join ",\n" (List.map (\v -> "  " ++ E.encode 0 v) items) ++ "\n]"
 
-            else
-                body
+                Err _ ->
+                    if String.isEmpty body then
+                        "(sem corpo)"
+
+                    else
+                        body
 
 
 plTile : String -> Int -> Int -> String -> Int -> Html msg
@@ -1268,6 +1573,30 @@ excerpt sources file from to mark =
 
                     else
                         to
+
+                marks =
+                    mark |> List.filter (\n -> n >= start && n <= last) |> List.sort
+
+                tour =
+                    List.length marks
+
+                -- Com 2 ou mais linhas marcadas, elas acendem uma de cada vez, em
+                -- ciclo (o "tour"), depois que o trecho termina de entrar. O CSS
+                -- tem ciclos de até 8 linhas: da 9ª marca em diante, o destaque é fixo.
+                tourStyle n =
+                    case indexOf n marks of
+                        Just j ->
+                            if tour >= 2 && j < 8 then
+                                [ class ("tour tour-n" ++ String.fromInt (min 8 tour))
+                                , style "animation-delay" (String.fromInt (min 600 ((n - start) * 30)) ++ "ms, " ++ String.fromFloat (1.0 + toFloat j * cicloBeat) ++ "s")
+                                , style "animation-duration" ("0.4s, " ++ String.fromFloat (toFloat (min 8 tour) * cicloBeat) ++ "s")
+                                ]
+
+                            else
+                                [ style "animation-delay" (String.fromInt (min 600 ((n - start) * 30)) ++ "ms") ]
+
+                        Nothing ->
+                            [ style "animation-delay" (String.fromInt (min 600 ((n - start) * 30)) ++ "ms") ]
             in
             lines
                 |> List.indexedMap (\i l -> ( i + 1, l ))
@@ -1275,9 +1604,7 @@ excerpt sources file from to mark =
                 |> List.map
                     (\( n, l ) ->
                         div
-                            [ classList [ ( "line", True ), ( "mark", List.member n mark ) ]
-                            , style "animation-delay" (String.fromInt (min 600 ((n - start) * 30)) ++ "ms")
-                            ]
+                            (classList [ ( "line", True ), ( "mark", List.member n mark ) ] :: tourStyle n)
                             [ span [ class "no" ] [ text (String.fromInt n) ]
                             , text (l ++ " ")
                             ]
@@ -1375,3 +1702,12 @@ viewMember i m =
         , div [ class "mname" ] [ text m.name ]
         , div [ class "mlogin" ] [ text ("@" ++ m.login) ]
         ]
+
+
+indexOf : a -> List a -> Maybe Int
+indexOf x xs =
+    xs
+        |> List.indexedMap Tuple.pair
+        |> List.filter (\( _, y ) -> y == x)
+        |> List.head
+        |> Maybe.map Tuple.first

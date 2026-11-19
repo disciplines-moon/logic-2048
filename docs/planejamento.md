@@ -32,7 +32,7 @@ endpoints e dos predicados estão no [contrato](contrato.md).
 
 **Núcleo**
 - Tabuleiro de 3×3 a 6×6.
-- Mover, fundir, pontuar, vitória (>= 2048, com opção de continuar) e derrota.
+- Mover, fundir, pontuar, vitória pela peça do tamanho (256 no 3×3, 2048 no 4×4, 4096 no 5×5, 8192 no 6×6), com opção de continuar, e derrota.
 
 **Extras que mostram os paradigmas**
 - **Dica de jogada:** expectimax em Prolog, com backtracking e média sobre as peças possíveis.
@@ -96,8 +96,10 @@ conseguir explicar o que aprovou.
 | 16/11 a 17/11 | Dica, desafios, interface e animações |
 | 18/11 | Prova de Elm (nenhuma issue vence nesse dia) |
 | 19/11 a 21/11 | Ports, endpoints dos extras e a interface ligada aos extras |
-| 22/11 | Integração final e QA |
-| 23/11 | Código congelado. Só correções |
+| 18/11, 23h59 | **Entrega (lote 1, sem desconto):** código na `main`, tag `v1.0` e `RELATORIO.md` sem erros no validador (`make validar`). A entrega foi antecipada: #11, #14 e #20 fecharam no PR #35 |
+| 22/11 | Integração final e QA (planejado; adiantado para 18/11) |
+| 23/11 | Código congelado. Só correções (lote 2, com desconto de 10%) |
+| 30/11 | Avaliação 360: cada integrante entrega a sua |
 | 25/11, 27/11, 02/12 | Apresentações (a data do grupo será definida pelo professor) |
 
 ## Fluxo de trabalho
@@ -110,6 +112,8 @@ conseguir explicar o que aprovou.
 - Se o contrato mudar, atualize o [`contrato.md`](contrato.md) no mesmo PR e avise o grupo.
 - Código copiado de fora ou de IA deve ser entendido por quem o enviou. O professor
   usa detecção de plágio e anula o trabalho, sem distinguir quem copiou de quem cedeu.
+- Todo uso de IA é declarado na seção 11 do [`RELATORIO.md`](../RELATORIO.md), com a
+  faixa de cada parte. Não declarar anula o trabalho; declarar custa no máximo 0,5.
 
 ## Quem implementa explica
 
@@ -121,10 +125,13 @@ Ao concluir uma issue, a pessoa monta a **cena** dela (`web/src/Cenas/IssueNN.el
 
 ```
 logic-2048/
-├── docs/       planejamento, contrato e documentação
-├── prolog/     motor de regras e testes (plunit)
-├── server/     API em Python (FastAPI + janus)
-└── web/        interface em Elm (Vite)
+├── RELATORIO.md  relatório de entrega (modelo da disciplina)
+├── Makefile      make install, dev, rodar, test e validar
+├── docs/         planejamento, contrato, arquitetura, apresentação e QA
+├── prolog/       motor de regras, dica, desafios e testes (plunit)
+├── scripts/      rodar.sh (um comando) e validar_entrega.py (validador)
+├── server/       API em Python (FastAPI + janus)
+└── web/          interface em Elm (Vite) e a apresentação
 ```
 
 ## Riscos

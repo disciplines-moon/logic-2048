@@ -12,7 +12,50 @@ import Test exposing (Test, describe, test)
 suite : Test
 suite =
     describe "Api"
-        [ test "codifica o pedido de movimento" <|
+        [ describe "dica e desafios (#20)"
+            [ test "dica com direção e scores na ordem do contrato" <|
+                \_ ->
+                    D.decodeString Api.hintDecoder "{\"direction\": \"left\", \"depth\": 2, \"scores\": {\"down\": 9.0, \"left\": 12.5, \"right\": 12.5}}"
+                        |> Expect.equal (Ok { direction = Just Left, depth = 2, scores = [ ( Left, 12.5 ), ( Right, 12.5 ), ( Down, 9.0 ) ] })
+            , test "dica sem jogada: null vira Nothing" <|
+                \_ ->
+                    D.decodeString Api.hintDecoder "{\"direction\": null, \"depth\": 2, \"scores\": {}}"
+                        |> Expect.equal (Ok { direction = Nothing, depth = 2, scores = [] })
+            , test "direção desconhecida é resposta inválida" <|
+                \_ ->
+                    D.decodeString Api.hintDecoder "{\"direction\": \"diagonal\", \"depth\": 2, \"scores\": {}}"
+                        |> Result.toMaybe
+                        |> Expect.equal Nothing
+            , test "solução do desafio" <|
+                \_ ->
+                    D.decodeString Api.solutionDecoder "{\"solvable\": true, \"moves\": [\"left\", \"up\"]}"
+                        |> Expect.equal (Ok { solvable = True, moves = [ Left, Up ] })
+            , test "desafio da lista" <|
+                \_ ->
+                    D.decodeString Api.challengeDecoder "{\"id\": \"c1\", \"title\": \"t\", \"board\": [[2,2,4],[0,0,0],[0,0,0]], \"target\": 8, \"max_moves\": 2}"
+                        |> Expect.equal (Ok { id = "c1", title = "t", board = [ [ 2, 2, 4 ], [ 0, 0, 0 ], [ 0, 0, 0 ] ], target = 8, maxMoves = 2 })
+            , test "422 lê a mensagem do corpo" <|
+                \_ ->
+                    Api.apiResult D.int (Http.BadStatus_ (metadata 422) "{\"error\": \"depth: use um número de 1 a 3\"}")
+                        |> Expect.equal (Err (Api.Rejected "depth: use um número de 1 a 3"))
+            , test "500 é erro do servidor" <|
+                \_ ->
+                    Api.apiResult D.int (Http.BadStatus_ (metadata 500) "{\"error\": \"erro interno no servidor\"}")
+                        |> Expect.equal (Err (Api.Server 500))
+            , test "502 do proxy (API parada) é falta de resposta" <|
+                \_ ->
+                    Api.apiResult D.int (Http.BadStatus_ (metadata 502) "")
+                        |> Expect.equal (Err Api.Network)
+            , test "200 fora do formato é resposta inválida" <|
+                \_ ->
+                    Api.apiResult D.int (Http.GoodStatus_ (metadata 200) "{}")
+                        |> Expect.equal (Err Api.Invalid)
+            , test "rede fora" <|
+                \_ ->
+                    Api.apiResult D.int Http.NetworkError_
+                        |> Expect.equal (Err Api.Network)
+            ]
+        , test "codifica o pedido de movimento" <|
             \_ ->
                 Api.encodeMove [ [ 2, 0 ] ] Left
                     |> E.encode 0

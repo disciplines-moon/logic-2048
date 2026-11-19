@@ -197,3 +197,10 @@ def move(req: MoveRequest) -> MoveResponse:
     lost = janus.query_once("game:game_lost(B)", {"B": new})["truth"]
     # moved só compara os dois tabuleiros: é dado, não regra de jogo.
     return MoveResponse(board=new, score=score, moved=new != req.board, won=won, lost=lost, moves=moves)
+
+
+# Rotas extras (#11): dica e desafios. O import fica no fim porque o extras.py
+# usa o Board daqui; os handlers de erro do app valem também para elas.
+from extras import router  # noqa: E402
+
+app.include_router(router)
