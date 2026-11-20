@@ -98,9 +98,10 @@ conseguir explicar o que aprovou.
 | 19/11 a 21/11 | Ports, endpoints dos extras e a interface ligada aos extras |
 | 18/11, 23h59 | **Entrega (lote 1, sem desconto):** código na `main`, tag `v1.0` e `RELATORIO.md` sem erros no validador (`make validar`). A entrega foi antecipada: #11, #14 e #20 fecharam no PR #35 |
 | 22/11 | Integração final e QA (planejado; adiantado para 18/11) |
-| 23/11 | Código congelado. Só correções (lote 2, com desconto de 10%) |
+| 20/11 | Primeira entrega no Codehood (`git push codehood main`), que substituiu o GitHub Classroom. Os prazos mudaram: lote 1 até 23/11 e lote 2 até 25/11, ambos sem desconto |
+| 25/11, 23h59 | Último push no Codehood sem desconto. Depois disso, só o GitHub |
 | 30/11 | Avaliação 360: cada integrante entrega a sua |
-| 25/11, 27/11, 02/12 | Apresentações (a data do grupo será definida pelo professor) |
+| 27/11, 02/12 | Apresentações (a de 25/11 foi cancelada pelo professor; quem entrega primeiro escolhe a data) |
 
 ## Fluxo de trabalho
 

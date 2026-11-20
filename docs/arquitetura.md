@@ -52,7 +52,7 @@ O Python continua chamando `game:hint(...)` e `game:challenge(...)`: o `game.pl`
 | `main.py` | cria o `app`, validação (tipos `Board` e `Direction`, reusados pelo `extras.py`), handlers de erro, `POST /api/move` e serve a interface compilada (`web/dist`) se existir | #10 (move), #13 (estáticos) |
 | `extras.py` | `APIRouter` com `/api/hint`, `/api/challenge`, `/api/challenges`; incluído por `main.py` | #11 |
 | `data/challenges.json` | lista fixa de desafios | #11 |
-| `test_main.py`, `test_extras.py` | testes pytest | cada issue |
+| `tests/test_main.py`, `tests/test_extras.py` | testes pytest (configurados no `pyproject.toml`) | cada issue |
 
 ### Scripts, automação e entrega (`scripts/`, `.github/`, raiz)
 

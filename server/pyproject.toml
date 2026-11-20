@@ -7,3 +7,8 @@ dependencies = ["fastapi[standard]", "janus-swi"]
 
 [dependency-groups]
 dev = ["pytest", "httpx"]
+
+[tool.pytest.ini_options]
+# Os testes ficam em tests/ e importam `main` e `extras` da pasta server/.
+testpaths = ["tests"]
+pythonpath = ["."]
