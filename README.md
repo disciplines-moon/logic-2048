@@ -101,8 +101,7 @@ Confira com `swipl --version` (precisa ser >= 9.1.12), `uv --version` e
 ### 2. Baixar e instalar as dependências
 
 ```bash
-git clone https://github.com/disciplines-moon/logic-2048.git
-cd logic-2048
+# na raiz do repositório (o clone do Codehood ou o do GitHub do grupo)
 make install          # o mesmo que: (cd server && uv sync) e (cd web && npm install)
 ```
 

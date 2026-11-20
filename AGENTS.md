@@ -73,6 +73,6 @@ Versões instaladas ficam em `skills-lock.json`.
 
 ## Prazos
 
-Entrega (lote 1) em 18/11, 23h59: código na `main`, tag `v1.0` e `RELATORIO.md` sem erros em `make validar`. Avaliação 360 até 30/11. Apresentações em 25/11, 27/11 e 02/12.
+A entrega é a `main` enviada ao Codehood (`git push codehood main`); o servidor só aceita a `main`, sem tags. Lote 1 até 23/11, 23h59, e último push sem desconto até 25/11, 23h59: depois disso, **nenhum push no Codehood** (vira entrega atrasada, G × 0,75). O GitHub continua livre. Avaliação 360 até 30/11, numa atividade própria do Codehood. Apresentações em 27/11 e 02/12; quem entrega primeiro escolhe a data.
 
 Todo uso de IA entra na seção 11 do `RELATORIO.md`, com a faixa de cada parte.

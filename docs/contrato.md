@@ -141,7 +141,7 @@ hint(+Board, +Depth, -Best, -Scores)       % Scores = [left-V1, right-V2, ...]; 
 challenge(+Board, +Target, +MaxMoves, -Moves)   % falha se não houver solução
 ```
 
-Conversões na fronteira (feitas no Python, em `server/extras.py`, testadas em `server/test_extras.py`):
+Conversões na fronteira (feitas no Python, em `server/extras.py`, testadas em `server/tests/test_extras.py`):
 `Scores` vira objeto JSON, `Best = none` vira `null`, e a falha de `challenge`
 vira `{"solvable": false, "moves": []}`. O janus converte strings Python em
 átomos, então `direction` chega ao Prolog como `left`, `right`, `up` ou `down`.

@@ -15,7 +15,7 @@
 - **Nome do projeto:** Logic2048
 - **Nome do grupo:** Backtrackers
 - **Repositório:** https://github.com/disciplines-moon/logic-2048
-- **Commit ou tag entregue:** `v1.0`
+- **Commit ou tag entregue:** `main`
 - **Ponto de partida:** outro jogo conhecido
 - **Slides da apresentação oral:** não há
 
@@ -51,11 +51,9 @@ trabalho. O Python só valida a entrada e traduz JSON para Prolog e de volta.
 
 **Instalação e execução:**
 
-```sh
-git clone https://github.com/disciplines-moon/logic-2048.git
-cd logic-2048
-git checkout v1.0
+Todos os comandos rodam na raiz do repositório entregue (o clone do Codehood).
 
+```sh
 # Opção 1: um comando só. Compila a interface e o FastAPI serve API e interface
 # juntas em http://localhost:8000 (a apresentação fica em /#/apresentacao).
 make install
@@ -210,7 +208,7 @@ direções é o backtracking, a ordem crescente de tamanhos é o labeling e a po
 uma restrição aritmética declarada uma vez. "Sem solução" também é natural: o
 predicado simplesmente falha, e o Python traduz a falha para `"solvable": false`.
 Os três desafios do jogo (`server/data/challenges.json`) são conferidos em
-`prolog/test_challenge.pl` e de novo pela API em `server/test_extras.py`.
+`prolog/test_challenge.pl` e de novo pela API em `server/tests/test_extras.py`.
 
 A dica (`prolog/hint.pl`) é o outro trecho de que o grupo mais gosta: a árvore do
 expectimax inteira é a recursão mútua entre `max_value/3` (o melhor dos filhos,
@@ -423,8 +421,8 @@ casas vazias, a profundidade cai para 2 e a resposta diz a profundidade usada.
   jogada, só direções válidas, determinismo, um nó de sorteio conferido à mão,
   heurística e tempo. `prolog/test_challenge.pl` (37): menor sequência, desempate,
   tabuleiro que já tem a peça, falha sem solução e os três desafios do jogo.
-- **Python, 55 testes pytest, sem mock.** `server/test_main.py` (30) e
-  `server/test_extras.py` (25) chamam o Prolog de verdade: formato das respostas,
+- **Python, 55 testes pytest, sem mock.** `server/tests/test_main.py` (30) e
+  `server/tests/test_extras.py` (25) chamam o Prolog de verdade: formato das respostas,
   422 com a mensagem certa para cada entrada inválida, limites da dica, redução da
   profundidade, conversões de fronteira e que todos os desafios do JSON têm
   solução.
@@ -443,7 +441,7 @@ casas vazias, a profundidade cai para 2 e a resposta diz a profundidade usada.
 
 - Tabuleiro inválido: não quadrado, fora de 3×3 a 6×6, valor que não é 0 nem
   potência de 2, texto no lugar de número, JSON quebrado. Todos dão 422 com uma
-  frase que diz o que está errado (testados em `server/test_main.py`).
+  frase que diz o que está errado (testados em `server/tests/test_main.py`).
 - Jogada que não muda o tabuleiro: não sorteia peça nem entra no histórico.
 - Uma fusão por peça por jogada: `[2,2,2,2]` vira `[4,4,0,0]`, não `[8,0,0,0]`.
 - Sem jogada possível: a dica responde `null`, a IA para e avisa, e o fim de jogo aparece.

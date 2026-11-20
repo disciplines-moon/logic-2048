@@ -211,7 +211,7 @@ RECORTES = {
 def test_recortes_da_cena_issue11_continuam_no_lugar():
     """A cena mostra trechos destes arquivos por número de linha. Se o arquivo
     mudar e o trecho sair do lugar, este teste avisa."""
-    raiz = Path(__file__).parent.parent
+    raiz = Path(__file__).parents[2]  # server/tests/ -> raiz do repositório
     cena = (raiz / "web/src/Cenas/Issue11.elm").read_text()
     blocos = set(re.findall(r'Code \{ file = "([^"]+)", from = (\d+), to = (\d+)', cena))
     assert {(f, str(a), str(b)) for f, a, b in RECORTES} == blocos

@@ -282,7 +282,7 @@ def test_recortes_da_cena_issue10_continuam_no_lugar():
     """A cena mostra trechos destes arquivos por número de linha, e esses números
     não se atualizam sozinhos. Se este teste falhar, o código mudou de lugar:
     corrija o from, to e mark em web/src/Cenas/Issue10.elm e as linhas acima."""
-    raiz = Path(__file__).parent.parent
+    raiz = Path(__file__).parents[2]  # server/tests/ -> raiz do repositório
     cena = (raiz / "web/src/Cenas/Issue10.elm").read_text()
     blocos = re.findall(r'Code \{ file = "([^"]+)", from = (\d+), to = (\d+)', cena)
     assert {(f, int(de), int(ate)) for f, de, ate in blocos} == set(RECORTES_DA_CENA_ISSUE10)
